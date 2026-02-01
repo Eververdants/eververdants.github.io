@@ -1,0 +1,29 @@
+[
+  {
+    "id": "1",
+    "title": "EcoTrack 仪表盘",
+    "titleEn": "EcoTrack Dashboard",
+    "description": "一个用于追踪个人碳足迹和可持续习惯的综合分析平台。",
+    "descriptionEn": "A comprehensive analytics platform for tracking personal carbon footprints and sustainable habits.",
+    "fullDescription": "EcoTrack 旨在通过直观的数据可视化帮助个人了解其环境影响。该仪表盘汇集了来自智能家居设备和手动输入的数据，以计算每日碳足迹。",
+    "fullDescriptionEn": "EcoTrack is designed to help individuals visualize their environmental impact through intuitive data visualization. The dashboard aggregates data from smart home devices and manual inputs to calculate daily carbon footprints.",
+    "category": "Web 应用",
+    "categoryEn": "Web App",
+    "features": [
+      "使用 D3.js 实现实时能耗可视化",
+      "游戏化目标追踪系统",
+      "智能设备集成 (IoT)",
+      "可导出 PDF 报告"
+    ],
+    "featuresEn": [
+      "Real-time energy consumption visualization using D3.js",
+      "Gamified goal tracking system",
+      "Smart device integration (IoT)",
+      "Exportable PDF reports"
+    ],
+    "tags": ["React", "D3.js", "Node.js", "PostgreSQL"],
+    "imageUrl": "https://picsum.photos/800/600?random=1",
+    "demoUrl": "https://example.com/ecotrack",
+    "repoUrl": "https://github.com/eververdants/ecotrack"
+  }
+]

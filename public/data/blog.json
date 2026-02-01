@@ -1,0 +1,18 @@
+[
+  {
+    "id": "1",
+    "title": "数字静默的艺术",
+    "titleEn": "The Art of Digital Silence",
+    "excerpt": "探索网页设计中的极简主义，以及留白如何为思考创造空间。",
+    "excerptEn": "Exploring minimalism in web design and how negative space creates room for thought.",
+    "date": "2024年10月12日",
+    "dateEn": "Oct 12, 2024",
+    "readTime": "5分钟阅读",
+    "readTimeEn": "5 min read",
+    "tags": ["设计", "极简主义", "哲学"],
+    "tagsEn": ["Design", "Minimalism", "Philosophy"],
+    "imageUrl": "https://picsum.photos/1200/600?random=101",
+    "content": "在一个渴望注意力的世界里，沉默是一种奢侈...",
+    "contentEn": "In a world screaming for attention, silence is a luxury..."
+  }
+]

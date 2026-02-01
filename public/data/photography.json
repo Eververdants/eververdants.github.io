@@ -1,0 +1,22 @@
+[
+  {
+    "id": "1",
+    "title": "城市孤寂",
+    "titleEn": "Urban Solitude",
+    "description": "新宿车站喧嚣中的片刻宁静。静止的身影与模糊的人群形成鲜明对比，强调了特大城市中的孤独感。",
+    "descriptionEn": "A quiet moment amidst the hustle of Shinjuku station. The contrast between the stationary figure and the blur of the crowd emphasizes the feeling of isolation in a megacity.",
+    "url": "https://picsum.photos/600/800?random=10",
+    "aspectRatio": "tall",
+    "location": "东京，新宿",
+    "locationEn": "Shinjuku, Tokyo",
+    "date": "2023年11月",
+    "dateEn": "November 2023",
+    "technicalDetails": {
+      "camera": "Sony A7R IV",
+      "lens": "35mm f/1.4 GM",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/60s",
+      "iso": "800"
+    }
+  }
+]
