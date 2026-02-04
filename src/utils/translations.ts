@@ -15,9 +15,7 @@ export const translations = {
       projects: 'Projects',
       photography: 'Photography',
       calligraphy: 'Calligraphy',
-      blog: 'Blog',
-      contact: 'Contact Me',
-      letsTalk: "Let's Talk"
+      blog: 'Blog'
     },
     hero: {
       title: 'Code, Lens,',
@@ -80,29 +78,9 @@ export const translations = {
         close: 'Close Article',
         by: 'By'
       },
-      contact: {
-        title: "Let's Connect",
-        desc: "I'm always open to discussing new projects, creative ideas, or opportunities to be part of your visions. Whether you have a question or just want to say hi, I'll try my best to get back to you!",
-        follow: 'Follow Me',
-        location: 'Jiangsu, China',
-        form: {
-          name: 'Name',
-          email: 'Email',
-          message: 'Message',
-          send: 'Send Message',
-          sent: 'Message Sent!'
-        }
-      },
       footer: {
         madeWith: 'Made with',
         and: 'and'
-      },
-      aiMuse: {
-        title: 'AI Muse',
-        poweredBy: 'Powered by Gemini 3 Flash',
-        greeting: 'Greetings. I am your creative muse. Give me a seed word, and I shall grow a thought.',
-        placeholder: "Type a word (e.g., 'Silence', 'Ocean', 'Code')...",
-        error: 'The connection to the ether is weak. Please try again.'
       },
       gallery: {
         title: 'Visual Harmony',
@@ -122,9 +100,7 @@ export const translations = {
       projects: '项目',
       photography: '摄影',
       calligraphy: '书法',
-      blog: '日志',
-      contact: '联系我',
-      letsTalk: '保持联系'
+      blog: '日志'
     },
     hero: {
       title: '代码、光影，',
@@ -187,29 +163,9 @@ export const translations = {
         close: '关闭文章',
         by: '作者'
       },
-      contact: {
-        title: '保持联系',
-        desc: '我随时欢迎讨论新项目、创意点子，或者参与您愿景的机会。无论您有问题还是只想打个招呼，我都会尽力回复！',
-        follow: '关注我',
-        location: '中国江苏',
-        form: {
-          name: '姓名',
-          email: '邮箱',
-          message: '留言内容',
-          send: '发送留言',
-          sent: '发送成功！'
-        }
-      },
       footer: {
         madeWith: '制作于',
         and: '使用'
-      },
-      aiMuse: {
-        title: 'AI 灵感缪斯',
-        poweredBy: '由 Gemini 3 Flash 驱动',
-        greeting: '你好。我是你的创意缪斯。给我一个词，我将为你生长出一个思想。',
-        placeholder: '输入一个词（例如："静默"、"海洋"、"代码"）...',
-        error: '与灵感之源的连接微弱。请稍后再试。'
       },
       gallery: {
         title: '视觉和谐',

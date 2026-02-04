@@ -115,13 +115,6 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onNavigate }) => {
             >
               {isDark ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-
-            <button
-              onClick={() => onNavigate('home', '#contact')}
-              className="ml-2 px-5 py-2.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-semibold hover:shadow-lg hover:scale-105 transition-all"
-            >
-              {t('nav.letsTalk')}
-            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -161,12 +154,6 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onNavigate }) => {
                 {link.name}
               </button>
             ))}
-            <button
-              onClick={() => handleNavClick('home', '#contact')}
-              className="mt-2 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-bold text-center border border-emerald-500/30"
-            >
-              {t('nav.contact')}
-            </button>
           </div>
         </div>
       )}
