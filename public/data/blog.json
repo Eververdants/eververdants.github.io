@@ -1,18 +1,18 @@
 [
   {
     "id": "1",
-    "title": "数字静默的艺术",
-    "titleEn": "The Art of Digital Silence",
-    "excerpt": "探索网页设计中的极简主义，以及留白如何为思考创造空间。",
-    "excerptEn": "Exploring minimalism in web design and how negative space creates room for thought.",
-    "date": "2024年10月12日",
-    "dateEn": "Oct 12, 2024",
-    "readTime": "5分钟阅读",
-    "readTimeEn": "5 min read",
-    "tags": ["设计", "极简主义", "哲学"],
-    "tagsEn": ["Design", "Minimalism", "Philosophy"],
-    "imageUrl": "https://picsum.photos/1200/600?random=101",
-    "content": "在一个渴望注意力的世界里，沉默是一种奢侈...",
-    "contentEn": "In a world screaming for attention, silence is a luxury..."
+    "title": "从 Vite 到生产环境：我的部署之旅",
+    "titleEn": "From Vite to Production: My Deployment Journey",
+    "excerpt": "分享我如何将个人网站从 Next.js 迁移到 Vite，并实现 GitHub Pages 和 Vercel 双平台部署的经验。",
+    "excerptEn": "Sharing my experience migrating my personal website from Next.js to Vite and achieving dual-platform deployment on GitHub Pages and Vercel.",
+    "date": "2024年12月15日",
+    "dateEn": "Dec 15, 2024",
+    "readTime": "8分钟阅读",
+    "readTimeEn": "8 min read",
+    "tags": ["开发", "Vite", "部署"],
+    "tagsEn": ["Development", "Vite", "Deployment"],
+    "imageUrl": "https://picsum.photos/1200/600?random=201",
+    "content": "最近，我决定将我的个人网站从 Next.js 迁移到 Vite + React。这不仅仅是一次技术栈的更换，更是一次对现代前端工具链的深入探索。\n\n## 为什么选择 Vite？\n\nNext.js 是一个强大的框架，但对于我的个人网站来说，它有点"过度设计"了。我需要的是：\n\n- 更快的开发体验\n- 更简单的配置\n- 更小的构建产物\n- 更灵活的部署选项\n\nVite 完美地满足了这些需求。它的即时热更新（HMR）让开发体验丝滑流畅，构建速度也快得惊人。\n\n## 迁移过程\n\n迁移并不复杂，主要步骤包括：\n\n1. 将 pages 目录改为组件化的 SPA 架构\n2. 使用 React Router 替代 Next.js 的文件路由\n3. 将 API routes 迁移到 Cloudflare Workers\n4. 配置 Vite 的构建选项\n\n最大的挑战是处理动态路由和 SEO。对于 SPA 来说，这需要一些额外的配置。\n\n## 双平台部署\n\n我实现了 GitHub Pages 和 Vercel 的双平台部署：\n\n- **GitHub Pages**：通过 GitHub Actions 自动构建和部署，完全免费\n- **Vercel**：提供更快的 CDN 和更好的开发体验\n\n两个平台都配置了相同的环境变量，确保功能一致。\n\n## 性能优化\n\n通过代码分割和资源优化，我将首屏加载时间从 2.5s 降低到了 1.2s：\n\n- React 和 React-DOM 单独打包\n- 图标库按需加载\n- CSS 提取和压缩\n- 图片使用 CDN\n\n## 经验总结\n\n1. **选择合适的工具**：不要盲目追求"最新最热"，选择最适合项目需求的\n2. **渐进式迁移**：不要一次性重写所有代码，分模块逐步迁移\n3. **自动化部署**：CI/CD 是必须的，它能节省大量时间\n4. **性能监控**：使用 Lighthouse 等工具持续监控性能\n\n## 下一步计划\n\n- 添加 PWA 支持\n- 实现离线缓存\n- 优化图片加载策略\n- 添加更多交互动画\n\n如果你也在考虑迁移到 Vite，希望这篇文章能给你一些启发。记住，技术选型没有绝对的对错，只有是否适合你的项目。",
+    "contentEn": "Recently, I decided to migrate my personal website from Next.js to Vite + React. This wasn't just a tech stack change, but a deep dive into modern frontend tooling.\n\n## Why Vite?\n\nNext.js is a powerful framework, but for my personal website, it felt a bit \"over-engineered\". What I needed was:\n\n- Faster development experience\n- Simpler configuration\n- Smaller build output\n- More flexible deployment options\n\nVite perfectly met these needs. Its instant Hot Module Replacement (HMR) makes development silky smooth, and the build speed is impressively fast.\n\n## Migration Process\n\nThe migration wasn't complex. Main steps included:\n\n1. Converting pages directory to component-based SPA architecture\n2. Using React Router instead of Next.js file-based routing\n3. Migrating API routes to Cloudflare Workers\n4. Configuring Vite build options\n\nThe biggest challenge was handling dynamic routing and SEO. For SPAs, this requires some extra configuration.\n\n## Dual Platform Deployment\n\nI achieved dual-platform deployment on GitHub Pages and Vercel:\n\n- **GitHub Pages**: Automatic build and deploy via GitHub Actions, completely free\n- **Vercel**: Faster CDN and better developer experience\n\nBoth platforms are configured with the same environment variables to ensure consistent functionality.\n\n## Performance Optimization\n\nThrough code splitting and resource optimization, I reduced first contentful paint from 2.5s to 1.2s:\n\n- React and React-DOM bundled separately\n- Icon library loaded on demand\n- CSS extraction and minification\n- Images served via CDN\n\n## Lessons Learned\n\n1. **Choose the right tool**: Don't blindly chase \"latest and greatest\", choose what fits your project needs\n2. **Progressive migration**: Don't rewrite everything at once, migrate module by module\n3. **Automated deployment**: CI/CD is a must, it saves tons of time\n4. **Performance monitoring**: Use tools like Lighthouse to continuously monitor performance\n\n## Next Steps\n\n- Add PWA support\n- Implement offline caching\n- Optimize image loading strategy\n- Add more interactive animations\n\nIf you're considering migrating to Vite, I hope this article gives you some inspiration. Remember, there's no absolute right or wrong in tech choices, only what fits your project best."
   }
 ]
