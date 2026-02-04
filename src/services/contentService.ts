@@ -1,18 +1,14 @@
 import { Project, ArtItem, BlogPost } from '../types';
 import { Language } from '../utils/translations';
 
-// 使用 Vite 的 ?url 导入来获取正确的路径，然后动态加载
-// 或者直接使用动态 import
-async function loadJSON<T>(path: string): Promise<T[]> {
-    try {
-        // 使用动态 import 来加载 JSON
-        const module = await import(/* @vite-ignore */ path);
-        return module.default || [];
-    } catch (error) {
-        console.error(`Error loading ${path}:`, error);
-        return [];
-    }
-}
+// 使用 Vite 的 glob import 功能导入所有 JSON 文件
+const dataModules = import.meta.glob('/public/data/*.json', { eager: true });
+
+// 提取数据
+const projectsData = (dataModules['/public/data/projects.json'] as any)?.default || [];
+const photographyData = (dataModules['/public/data/photography.json'] as any)?.default || [];
+const calligraphyData = (dataModules['/public/data/calligraphy.json'] as any)?.default || [];
+const blogData = (dataModules['/public/data/blog.json'] as any)?.default || [];
 
 // 根据语言过滤数据
 function filterByLanguage<T extends Record<string, any>>(
@@ -53,48 +49,23 @@ function filterByLanguage<T extends Record<string, any>>(
     });
 }
 
-// 缓存数据
-let projectsCache: any[] | null = null;
-let photographyCache: any[] | null = null;
-let calligraphyCache: any[] | null = null;
-let blogCache: any[] | null = null;
-
 export async function getProjects(language: Language): Promise<Project[]> {
-    if (!projectsCache) {
-        const module = await import('/data/projects.json');
-        projectsCache = module.default;
-    }
-    return filterByLanguage(projectsCache, language) as Project[];
+    return Promise.resolve(filterByLanguage(projectsData, language) as Project[]);
 }
 
 export async function getPhotography(language: Language): Promise<ArtItem[]> {
-    if (!photographyCache) {
-        const module = await import('/data/photography.json');
-        photographyCache = module.default;
-    }
-    return filterByLanguage(photographyCache, language) as ArtItem[];
+    return Promise.resolve(filterByLanguage(photographyData, language) as ArtItem[]);
 }
 
 export async function getCalligraphy(language: Language): Promise<ArtItem[]> {
-    if (!calligraphyCache) {
-        const module = await import('/data/calligraphy.json');
-        calligraphyCache = module.default;
-    }
-    return filterByLanguage(calligraphyCache, language) as ArtItem[];
+    return Promise.resolve(filterByLanguage(calligraphyData, language) as ArtItem[]);
 }
 
 export async function getBlogPosts(language: Language): Promise<BlogPost[]> {
-    if (!blogCache) {
-        const module = await import('/data/blog.json');
-        blogCache = module.default;
-    }
-    return filterByLanguage(blogCache, language) as BlogPost[];
+    return Promise.resolve(filterByLanguage(blogData, language) as BlogPost[]);
 }
 
 // 清除缓存
 export function clearCache() {
-    projectsCache = null;
-    photographyCache = null;
-    calligraphyCache = null;
-    blogCache = null;
+    // No-op for static imports
 }
