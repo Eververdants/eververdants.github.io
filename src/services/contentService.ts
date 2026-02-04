@@ -1,14 +1,13 @@
 import { Project, ArtItem, BlogPost } from '../types';
 import { Language } from '../utils/translations';
 
-// 使用 fetch 从 public 目录加载数据
-async function fetchData<T>(path: string): Promise<T[]> {
+// 使用 Vite 的 ?url 导入来获取正确的路径，然后动态加载
+// 或者直接使用动态 import
+async function loadJSON<T>(path: string): Promise<T[]> {
     try {
-        const response = await fetch(path);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch ${path}`);
-        }
-        return await response.json();
+        // 使用动态 import 来加载 JSON
+        const module = await import(/* @vite-ignore */ path);
+        return module.default || [];
     } catch (error) {
         console.error(`Error loading ${path}:`, error);
         return [];
@@ -54,27 +53,48 @@ function filterByLanguage<T extends Record<string, any>>(
     });
 }
 
+// 缓存数据
+let projectsCache: any[] | null = null;
+let photographyCache: any[] | null = null;
+let calligraphyCache: any[] | null = null;
+let blogCache: any[] | null = null;
+
 export async function getProjects(language: Language): Promise<Project[]> {
-    const data = await fetchData<any>('/data/projects.json');
-    return filterByLanguage(data, language) as Project[];
+    if (!projectsCache) {
+        const module = await import('/data/projects.json');
+        projectsCache = module.default;
+    }
+    return filterByLanguage(projectsCache, language) as Project[];
 }
 
 export async function getPhotography(language: Language): Promise<ArtItem[]> {
-    const data = await fetchData<any>('/data/photography.json');
-    return filterByLanguage(data, language) as ArtItem[];
+    if (!photographyCache) {
+        const module = await import('/data/photography.json');
+        photographyCache = module.default;
+    }
+    return filterByLanguage(photographyCache, language) as ArtItem[];
 }
 
 export async function getCalligraphy(language: Language): Promise<ArtItem[]> {
-    const data = await fetchData<any>('/data/calligraphy.json');
-    return filterByLanguage(data, language) as ArtItem[];
+    if (!calligraphyCache) {
+        const module = await import('/data/calligraphy.json');
+        calligraphyCache = module.default;
+    }
+    return filterByLanguage(calligraphyCache, language) as ArtItem[];
 }
 
 export async function getBlogPosts(language: Language): Promise<BlogPost[]> {
-    const data = await fetchData<any>('/data/blog.json');
-    return filterByLanguage(data, language) as BlogPost[];
+    if (!blogCache) {
+        const module = await import('/data/blog.json');
+        blogCache = module.default;
+    }
+    return filterByLanguage(blogCache, language) as BlogPost[];
 }
 
-// 清除缓存（本地模式不需要，保留接口兼容性）
+// 清除缓存
 export function clearCache() {
-    // No-op for local data
+    projectsCache = null;
+    photographyCache = null;
+    calligraphyCache = null;
+    blogCache = null;
 }

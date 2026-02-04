@@ -35,6 +35,9 @@ export default defineConfig(({ mode }) => {
       sourcemap: false,
       minify: 'esbuild', // 使用 esbuild 压缩（更快）
 
+      // 复制 public 目录
+      copyPublicDir: true,
+
       // 代码分割优化
       rollupOptions: {
         output: {
@@ -43,8 +46,6 @@ export default defineConfig(({ mode }) => {
             'react-vendor': ['react', 'react-dom'],
             // Lucide 图标库单独打包
             'icons': ['lucide-react'],
-            // Google AI 单独打包
-            'ai': ['@google/genai'],
           },
           // 优化文件命名
           chunkFileNames: 'assets/js/[name]-[hash].js',
