@@ -2,13 +2,15 @@
 
 本指南将教你如何向网站添加新的博客文章、项目、摄影作品和书法作品。
 
+**简单三步：编辑 JSON → 提交 Git → 自动部署** ✨
+
 ---
 
 ## 📝 添加博客文章
 
 ### 步骤 1: 编辑数据文件
 
-打开 `public/data/blog.json`，添加新的博客条目：
+打开 `public/data/blog.json`，在数组中添加新的博客条目：
 
 ```json
 {
@@ -23,57 +25,25 @@
   "readTimeEn": "5 min read",
   "tags": ["标签1", "标签2"],
   "tagsEn": ["Tag1", "Tag2"],
-  "imageUrl": "https://your-image-url.com/image.jpg",
+  "imageUrl": "https://picsum.photos/1200/600?random=300",
   "content": "完整的博客内容（中文）\n\n使用 \\n\\n 分段\n\n## 使用 ## 创建标题",
   "contentEn": "Full blog content (English)\n\nUse \\n\\n for paragraphs\n\n## Use ## for headings"
 }
 ```
 
-### 步骤 2: 上传图片（可选）
-
-你可以使用以下方式上传博客封面图：
-
-1. **使用 jsDelivr CDN**（推荐）
-   - 将图片放到 `public/images/blog/` 目录
-   - 提交到 GitHub
-   - 使用 URL: `https://cdn.jsdelivr.net/gh/Eververdantsx/eververdants.github.io@main/public/images/blog/your-image.jpg`
-
-2. **使用图床服务**
-   - [Imgur](https://imgur.com/)
-   - [SM.MS](https://sm.ms/)
-   - [Cloudflare Images](https://www.cloudflare.com/products/cloudflare-images/)
-
-3. **使用占位图**
-   - `https://picsum.photos/1200/600?random=YOUR_ID`
-
-### 步骤 3: 上传到 Cloudflare KV
-
-#### 方式一：使用脚本（推荐）
-
-**Windows:**
-```powershell
-.\scripts\upload-to-kv.ps1
-```
-
-**Mac/Linux:**
-```bash
-chmod +x scripts/upload-to-kv.sh
-./scripts/upload-to-kv.sh
-```
-
-#### 方式二：手动上传
+### 步骤 2: 提交到 Git
 
 ```bash
-# 1. 登录 Cloudflare
-wrangler login
-
-# 2. 上传博客数据
-wrangler kv:key put --namespace-id="YOUR_NAMESPACE_ID" "blog" --path="public/data/blog.json"
+git add public/data/blog.json
+git commit -m "feat: 添加新博客 - 你的博客标题"
+git push origin main
 ```
 
-### 步骤 4: 验证
+### 步骤 3: 等待自动部署
 
-访问你的网站，检查新博客是否显示。
+- GitHub Actions 会自动构建和部署到 GitHub Pages
+- Vercel 会自动检测并部署
+- 大约 2-3 分钟后，新内容就会上线！
 
 ---
 
@@ -95,16 +65,17 @@ wrangler kv:key put --namespace-id="YOUR_NAMESPACE_ID" "blog" --path="public/dat
   "features": ["特性1", "特性2"],
   "featuresEn": ["Feature 1", "Feature 2"],
   "tags": ["React", "TypeScript"],
-  "tagsEn": ["React", "TypeScript"],
-  "imageUrl": "https://your-image-url.com/project.jpg",
+  "imageUrl": "https://picsum.photos/800/600?random=6",
   "demoUrl": "https://demo.com",
   "repoUrl": "https://github.com/username/repo"
 }
 ```
 
-然后上传：
+提交：
 ```bash
-wrangler kv:key put --namespace-id="YOUR_NAMESPACE_ID" "projects" --path="public/data/projects.json"
+git add public/data/projects.json
+git commit -m "feat: 添加新项目 - 项目名称"
+git push origin main
 ```
 
 ---
@@ -120,7 +91,7 @@ wrangler kv:key put --namespace-id="YOUR_NAMESPACE_ID" "projects" --path="public
   "titleEn": "Photo Title",
   "description": "作品描述",
   "descriptionEn": "Photo description",
-  "url": "https://your-image-url.com/photo.jpg",
+  "url": "https://picsum.photos/800/600?random=7",
   "aspectRatio": "wide",
   "location": "拍摄地点",
   "locationEn": "Location",
@@ -141,11 +112,6 @@ wrangler kv:key put --namespace-id="YOUR_NAMESPACE_ID" "projects" --path="public
 - `"tall"`: 竖向照片 (9:16)
 - `"square"`: 方形照片 (1:1)
 
-然后上传：
-```bash
-wrangler kv:key put --namespace-id="YOUR_NAMESPACE_ID" "photography" --path="public/data/photography.json"
-```
-
 ---
 
 ## ✍️ 添加书法作品
@@ -160,15 +126,35 @@ wrangler kv:key put --namespace-id="YOUR_NAMESPACE_ID" "photography" --path="pub
   "content": "书法内容（汉字）",
   "description": "作品含义和描述",
   "descriptionEn": "Meaning and description",
-  "url": "https://your-image-url.com/calligraphy.jpg",
+  "url": "https://picsum.photos/500/900?random=5",
   "aspectRatio": "tall"
 }
 ```
 
-然后上传：
-```bash
-wrangler kv:key put --namespace-id="YOUR_NAMESPACE_ID" "calligraphy" --path="public/data/calligraphy.json"
+---
+
+## 🖼️ 图片上传方式
+
+### 方式 1: 使用 jsDelivr CDN（推荐）
+
+1. 将图片放到 `public/images/` 对应目录
+2. 提交到 GitHub
+3. 使用 URL: 
+   ```
+   https://cdn.jsdelivr.net/gh/Eververdantsx/eververdants.github.io@main/public/images/blog/your-image.jpg
+   ```
+
+### 方式 2: 使用占位图（快速测试）
+
 ```
+https://picsum.photos/1200/600?random=YOUR_ID
+```
+
+### 方式 3: 使用免费图床
+
+- [Imgur](https://imgur.com/)
+- [SM.MS](https://sm.ms/)
+- [Cloudflare Images](https://www.cloudflare.com/products/cloudflare-images/)
 
 ---
 
@@ -176,58 +162,22 @@ wrangler kv:key put --namespace-id="YOUR_NAMESPACE_ID" "calligraphy" --path="pub
 
 ### 示例：添加一篇新博客
 
-1. **编辑数据文件**
 ```bash
-# 打开编辑器
+# 1. 编辑文件
 code public/data/blog.json
-```
 
-2. **添加新条目**（在数组末尾添加）
-```json
-{
-  "id": "3",
-  "title": "我的第一篇技术博客",
-  "titleEn": "My First Tech Blog",
-  "excerpt": "分享我学习 React 的心得体会",
-  "excerptEn": "Sharing my React learning experience",
-  "date": "2024年12月20日",
-  "dateEn": "Dec 20, 2024",
-  "readTime": "3分钟阅读",
-  "readTimeEn": "3 min read",
-  "tags": ["React", "学习"],
-  "tagsEn": ["React", "Learning"],
-  "imageUrl": "https://picsum.photos/1200/600?random=300",
-  "content": "今天我学习了 React Hooks...",
-  "contentEn": "Today I learned about React Hooks..."
-}
-```
-
-3. **本地测试**
-```bash
+# 2. 本地测试（可选）
 pnpm run dev
 # 访问 http://localhost:3000 查看效果
-```
 
-4. **上传到 Cloudflare KV**
-```powershell
-# Windows
-.\scripts\upload-to-kv.ps1
-
-# 或手动上传
-wrangler kv:key put --namespace-id="YOUR_NAMESPACE_ID" "blog" --path="public/data/blog.json"
-```
-
-5. **提交到 Git**
-```bash
+# 3. 提交更改
 git add public/data/blog.json
-git commit -m "feat: 添加新博客文章 - 我的第一篇技术博客"
+git commit -m "feat: 添加新博客 - 我的第一篇技术博客"
 git push origin main
-```
 
-6. **等待部署**
-- GitHub Actions 会自动构建和部署
-- Vercel 会自动检测并部署
-- 大约 2-3 分钟后，新内容就会上线
+# 4. 等待部署（2-3分钟）
+# GitHub Actions 和 Vercel 会自动部署
+```
 
 ---
 
@@ -253,11 +203,11 @@ git push origin main
 
 ## 🐛 常见问题
 
-### Q: 上传后看不到新内容？
+### Q: 本地看到了新内容，但线上没有？
 A: 
-1. 检查 Cloudflare KV 是否上传成功
-2. 清除浏览器缓存
-3. 等待 1-2 分钟让 CDN 更新
+1. 确保已经 `git push` 到 GitHub
+2. 检查 GitHub Actions 构建状态
+3. 清除浏览器缓存
 
 ### Q: 图片显示不出来？
 A:
@@ -270,9 +220,9 @@ A:
 1. 检查是否同时提供了中文和英文字段
 2. 确保字段名正确（如 `titleEn` 而不是 `title_en`）
 
-### Q: 如何批量上传多个文件？
+### Q: 如何删除内容？
 A:
-使用提供的脚本 `upload-to-kv.ps1` 或 `upload-to-kv.sh`，它会自动上传所有数据文件。
+从对应的 JSON 文件中删除该条目，然后提交到 Git。
 
 ---
 
@@ -284,8 +234,8 @@ A:
    - 使用 CDN 加速
 
 2. **内容组织**
-   - 使用有意义的 ID（如日期 + 序号）
-   - 保持数据文件格式整洁
+   - 使用有意义的 ID（如日期 + 序号：`"20241215-1"`)
+   - 保持 JSON 格式整洁（使用格式化工具）
    - 定期备份数据文件
 
 3. **版本控制**
@@ -294,14 +244,48 @@ A:
    - 使用分支进行大改动
 
 4. **测试流程**
-   - 本地测试 → 上传 KV → 验证线上效果
+   - 本地测试 → 提交 Git → 验证线上效果
    - 使用 `pnpm run preview` 预览构建结果
 
 ---
 
-## 📚 相关文档
+## 📚 文件结构
 
-- [Cloudflare KV 文档](https://developers.cloudflare.com/workers/runtime-apis/kv/)
-- [Wrangler CLI 文档](https://developers.cloudflare.com/workers/wrangler/)
-- [数据模板说明](./DATA_TEMPLATES.md)
-- [部署指南](./DEPLOYMENT.md)
+```
+public/data/
+├── blog.json          # 博客文章
+├── projects.json      # 项目作品
+├── photography.json   # 摄影作品
+└── calligraphy.json   # 书法作品
+
+public/images/
+├── blog/             # 博客图片
+├── projects/         # 项目图片
+├── photography/      # 摄影图片
+└── calligraphy/      # 书法图片
+```
+
+---
+
+## 🚀 快速命令
+
+```bash
+# 本地开发
+pnpm run dev
+
+# 构建
+pnpm run build
+
+# 预览构建结果
+pnpm run preview
+
+# 提交更改
+git add .
+git commit -m "feat: 添加新内容"
+git push origin main
+```
+
+---
+
+就这么简单！编辑 JSON 文件，提交到 GitHub，剩下的交给自动化部署。✨
+
