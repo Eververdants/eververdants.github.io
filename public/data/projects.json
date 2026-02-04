@@ -1,1 +1,80 @@
-[]
+[
+  {
+    "id": "arttext-studio",
+    "title": "ArtText Studio",
+    "titleEn": "ArtText Studio",
+    "description": "AI 驱动的文字艺术生成器，将文字转化为精美的视觉海报。支持 40+ 预设风格、AI 背景生成、11 种精选字体和灵活的排版布局。",
+    "descriptionEn": "AI-powered text art generator that transforms words into stunning visual posters. Features 40+ preset styles, AI background generation, 11 premium fonts, and flexible layouts.",
+    "fullDescription": "ArtText Studio 是一款 AI 驱动的文字艺术生成器，能够将你的文字转化为精美的视觉海报作品。无论是诗歌、名言还是日常文字，都能创作出独特的艺术构图。利用 Google Gemini AI 分析文本情感并推荐最佳视觉风格，提供 40+ 精选预设风格，涵盖现代、古典、赛博朋克等多种美学主题。支持 AI 自动生成艺术背景、11 种精选字体、5 种专业排版模式，以及精细的字体大小、行高、阴影、描边和背景效果调节。支持中英文双语界面，响应式设计适配桌面和移动设备，可导出高分辨率图片或一键复制到剪贴板。",
+    "fullDescriptionEn": "ArtText Studio is an AI-powered text art generator that transforms your words into beautiful visual posters. Whether it's poetry, quotes, or everyday text, create unique artistic compositions with rich typography, intelligent layouts, and AI-generated backgrounds. Leverages Google Gemini AI to analyze text sentiment and recommend optimal visual styles. Features 40+ curated preset styles spanning modern, classical, cyberpunk, and more aesthetic themes. Supports AI background generation, 11 premium fonts, 5 professional layout modes, and fine-grained controls for font size, line height, shadows, strokes, and background effects. Bilingual interface with seamless Chinese-English switching, responsive design for desktop and mobile, and multiple export options including high-resolution download and clipboard copy.",
+    "category": "创意工具",
+    "categoryEn": "Creative Tool",
+    "features": [
+      "AI 情感分析与风格推荐",
+      "40+ 预设艺术风格",
+      "AI 背景自动生成",
+      "11 种精选字体",
+      "5 种专业排版模式",
+      "精细参数调节",
+      "中英文双语界面",
+      "响应式设计",
+      "高分辨率导出",
+      "历史记录管理",
+      "键盘快捷键支持"
+    ],
+    "featuresEn": [
+      "AI sentiment analysis & style recommendations",
+      "40+ preset artistic styles",
+      "AI background generation",
+      "11 premium fonts",
+      "5 professional layout modes",
+      "Fine-grained parameter controls",
+      "Bilingual interface (CN/EN)",
+      "Responsive design",
+      "High-resolution export",
+      "History management",
+      "Keyboard shortcuts support"
+    ],
+    "tags": ["React", "TypeScript", "Vite", "AI", "Gemini", "Tailwind CSS", "创意工具"],
+    "tagsEn": ["React", "TypeScript", "Vite", "AI", "Gemini", "Tailwind CSS", "Creative Tool"],
+    "imageUrl": "/images/projects/ArtTextStudioPoster.jpg",
+    "demoUrl": "https://eververdants.github.io/ArtText-Studio/",
+    "repoUrl": "https://github.com/Eververdants/ArtText-Studio"
+  },
+  {
+    "id": "etb-save-manager",
+    "title": "逃离后室存档管理器",
+    "titleEn": "ETB Save Manager",
+    "description": "Escape The Backrooms 游戏存档管理工具，支持存档备份、恢复、导入导出等功能。",
+    "descriptionEn": "A save file management tool for Escape The Backrooms game, supporting backup, restore, import and export features.",
+    "fullDescription": "逃离后室存档管理器是一款专为 Escape The Backrooms 游戏打造的存档管理工具。使用 Tauri 框架开发，提供了完整的存档管理解决方案，包括查看所有游戏存档、编辑存档信息、删除存档、调整存档可视性、创建新存档等功能。界面配色美观，支持插件扩展和多语言，是 ETB 玩家的必备工具。",
+    "fullDescriptionEn": "ETB Save Manager is a dedicated save file management tool for Escape The Backrooms game. Built with Tauri framework, it provides a complete save management solution including viewing all game saves, editing save info, deleting saves, adjusting save visibility, and creating new saves. With beautiful color scheme, plugin support and multi-language, it's an essential tool for ETB players.",
+    "category": "游戏工具",
+    "categoryEn": "Gaming Tool",
+    "features": [
+      "查看所有游戏存档",
+      "编辑、删除存档",
+      "存档可视性调整",
+      "创建新存档",
+      "支持插件扩展",
+      "多语言支持",
+      "美观的界面配色",
+      "轻量级桌面应用"
+    ],
+    "featuresEn": [
+      "View all game saves",
+      "Edit and delete saves",
+      "Adjust save visibility",
+      "Create new saves",
+      "Plugin support",
+      "Multi-language support",
+      "Beautiful color scheme",
+      "Lightweight desktop app"
+    ],
+    "tags": ["Tauri", "Rust", "TypeScript", "游戏工具", "桌面应用"],
+    "tagsEn": ["Tauri", "Rust", "TypeScript", "Gaming Tool", "Desktop App"],
+    "imageUrl": "/images/projects/ETBSaveManagerPoster.jpg",
+    "demoUrl": "https://eververdants.github.io/ETBSaveManager/",
+    "repoUrl": "https://github.com/Eververdants/ETBSaveManager"
+  }
+]

@@ -30,14 +30,13 @@ const FeaturedCalligraphy: React.FC = () => {
 
     const featuredItems = items;
 
-    // 阻止背景滚动
+    // Prevent body scroll when modal is open
     useEffect(() => {
         if (selectedItem) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
         }
-
         return () => {
             document.body.style.overflow = 'unset';
         };
@@ -155,27 +154,30 @@ const FeaturedCalligraphy: React.FC = () => {
                         onClick={handleClose}
                     ></div>
 
-                    <div className={`relative w-full h-full max-w-6xl max-h-[95vh] bg-[#fdfbf7] dark:bg-slate-900 md:rounded-xl shadow-2xl overflow-hidden flex flex-col lg:flex-row ring-1 ring-white/10 ${isClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
+                    <div className={`relative w-full max-w-6xl h-[95vh] bg-[#fdfbf7] dark:bg-slate-900 md:rounded-xl shadow-2xl flex flex-col lg:flex-row overflow-hidden ring-1 ring-white/10 ${isClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
+                        {/* Close Button - Fixed */}
                         <button
                             onClick={handleClose}
-                            className="lg:hidden absolute top-4 right-4 z-20 p-2 bg-black/10 text-slate-800 dark:text-white rounded-full backdrop-blur-sm"
+                            className="absolute top-4 right-4 z-20 p-2 bg-black/10 hover:bg-black/20 text-slate-800 dark:text-white rounded-full backdrop-blur-sm"
                         >
                             <X size={24} />
                         </button>
 
-                        <div className="flex-grow lg:w-2/3 bg-[#e5e5e5] dark:bg-black relative flex items-center justify-center overflow-hidden p-4 md:p-8">
+                        {/* Main Image Area - Fixed, No Scroll */}
+                        <div className="w-full lg:w-2/3 h-64 lg:h-full bg-[#e5e5e5] dark:bg-black relative flex items-center justify-center p-4 md:p-8 flex-shrink-0">
                             <div className="absolute inset-0 opacity-20 dark:opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/rice-paper.png')]"></div>
                             <div className="relative shadow-2xl border-8 border-white dark:border-slate-800 max-h-full max-w-full">
                                 <img
                                     src={selectedItem.url}
                                     alt={selectedItem.title}
-                                    className="max-w-full max-h-[85vh] object-contain block filter grayscale contrast-125"
+                                    className="max-w-full max-h-full object-contain block filter grayscale contrast-125"
                                 />
                             </div>
                         </div>
 
-                        <div className="lg:w-1/3 w-full bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 flex flex-col overflow-y-auto">
-                            <div className="p-8 md:p-12 flex flex-col h-full">
+                        {/* Sidebar Details - Scrollable */}
+                        <div className="w-full lg:w-1/3 bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 overflow-y-auto flex flex-col">
+                            <div className="p-8 md:p-12 flex flex-col">
                                 <div className="flex justify-between items-start mb-8">
                                     <div>
                                         <span className="text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase tracking-widest mb-2 block">{t('sections.calligraphy.galleryTitle')}</span>

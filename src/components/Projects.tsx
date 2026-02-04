@@ -36,6 +36,18 @@ const Projects: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (selectedProject) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedProject]);
+
   // Extract unique categories
   const categories = useMemo(() => {
     const cats = ['All', ...new Set(projects.map(p => p.category))];
@@ -182,18 +194,18 @@ const Projects: React.FC = () => {
               onClick={handleClose}
             ></div>
 
-            <div className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden border border-white/20 ${isClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
+            <div className={`relative w-full max-w-4xl h-[90vh] bg-white dark:bg-slate-900 rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden border border-white/20 ${isClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
 
-              {/* Close Button */}
+              {/* Close Button - Fixed */}
               <button
                 onClick={handleClose}
-                className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                className="absolute top-4 right-4 z-20 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
               >
                 <X size={24} />
               </button>
 
-              {/* Image Section */}
-              <div className="w-full md:w-2/5 h-64 md:h-auto relative flex-shrink-0">
+              {/* Image Section - Fixed, No Scroll */}
+              <div className="w-full md:w-2/5 h-64 md:h-full relative flex-shrink-0">
                 <img
                   src={selectedProject.imageUrl}
                   alt={selectedProject.title}
@@ -208,61 +220,63 @@ const Projects: React.FC = () => {
                 </div>
               </div>
 
-              {/* Content Section */}
-              <div className="w-full md:w-3/5 p-6 md:p-10 flex flex-col bg-white dark:bg-slate-900">
-                <div className="mb-2">
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold text-sm uppercase tracking-wider">{selectedProject.category}</span>
-                </div>
-                <h3 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">{selectedProject.title}</h3>
+              {/* Content Section - Scrollable */}
+              <div className="w-full md:w-3/5 overflow-y-auto flex flex-col bg-white dark:bg-slate-900">
+                <div className="p-6 md:p-10 flex flex-col">
+                  <div className="mb-2">
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold text-sm uppercase tracking-wider">{selectedProject.category}</span>
+                  </div>
+                  <h3 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">{selectedProject.title}</h3>
 
-                <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-6 text-base md:text-lg">
-                  {selectedProject.fullDescription || selectedProject.description}
-                </p>
+                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-6 text-base md:text-lg">
+                    {selectedProject.fullDescription || selectedProject.description}
+                  </p>
 
-                {selectedProject.features && (
+                  {selectedProject.features && (
+                    <div className="mb-8">
+                      <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">{t('sections.projects.features')}</h4>
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {selectedProject.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-slate-700 dark:text-slate-200 text-sm">
+                            <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 flex-shrink-0" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   <div className="mb-8">
-                    <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">{t('sections.projects.features')}</h4>
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {selectedProject.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-slate-700 dark:text-slate-200 text-sm">
-                          <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 flex-shrink-0" />
-                          <span>{feature}</span>
-                        </li>
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">{t('sections.projects.tech')}</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProject.tags.map(tag => (
+                        <span key={tag} className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                          {tag}
+                        </span>
                       ))}
-                    </ul>
+                    </div>
                   </div>
-                )}
 
-                <div className="mb-8">
-                  <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">{t('sections.projects.tech')}</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedProject.tags.map(tag => (
-                      <span key={tag} className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800 hidden md:flex gap-4">
-                  <a
-                    href={selectedProject.demoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold transition-colors flex items-center gap-2"
-                  >
-                    {t('sections.projects.demo')} <ExternalLink size={18} />
-                  </a>
-                  {selectedProject.repoUrl && (
+                  <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800 hidden md:flex gap-4">
                     <a
-                      href={selectedProject.repoUrl}
+                      href={selectedProject.demoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl font-semibold transition-colors flex items-center gap-2"
+                      className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold transition-colors flex items-center gap-2"
                     >
-                      <Github size={18} /> {t('sections.projects.source')}
+                      {t('sections.projects.demo')} <ExternalLink size={18} />
                     </a>
-                  )}
+                    {selectedProject.repoUrl && (
+                      <a
+                        href={selectedProject.repoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl font-semibold transition-colors flex items-center gap-2"
+                      >
+                        <Github size={18} /> {t('sections.projects.source')}
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

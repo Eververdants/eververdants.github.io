@@ -40,7 +40,7 @@ export const translations = {
         archiveTitle: 'Project Archive',
         archiveSubtitle: 'A complete collection of my digital experiments, open-source libraries, and client work.',
         viewAll: 'View All Projects',
-        demo: 'Demo',
+        demo: 'Website',
         source: 'Source Code',
         features: 'Key Features',
         tech: 'Technologies'
@@ -147,7 +147,7 @@ export const translations = {
         archiveTitle: '项目归档',
         archiveSubtitle: '我的数字实验、开源库和客户工作的完整合集。',
         viewAll: '查看所有项目',
-        demo: '演示',
+        demo: '官网',
         source: '源代码',
         features: '核心特性',
         tech: '技术栈'
