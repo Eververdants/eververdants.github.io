@@ -1,11 +1,19 @@
 import { Project, ArtItem, BlogPost } from '../types';
 import { Language } from '../utils/translations';
 
-// 直接从本地 JSON 文件导入数据
-import projectsData from '../../public/data/projects.json';
-import photographyData from '../../public/data/photography.json';
-import calligraphyData from '../../public/data/calligraphy.json';
-import blogData from '../../public/data/blog.json';
+// 使用 fetch 从 public 目录加载数据
+async function fetchData<T>(path: string): Promise<T[]> {
+    try {
+        const response = await fetch(path);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch ${path}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error(`Error loading ${path}:`, error);
+        return [];
+    }
+}
 
 // 根据语言过滤数据
 function filterByLanguage<T extends Record<string, any>>(
@@ -47,20 +55,23 @@ function filterByLanguage<T extends Record<string, any>>(
 }
 
 export async function getProjects(language: Language): Promise<Project[]> {
-    // 模拟异步加载，保持接口一致
-    return Promise.resolve(filterByLanguage(projectsData as any[], language) as Project[]);
+    const data = await fetchData<any>('/data/projects.json');
+    return filterByLanguage(data, language) as Project[];
 }
 
 export async function getPhotography(language: Language): Promise<ArtItem[]> {
-    return Promise.resolve(filterByLanguage(photographyData as any[], language) as ArtItem[]);
+    const data = await fetchData<any>('/data/photography.json');
+    return filterByLanguage(data, language) as ArtItem[];
 }
 
 export async function getCalligraphy(language: Language): Promise<ArtItem[]> {
-    return Promise.resolve(filterByLanguage(calligraphyData as any[], language) as ArtItem[]);
+    const data = await fetchData<any>('/data/calligraphy.json');
+    return filterByLanguage(data, language) as ArtItem[];
 }
 
 export async function getBlogPosts(language: Language): Promise<BlogPost[]> {
-    return Promise.resolve(filterByLanguage(blogData as any[], language) as BlogPost[]);
+    const data = await fetchData<any>('/data/blog.json');
+    return filterByLanguage(data, language) as BlogPost[];
 }
 
 // 清除缓存（本地模式不需要，保留接口兼容性）
