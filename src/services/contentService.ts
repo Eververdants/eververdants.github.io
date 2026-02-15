@@ -23,6 +23,7 @@ function filterByLanguage<T extends Record<string, any>>(
             filtered.title = item.title || item.titleEn;
             filtered.description = item.description || item.descriptionEn;
             filtered.fullDescription = item.fullDescription || item.fullDescriptionEn;
+            filtered.articleContent = item.articleContent || item.articleContentEn;
             filtered.category = item.category || item.categoryEn;
             filtered.features = item.features || item.featuresEn;
             filtered.location = item.location || item.locationEn;
@@ -35,6 +36,7 @@ function filterByLanguage<T extends Record<string, any>>(
             filtered.title = item.titleEn || item.title;
             filtered.description = item.descriptionEn || item.description;
             filtered.fullDescription = item.fullDescriptionEn || item.fullDescription;
+            filtered.articleContent = item.articleContentEn || item.articleContent;
             filtered.category = item.categoryEn || item.category;
             filtered.features = item.featuresEn || item.features;
             filtered.location = item.locationEn || item.location;

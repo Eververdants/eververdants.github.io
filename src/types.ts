@@ -3,7 +3,8 @@ export interface Project {
   id: string;
   title: string;
   description: string; // Short description for card
-  fullDescription?: string; // Long description for modal
+  fullDescription?: string; // Long description for detail page
+  articleContent?: string; // Markdown-like long-form article content
   category: string; // e.g., "Web App", "Open Source", "Design"
   tags: string[];
   features?: string[]; // List of key features

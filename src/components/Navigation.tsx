@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X, Sun, Moon, Languages } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
-type ViewState = 'home' | 'projects' | 'photography' | 'calligraphy' | 'blog';
+type ViewState = 'home' | 'projects' | 'project-detail' | 'photography' | 'calligraphy' | 'blog';
+type NavViewState = 'home' | 'projects' | 'photography' | 'calligraphy' | 'blog';
 
 interface NavigationProps {
   currentView: ViewState;
-  onNavigate: (view: ViewState, hash?: string) => void;
+  onNavigate: (view: NavViewState, hash?: string) => void;
 }
 
 const Navigation: React.FC<NavigationProps> = ({ currentView, onNavigate }) => {
@@ -44,14 +45,14 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onNavigate }) => {
   };
 
   // Updated to use views instead of hashes
-  const navLinks: { name: string; view: ViewState; hash?: string }[] = [
+  const navLinks: { name: string; view: NavViewState; hash?: string }[] = [
     { name: t('nav.projects'), view: 'projects' },
     { name: t('nav.photography'), view: 'photography' },
     { name: t('nav.calligraphy'), view: 'calligraphy' },
     { name: t('nav.blog'), view: 'blog' },
   ];
 
-  const handleNavClick = (view: ViewState, hash?: string) => {
+  const handleNavClick = (view: NavViewState, hash?: string) => {
     setIsOpen(false);
     onNavigate(view, hash);
   };

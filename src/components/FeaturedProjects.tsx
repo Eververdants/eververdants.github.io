@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ExternalLink, ArrowRight, ArrowUpRight, X, Github, CheckCircle2, Layers } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Layers } from 'lucide-react';
 import { getProjects } from '../services/contentService';
 import { Project } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const FeaturedProjects: React.FC = () => {
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [isClosing, setIsClosing] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const { language, t } = useLanguage();
@@ -34,24 +32,15 @@ const FeaturedProjects: React.FC = () => {
     window.dispatchEvent(event);
   };
 
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (selectedProject) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [selectedProject]);
-
-  const handleClose = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      setSelectedProject(null);
-      setIsClosing(false);
-    }, 300);
+  const openProjectDetail = (projectId: string) => {
+    const event = new CustomEvent('navigate-to', {
+      detail: {
+        view: 'project-detail',
+        projectId,
+        from: 'home'
+      }
+    });
+    window.dispatchEvent(event);
   };
 
   return (
@@ -86,7 +75,7 @@ const FeaturedProjects: React.FC = () => {
           {featuredProjects.map((project) => (
             <div
               key={project.id}
-              onClick={() => setSelectedProject(project)}
+              onClick={() => openProjectDetail(project.id)}
               className="group glass-card rounded-3xl overflow-hidden cursor-pointer hover:shadow-2xl transition-all duration-300 flex flex-col hover:-translate-y-2"
             >
               <div className="relative h-64 overflow-hidden">
@@ -140,103 +129,6 @@ const FeaturedProjects: React.FC = () => {
           {t('sections.projects.viewAll')} <ArrowRight size={18} />
         </button>
       </div>
-
-      {/* Project Detail Modal */}
-      {selectedProject && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div
-            className={`absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity ${isClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
-            onClick={handleClose}
-          ></div>
-
-          <div className={`relative w-full max-w-4xl h-[90vh] bg-white dark:bg-slate-900 rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden border border-white/20 ${isClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
-
-            {/* Close Button - Fixed */}
-            <button
-              onClick={handleClose}
-              className="absolute top-4 right-4 z-20 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
-            >
-              <X size={24} />
-            </button>
-
-            {/* Image Section - Fixed, No Scroll */}
-            <div className="w-full md:w-2/5 h-64 md:h-full relative flex-shrink-0">
-              <img
-                src={selectedProject.imageUrl}
-                alt={selectedProject.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:bg-gradient-to-r md:from-transparent md:to-black/10"></div>
-
-              <div className="absolute bottom-4 left-4 flex gap-3 md:hidden">
-                <a href={selectedProject.demoUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white text-slate-900 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
-                  <ExternalLink size={14} /> {t('sections.projects.demo')}
-                </a>
-              </div>
-            </div>
-
-            {/* Content Section - Scrollable */}
-            <div className="w-full md:w-3/5 overflow-y-auto flex flex-col bg-white dark:bg-slate-900">
-              <div className="p-6 md:p-10 flex flex-col">
-                <div className="mb-2">
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold text-sm uppercase tracking-wider">{selectedProject.category}</span>
-                </div>
-                <h3 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">{selectedProject.title}</h3>
-
-                <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-6 text-base md:text-lg">
-                  {selectedProject.fullDescription || selectedProject.description}
-                </p>
-
-                {selectedProject.features && (
-                  <div className="mb-8">
-                    <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">{t('sections.projects.features')}</h4>
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {selectedProject.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-slate-700 dark:text-slate-200 text-sm">
-                          <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 flex-shrink-0" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <div className="mb-8">
-                  <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">{t('sections.projects.tech')}</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedProject.tags.map(tag => (
-                      <span key={tag} className="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800 hidden md:flex gap-4">
-                  <a
-                    href={selectedProject.demoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold transition-colors flex items-center gap-2"
-                  >
-                    {t('sections.projects.demo')} <ExternalLink size={18} />
-                  </a>
-                  {selectedProject.repoUrl && (
-                    <a
-                      href={selectedProject.repoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl font-semibold transition-colors flex items-center gap-2"
-                    >
-                      <Github size={18} /> {t('sections.projects.source')}
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 };
