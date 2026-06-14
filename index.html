@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Eververdants | Creative Developer</title>
+    <title>Eververdants | Code, Build, & Teach.</title>
     <link rel="icon" type="image/png" href="/圆角-image.png" />
-    <meta name="description" content="Eververdants - Creative Developer, Designer, and Digital Artist" />
+    <meta name="description" content="Eververdants - Creative Developer & Technical Educator" />
     <script>
       // Theme detection
       if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -16,13 +16,6 @@
     </script>
   </head>
   <body class="font-sans antialiased text-slate-800 dark:text-slate-100">
-    <!-- Animated blobs for glass effect -->
-    <div class="blob-bg">
-      <div class="absolute top-0 -left-4 w-72 h-72 bg-purple-300 dark:bg-purple-900 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-xl opacity-70 animate-blob"></div>
-      <div class="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 dark:bg-emerald-900 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-      <div class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 dark:bg-indigo-900 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-      <div class="absolute bottom-1/2 right-1/4 w-96 h-96 bg-emerald-300 dark:bg-teal-900 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-3xl opacity-50 animate-pulse"></div>
-    </div>
     <div id="root"></div>
     <script type="module" src="/src/index.tsx"></script>
   </body>

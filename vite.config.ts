@@ -44,8 +44,8 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             // React 核心库单独打包
             'react-vendor': ['react', 'react-dom'],
-            // Lucide 图标库单独打包
-            'icons': ['lucide-react'],
+            // Phosphor 图标库单独打包
+            'icons': ['@phosphor-icons/react'],
           },
           // 优化文件命名
           chunkFileNames: 'assets/js/[name]-[hash].js',

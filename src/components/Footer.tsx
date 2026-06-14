@@ -1,19 +1,32 @@
 import React from 'react';
-import { Heart } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const Footer: React.FC = () => {
-  const { t } = useLanguage();
+  const { language } = useLanguage();
+
   return (
-    <footer className="mt-12 py-8 glass-panel border-t border-white/20 dark:border-white/5">
-      <div className="max-w-7xl mx-auto px-4 text-center">
-        <div className="flex justify-center items-center gap-1.5 text-slate-500 dark:text-slate-400 text-sm font-medium">
-          <span>© 2025 Eververdants. {t('sections.footer.madeWith')}</span>
-          <Heart size={14} className="text-rose-500 fill-current animate-pulse" />
-          <span>{t('sections.footer.and')} React.</span>
-        </div>
-      </div>
-    </footer>
+    <motion.footer
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      className="py-20 px-12 flex justify-between items-center border-t border-warm-300 dark:border-warm-400/20"
+    >
+      <p className="font-mono text-[0.65rem] tracking-[0.2em] uppercase text-warm-400">
+        © 2025 {language === 'zh' ? '你的名字' : 'YOUR NAME'}
+      </p>
+      <motion.div
+        initial={{ width: 0 }}
+        whileInView={{ width: 40 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="h-px bg-warm-300 dark:bg-warm-400/30"
+      />
+      <p className="font-mono text-[0.65rem] tracking-[0.2em] uppercase text-warm-400">
+        Crafted with care
+      </p>
+    </motion.footer>
   );
 };
 

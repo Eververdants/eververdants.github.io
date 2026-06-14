@@ -7,23 +7,26 @@ export const translations = {
   en: {
     common: {
       loading: 'Loading...',
-      noData: 'No Data Found',
-      noDataDesc: 'There is no content available at the moment',
+      noData: 'No data yet',
+      noDataDesc: 'Nothing here at the moment.',
     },
     nav: {
       home: 'Home',
       projects: 'Projects',
       photography: 'Photography',
       calligraphy: 'Calligraphy',
-      blog: 'Blog'
+      blog: 'Blog',
+      videos: 'Videos'
     },
     hero: {
       title: 'Code, Lens,',
-      titleHighlight: '& Ink.',
+      titleHighlight: '& Teach.',
       intro: 'Hi, I\'m',
       introDesc: 'A creative developer who finds balance through photography and traditional calligraphy.',
       viewProjects: 'View Projects',
       viewGallery: 'View Gallery',
+      viewBlog: 'Browse Blog',
+      findMe: 'Find me on',
       cards: {
         code: 'Code',
         codeDesc: 'Frontend Architecture',
@@ -44,32 +47,6 @@ export const translations = {
         features: 'Key Features',
         tech: 'Technologies'
       },
-      photography: {
-        title: 'Visual Stories',
-        subtitle: 'Frozen moments of light and shadow.',
-        galleryTitle: 'Captured Moments',
-        gallerySubtitle: 'A visual diary of light, shadows, and the quiet spaces in between.',
-        viewGallery: 'View Gallery',
-        techDetails: 'Technical Details',
-        download: 'Download Original',
-        camera: 'Camera',
-        aperture: 'Aperture',
-        lens: 'Lens',
-        iso: 'ISO',
-        shutter: 'Shutter',
-        license: 'Free for personal use. Attribution appreciated.'
-      },
-      calligraphy: {
-        title: 'Ink & Paper',
-        subtitle: 'Traditional aesthetics in a modern world.',
-        galleryTitle: 'Ink & Paper',
-        gallerySubtitle: 'Exploring the balance between negative space, flow, and traditional aesthetics.',
-        viewCollection: 'View Collection',
-        originalText: 'Original Text',
-        meaning: 'Meaning & Context',
-        download: 'Download Artwork',
-        license: 'High-resolution digital scan. Personal use only.'
-      },
       blog: {
         title: 'The Journal',
         subtitle: 'Reflections on code, design, and nature.',
@@ -83,33 +60,49 @@ export const translations = {
         madeWith: 'Made with',
         and: 'and'
       },
-      gallery: {
-        title: 'Visual Harmony',
-        subtitle: 'Exploring the balance between negative space and ink. A collection of calligraphy works.',
-        category: 'Calligraphy'
+      videos: {
+        title: 'Video Tutorials',
+        subtitle: 'Step-by-step guides to mastering development skills.',
+        archiveTitle: 'Video Library',
+        archiveSubtitle: 'A collection of tutorials, walkthroughs, and deep dives.',
+        viewAll: 'View All Videos',
+        back: 'Back to Videos',
+        watchOnBilibili: 'Watch on Bilibili',
+        notes: 'Notes',
+        duration: 'Duration',
+        published: 'Published',
+        relatedResources: 'Related Resources',
+        relatedArticle: 'Related Article',
+        sourceCode: 'Source Code',
+        empty: 'No videos found',
+        emptyDesc: 'Check back later for new tutorials and content.',
+        category: 'Category',
       }
     }
   },
   zh: {
     common: {
       loading: '加载中...',
-      noData: '未发现数据',
-      noDataDesc: '暂时没有内容',
+      noData: '暂无数据',
+      noDataDesc: '这里还没有内容。',
     },
     nav: {
       home: '首页',
       projects: '项目',
       photography: '摄影',
       calligraphy: '书法',
-      blog: '日志'
+      blog: '日志',
+      videos: '视频'
     },
     hero: {
       title: '代码、光影，',
-      titleHighlight: '与翰墨。',
+      titleHighlight: '与分享。',
       intro: '你好，我是',
       introDesc: '一名在摄影与传统书法中寻找平衡的创意开发者。',
       viewProjects: '查看项目',
       viewGallery: '浏览画廊',
+      viewBlog: '浏览博客',
+      findMe: '关注我',
       cards: {
         code: '代码',
         codeDesc: '前端架构',
@@ -130,32 +123,6 @@ export const translations = {
         features: '核心特性',
         tech: '技术栈'
       },
-      photography: {
-        title: '视觉故事',
-        subtitle: '凝固光影的瞬间。',
-        galleryTitle: '捕捉瞬间',
-        gallerySubtitle: '关于光、影以及它们之间静谧空间的视觉日记。',
-        viewGallery: '查看画廊',
-        techDetails: '拍摄参数',
-        download: '下载原图',
-        camera: '相机',
-        aperture: '光圈',
-        lens: '镜头',
-        iso: 'ISO',
-        shutter: '快门',
-        license: '仅限个人使用，转载请注明出处。'
-      },
-      calligraphy: {
-        title: '水墨纸砚',
-        subtitle: '现代世界中的传统美学。',
-        galleryTitle: '水墨纸砚',
-        gallerySubtitle: '探索留白、流动与传统美学之间的平衡。',
-        viewCollection: '查看合集',
-        originalText: '原文',
-        meaning: '释义与背景',
-        download: '下载作品',
-        license: '高分辨率数字扫描件。仅限个人使用。'
-      },
       blog: {
         title: '日志',
         subtitle: '关于代码、设计与自然的思考。',
@@ -169,10 +136,23 @@ export const translations = {
         madeWith: '制作于',
         and: '使用'
       },
-      gallery: {
-        title: '视觉和谐',
-        subtitle: '探索留白与墨迹之间的平衡。书法作品集。',
-        category: '书法'
+      videos: {
+        title: '视频教程',
+        subtitle: '一步步教你掌握开发技能。',
+        archiveTitle: '视频库',
+        archiveSubtitle: '教程合集、实战演练与技术深潜。',
+        viewAll: '查看所有视频',
+        back: '返回视频列表',
+        watchOnBilibili: '在 Bilibili 观看',
+        notes: '文案笔记',
+        duration: '时长',
+        published: '发布于',
+        relatedResources: '相关资源',
+        relatedArticle: '关联文章',
+        sourceCode: '源码下载',
+        empty: '暂无视频',
+        emptyDesc: '请稍后再来查看新的教程和内容。',
+        category: '分类',
       }
     }
   }

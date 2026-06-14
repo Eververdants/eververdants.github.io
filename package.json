@@ -10,10 +10,20 @@
     "build:analyze": "vite build --mode analyze"
   },
   "dependencies": {
+    "@fontsource/geist-mono": "^5.2.8",
+    "@fontsource/geist-sans": "^5.2.5",
+    "@fontsource/outfit": "^5.2.8",
     "@google/genai": "^1.39.0",
-    "lucide-react": "0.344.0",
+    "@phosphor-icons/react": "^2.1.10",
+    "@types/three": "^0.184.1",
+    "framer-motion": "^12.40.0",
+    "gsap": "^3.15.0",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "react-helmet-async": "^2.0.5",
+    "react-router-dom": "^6.30.0",
+    "simple-icons": "^16.23.0",
+    "three": "^0.184.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
