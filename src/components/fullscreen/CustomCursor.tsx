@@ -11,6 +11,7 @@ const CustomCursor: React.FC = () => {
   const trailCanvasRef = useRef<HTMLCanvasElement>(null);
   const trailPoints = useRef<{ x: number; y: number; age: number }[]>([]);
   const hoverRef = useRef(false);
+  const magneticTarget = useRef<{ el: HTMLElement; strength: number } | null>(null);
 
   // Expose setter
   useEffect(() => {
@@ -22,6 +23,19 @@ const CustomCursor: React.FC = () => {
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     mouseRef.current = { x: e.clientX, y: e.clientY };
+
+    // Check for magnetic elements
+    const target = e.target as HTMLElement;
+    const magnetic = target.closest('[data-magnetic]') as HTMLElement | null;
+    if (magnetic) {
+      const rect = magnetic.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const strength = parseFloat(magnetic.dataset.magnetic || '0.15');
+      magneticTarget.current = { el: magnetic, strength };
+    } else {
+      magneticTarget.current = null;
+    }
   }, []);
 
   useEffect(() => {
@@ -45,9 +59,27 @@ const CustomCursor: React.FC = () => {
       const my = mouseRef.current.y;
       const hover = hoverRef.current;
 
+      // Magnetic pull
+      let targetX = mx;
+      let targetY = my;
+      if (magneticTarget.current) {
+        const rect = magneticTarget.current.el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = cx - mx;
+        const dy = cy - my;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const maxDist = 120;
+        if (dist < maxDist && dist > 0) {
+          const strength = (1 - dist / maxDist) * magneticTarget.current.strength;
+          targetX += dx * strength;
+          targetY += dy * strength;
+        }
+      }
+
       // Smooth follow for ring position
-      smoothMouse.current.x += (mx - smoothMouse.current.x) * 0.12;
-      smoothMouse.current.y += (my - smoothMouse.current.y) * 0.12;
+      smoothMouse.current.x += (targetX - smoothMouse.current.x) * 0.12;
+      smoothMouse.current.y += (targetY - smoothMouse.current.y) * 0.12;
 
       // Cursor dot — direct follow
       if (cursorDotRef.current) {
@@ -58,7 +90,6 @@ const CustomCursor: React.FC = () => {
       const rs = ringState.current;
       const targetSize = hover ? 56 : 32;
       const targetOpacity = hover ? 0.5 : 0.25;
-      // Non-linear ease: faster when expanding, slower when shrinking
       const easeFactor = hover ? 0.08 : 0.05;
       rs.size += (targetSize - rs.size) * easeFactor;
       rs.opacity += (targetOpacity - rs.opacity) * easeFactor;
@@ -73,12 +104,12 @@ const CustomCursor: React.FC = () => {
 
       // Area glow
       if (cursorGlowRef.current) {
-        cursorGlowRef.current.style.transform = `translate(${mx - 200}px, ${my - 200}px)`;
+        cursorGlowRef.current.style.transform = `translate(${mx - 150}px, ${my - 150}px)`;
       }
 
       // Trail
       trailPoints.current.push({ x: mx, y: my, age: 0 });
-      if (trailPoints.current.length > 25) trailPoints.current.shift();
+      if (trailPoints.current.length > 20) trailPoints.current.shift();
 
       const canvas = trailCanvasRef.current;
       if (canvas) {
@@ -90,15 +121,15 @@ const CustomCursor: React.FC = () => {
 
           trailPoints.current.forEach((p) => {
             p.age++;
-            const alpha = Math.max(0, 1 - p.age / 25);
-            const size = 1.2 * alpha;
+            const alpha = Math.max(0, 1 - p.age / 20);
+            const size = 1.5 * alpha;
             ctx.beginPath();
             ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(45, 106, 79, ${alpha * 0.25})`;
+            ctx.fillStyle = `rgba(45, 106, 79, ${alpha * 0.2})`;
             ctx.fill();
           });
 
-          trailPoints.current = trailPoints.current.filter(p => p.age < 25);
+          trailPoints.current = trailPoints.current.filter(p => p.age < 20);
         }
       }
 
@@ -111,7 +142,7 @@ const CustomCursor: React.FC = () => {
 
   return (
     <>
-      {/* Cursor dot — small, precise */}
+      {/* Cursor dot */}
       <div
         ref={cursorDotRef}
         className="fixed top-0 left-0 z-[9999] pointer-events-none"
@@ -120,7 +151,7 @@ const CustomCursor: React.FC = () => {
         <div className="w-[10px] h-[10px] rounded-full bg-ink/80 dark:bg-warm-50/80 shadow-[0_0_0_1.5px_rgba(255,255,255,0.85)]" />
       </div>
 
-      {/* Cursor ring — low opacity, no text, smooth JS interpolation */}
+      {/* Cursor ring */}
       <div
         ref={cursorRingRef}
         className="fixed top-0 left-0 z-[9998] pointer-events-none rounded-full"
@@ -137,7 +168,7 @@ const CustomCursor: React.FC = () => {
       {/* Area glow */}
       <div
         ref={cursorGlowRef}
-        className="fixed top-0 left-0 w-[400px] h-[400px] rounded-full pointer-events-none z-[1] opacity-[0.04]"
+        className="fixed top-0 left-0 w-[300px] h-[300px] rounded-full pointer-events-none z-[1] opacity-[0.04]"
         style={{
           background: 'radial-gradient(circle, rgba(45,106,79,0.4) 0%, transparent 70%)',
           willChange: 'transform',

@@ -1,7 +1,9 @@
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import gsap from 'gsap';
 import { socialPlatforms, primaryPlatforms, secondaryPlatforms } from '../../data/social';
 import { getSocialIcon } from '../social-icons';
+import { useTransition } from '../../contexts/TransitionContext';
 
 const NONLINEAR_EASING = [0.16, 1, 0.3, 1] as const;
 
@@ -13,8 +15,141 @@ const setCursor = (hover: boolean) => {
   (window as any).__setCursor?.(hover);
 };
 
-// ── WeChat Card with QR reveal ──
-const WeChatCard: React.FC = () => {
+// ── Animated background gradient ──
+const AnimatedBackground: React.FC<{ isActive: boolean }> = ({ isActive }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef(0);
+
+  useEffect(() => {
+    if (!isActive) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let w = window.innerWidth;
+    let h = window.innerHeight;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+
+    const handleResize = () => {
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
+    };
+    window.addEventListener('resize', handleResize);
+
+    const isDark = document.documentElement.classList.contains('dark');
+    let time = 0;
+
+    const draw = () => {
+      time += 0.002;
+      ctx.clearRect(0, 0, w, h);
+
+      // Soft ambient orbs
+      const orbs = isDark
+        ? [
+            { x: w * 0.2, y: h * 0.3, r: Math.min(w, h) * 0.3, color: '45,106,79' },
+            { x: w * 0.8, y: h * 0.6, r: Math.min(w, h) * 0.25, color: '217,161,48' },
+            { x: w * 0.5, y: h * 0.8, r: Math.min(w, h) * 0.2, color: '120,115,110' },
+          ]
+        : [
+            { x: w * 0.15, y: h * 0.25, r: Math.min(w, h) * 0.35, color: '45,106,79' },
+            { x: w * 0.85, y: h * 0.5, r: Math.min(w, h) * 0.3, color: '217,161,48' },
+            { x: w * 0.4, y: h * 0.75, r: Math.min(w, h) * 0.25, color: '200,195,190' },
+          ];
+
+      for (const orb of orbs) {
+        const pulse = Math.sin(time + orb.x * 0.01) * 0.15 + 0.85;
+        const gradient = ctx.createRadialGradient(
+          orb.x + Math.sin(time * 0.3) * 30,
+          orb.y + Math.cos(time * 0.4) * 30,
+          0,
+          orb.x,
+          orb.y,
+          orb.r * pulse
+        );
+        gradient.addColorStop(0, `rgba(${orb.color}, 0.04)`);
+        gradient.addColorStop(0.5, `rgba(${orb.color}, 0.02)`);
+        gradient.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      rafRef.current = requestAnimationFrame(draw);
+    };
+    rafRef.current = requestAnimationFrame(draw);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, [isActive]);
+
+  if (!isActive) return null;
+  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }} />;
+};
+
+// ── Card tilt hook ──
+const useCardTilt = (gradient?: string[]) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+
+    const tiltX = (0.5 - y) * 12;
+    const tiltY = (x - 0.5) * 12;
+    const px = (x - 0.5) * -8;
+    const py = (y - 0.5) * -8;
+    const gx = x * 100;
+    const gy = y * 100;
+
+    card.style.transform = `perspective(800px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale3d(1.03,1.03,1.03)`;
+
+    const content = card.querySelector('.card-inner') as HTMLElement;
+    if (content) content.style.transform = `translate(${px}px, ${py}px)`;
+
+    const glow = card.querySelector('.card-glow') as HTMLElement;
+    if (glow) {
+      glow.style.opacity = '1';
+      const c1 = gradient?.[0] || '201,169,110';
+      glow.style.background =
+        `radial-gradient(circle 300px at ${gx}% ${gy}%, rgba(${c1},0.12), transparent 70%)`;
+    }
+
+    const border = card.querySelector('.card-border') as HTMLElement;
+    if (border) border.style.opacity = '1';
+
+    const shimmer = card.querySelector('.card-shimmer') as HTMLElement;
+    if (shimmer) {
+      shimmer.style.opacity = '1';
+      shimmer.style.backgroundPosition = `${gx * 3}% 0`;
+    }
+  }, [gradient]);
+
+  const handleMouseLeave = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    card.style.transform = '';
+    const content = card.querySelector('.card-inner') as HTMLElement;
+    if (content) content.style.transform = '';
+    const glow = card.querySelector('.card-glow') as HTMLElement;
+    if (glow) glow.style.opacity = '0';
+    const border = card.querySelector('.card-border') as HTMLElement;
+    if (border) border.style.opacity = '0';
+    const shimmer = card.querySelector('.card-shimmer') as HTMLElement;
+    if (shimmer) shimmer.style.opacity = '0';
+  }, []);
+
+  return { handleMouseMove, handleMouseLeave };
+};
+
+// ── WeChat Card ──
+const WeChatCard: React.FC<{ index: number }> = ({ index }) => {
   const [isHovered, setIsHovered] = useState(false);
   const platform = secondaryPlatforms.find(p => p.id === 'wechat')!;
 
@@ -23,7 +158,6 @@ const WeChatCard: React.FC = () => {
     const rect = card.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
-
     card.style.transform = `perspective(800px) rotateX(${(0.5 - y) * 12}deg) rotateY(${(x - 0.5) * 12}deg) scale3d(1.03,1.03,1.03)`;
 
     const content = card.querySelector('.card-inner') as HTMLElement;
@@ -31,16 +165,13 @@ const WeChatCard: React.FC = () => {
 
     const gx = x * 100;
     const gy = y * 100;
-
     const glow = card.querySelector('.card-glow') as HTMLElement;
     if (glow) {
       glow.style.opacity = '1';
       glow.style.background = `radial-gradient(circle 300px at ${gx}% ${gy}%, rgba(7,193,96,0.10), transparent 70%)`;
     }
-
     const border = card.querySelector('.card-border') as HTMLElement;
     if (border) border.style.opacity = '1';
-
     const shimmer = card.querySelector('.card-shimmer') as HTMLElement;
     if (shimmer) {
       shimmer.style.opacity = '1';
@@ -64,16 +195,16 @@ const WeChatCard: React.FC = () => {
   }, []);
 
   return (
-    <div
+    <motion.div
       className="group relative cursor-pointer"
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.4 + index * 0.1, ease: NONLINEAR_EASING }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onMouseEnter={() => { setCursor(true); setIsHovered(true); }}
     >
-      {/* Glow */}
       <div className="card-glow absolute -inset-4 rounded-3xl opacity-0 pointer-events-none transition-opacity duration-500" />
-
-      {/* Animated border */}
       <div className="card-border absolute inset-0 rounded-xl opacity-0 pointer-events-none overflow-hidden transition-opacity duration-500">
         <div className="absolute inset-0 rounded-xl" style={{
           padding: '1px',
@@ -83,28 +214,20 @@ const WeChatCard: React.FC = () => {
           maskComposite: 'exclude',
         }} />
       </div>
-
-      {/* Shimmer */}
-      <div className="card-shimmer absolute inset-0 rounded-xl opacity-0 pointer-events-none transition-opacity duration-300" />
-
-      {/* Card inner */}
+      <div className="card-shimmer absolute inset-0 rounded-xl opacity-0 pointer-events-none transition-opacity duration-300"
+        style={{ background: 'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.06) 45%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 55%, transparent 70%)', backgroundSize: '250% 100%' }} />
       <motion.div
         className="card-inner relative bg-white/60 dark:bg-ink-700/60 backdrop-blur-sm rounded-xl p-3 sm:p-4 border transition-all duration-500 overflow-hidden"
         style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
         animate={{
-          borderColor: isHovered
-            ? 'rgba(7,193,96,0.35)'
-            : 'rgba(236,232,224,0.2)',
+          borderColor: isHovered ? 'rgba(7,193,96,0.35)' : 'rgba(236,232,224,0.2)',
         }}
         transition={{ duration: 0.5, ease: NONLINEAR_EASING }}
       >
-        {/* Front: icon + name */}
         <div className="flex items-center gap-2.5 sm:gap-3">
           <motion.div
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0"
-            style={{
-              background: 'linear-gradient(135deg, #07C160, #06ad56)',
-            }}
+            style={{ background: 'linear-gradient(135deg, #07C160, #06ad56)' }}
             animate={{ scale: isHovered ? 1.1 : 1, rotate: isHovered ? -3 : 0 }}
             transition={{ duration: 0.5, ease: NONLINEAR_EASING }}
           >
@@ -125,8 +248,6 @@ const WeChatCard: React.FC = () => {
             transition={{ duration: 0.4, ease: NONLINEAR_EASING }}
           >→</motion.span>
         </div>
-
-        {/* QR Code — animated reveal */}
         <AnimatePresence initial={false}>
           {isHovered && (
             <motion.div
@@ -139,12 +260,7 @@ const WeChatCard: React.FC = () => {
             >
               <div className="pt-3 mt-3 border-t border-green-500/15">
                 <div className="relative">
-                  <img
-                    src="/images/好友码.JPG"
-                    alt="好友码"
-                    className="w-full rounded-lg"
-                  />
-                  {/* Decorative corner accents */}
+                  <img src="/images/好友码.JPG" alt="好友码" className="w-full rounded-lg" />
                   <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-green-400/40 rounded-tl-lg" />
                   <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-green-400/40 rounded-tr-lg" />
                   <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-green-400/40 rounded-bl-lg" />
@@ -158,74 +274,60 @@ const WeChatCard: React.FC = () => {
           )}
         </AnimatePresence>
       </motion.div>
-    </div>
+    </motion.div>
   );
 };
 
 // ── Main Screen ──
 const SocialScreen: React.FC<Props> = ({ isActive }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
   const [appreciateHovered, setAppreciateHovered] = useState(false);
+  const { containerOffset } = useTransition();
+  const tilt = useCardTilt();
 
-  const handleCardMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const card = e.currentTarget;
-    const rect = card.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
+  // ── GSAP header entrance ──
+  useEffect(() => {
+    if (!isActive || !headerRef.current) return;
+    const ctx = gsap.context(() => {
+      gsap.from('.social-header-line', {
+        opacity: 0,
+        y: 20,
+        duration: 0.6,
+        stagger: 0.15,
+        ease: 'power3.out',
+        delay: 0.2,
+      });
+    }, headerRef);
+    return () => ctx.revert();
+  }, [isActive]);
 
-    const tiltX = (0.5 - y) * 12;
-    const tiltY = (x - 0.5) * 12;
-    const px = (x - 0.5) * -8;
-    const py = (y - 0.5) * -8;
-    const gx = x * 100;
-    const gy = y * 100;
-
-    card.style.transform = `perspective(800px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale3d(1.03,1.03,1.03)`;
-
-    const content = card.querySelector('.card-inner') as HTMLElement;
-    if (content) content.style.transform = `translate(${px}px, ${py}px)`;
-
-    const glow = card.querySelector('.card-glow') as HTMLElement;
-    if (glow) {
-      glow.style.opacity = '1';
-      glow.style.background = `radial-gradient(circle 300px at ${gx}% ${gy}%, rgba(201,169,110,0.12), transparent 70%)`;
+  // ── Parallax ──
+  useEffect(() => {
+    const offset = containerOffset + 3; // social is screen 3
+    const bg = containerRef.current?.querySelector('.social-bg-shift');
+    if (bg) {
+      (bg as HTMLElement).style.transform = `translateY(${offset * 15}px)`;
     }
-
-    const border = card.querySelector('.card-border') as HTMLElement;
-    if (border) border.style.opacity = '1';
-
-    const shimmer = card.querySelector('.card-shimmer') as HTMLElement;
-    if (shimmer) {
-      shimmer.style.opacity = '1';
-      shimmer.style.background = `linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.06) 45%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 55%, transparent 70%)`;
-      shimmer.style.backgroundPosition = `${gx * 3}% 0`;
-    }
-  }, []);
-
-  const handleCardMouseLeave = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const card = e.currentTarget;
-    card.style.transform = '';
-    const content = card.querySelector('.card-inner') as HTMLElement;
-    if (content) content.style.transform = '';
-    const glow = card.querySelector('.card-glow') as HTMLElement;
-    if (glow) glow.style.opacity = '0';
-    const border = card.querySelector('.card-border') as HTMLElement;
-    if (border) border.style.opacity = '0';
-    const shimmer = card.querySelector('.card-shimmer') as HTMLElement;
-    if (shimmer) shimmer.style.opacity = '0';
-  }, []);
+  }, [containerOffset]);
 
   const handleCardClick = (url: string) => {
     if (url !== '#') window.open(url, '_blank');
   };
 
   const renderPrimaryCard = (platform: typeof primaryPlatforms[number], index: number) => (
-    <div
+    <motion.div
       key={platform.id}
       className="group relative cursor-pointer"
-      style={{ transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}
-      onMouseMove={handleCardMouseMove}
-      onMouseLeave={handleCardMouseLeave}
+      initial={{ opacity: 0, y: 40, scale: 0.95 }}
+      animate={isActive ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 20, scale: 0.98 }}
+      transition={{
+        duration: 0.6,
+        delay: 0.3 + index * 0.12,
+        ease: NONLINEAR_EASING,
+      }}
+      onMouseMove={tilt.handleMouseMove}
+      onMouseLeave={tilt.handleMouseLeave}
       onMouseEnter={() => setCursor(true)}
       onClick={() => handleCardClick(platform.url)}
     >
@@ -241,18 +343,16 @@ const SocialScreen: React.FC<Props> = ({ isActive }) => {
       </div>
       <div className="card-shimmer absolute inset-0 rounded-2xl opacity-0 pointer-events-none transition-opacity duration-300" />
       <div className="card-inner relative bg-white dark:bg-ink-700 rounded-2xl p-4 md:p-6 border border-warm-200/30 dark:border-warm-800/30 transition-all duration-500"
-        style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
-      >
+        style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
         <div className="flex items-start justify-between mb-4">
-          <div
-            className="w-11 h-11 md:w-14 md:h-14 rounded-xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3"
-            style={{
-              background: `linear-gradient(135deg, ${platform.gradient[0]}, ${platform.gradient[1]})`,
-              transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
+          <motion.div
+            className="w-11 h-11 md:w-14 md:h-14 rounded-xl flex items-center justify-center"
+            style={{ background: `linear-gradient(135deg, ${platform.gradient[0]}, ${platform.gradient[1]})` }}
+            whileHover={{ scale: 1.1, rotate: 3 }}
+            transition={{ duration: 0.5, ease: NONLINEAR_EASING }}
           >
             {getSocialIcon(platform.icon, '#ffffff', 28)}
-          </div>
+          </motion.div>
           {platform.primary && (
             <div className="text-right">
               <div className="font-mono text-xs text-warm-400">Followers</div>
@@ -270,15 +370,17 @@ const SocialScreen: React.FC<Props> = ({ isActive }) => {
           <span className="visit-arrow text-sm transition-all duration-500 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0">→</span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 
   return (
     <section ref={containerRef} className="w-full h-full relative overflow-y-auto bg-white dark:bg-ink">
-      <div className="absolute inset-0 bg-gradient-to-br from-warm-50/50 via-transparent to-warm-100/30 dark:from-ink dark:to-ink-800" />
+      {/* Animated background */}
+      <AnimatedBackground isActive={isActive} />
+      <div className="social-bg-shift absolute inset-0 bg-gradient-to-br from-warm-50/50 via-transparent to-warm-100/30 dark:from-ink dark:to-ink-800 pointer-events-none" />
 
-      {/* Header — hidden on mobile */}
-      <div className="hidden sm:block absolute top-5 left-5 sm:top-8 sm:left-8 md:left-16 z-30">
+      {/* Header */}
+      <div ref={headerRef} className="hidden sm:block absolute top-5 left-5 sm:top-8 sm:left-8 md:left-16 z-30">
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           animate={isActive ? { opacity: 1, x: 0 } : {}}
@@ -291,13 +393,13 @@ const SocialScreen: React.FC<Props> = ({ isActive }) => {
             transition={{ duration: 1, delay: 0.4, ease: NONLINEAR_EASING }}
             className="h-px bg-warm-300 dark:bg-warm-400/30"
           />
-          Connect
+          <span className="social-header-line">Connect</span>
         </motion.div>
         <motion.h2
           initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
           animate={isActive ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
           transition={{ duration: 1, delay: 0.3, ease: NONLINEAR_EASING }}
-          className="font-display font-normal text-[clamp(1.5rem,4vw,3rem)] tracking-[-0.02em] text-ink dark:text-warm-50"
+          className="social-header-line font-display font-normal text-[clamp(1.5rem,4vw,3rem)] tracking-[-0.02em] text-ink dark:text-warm-50"
         >
           社交平台
         </motion.h2>
@@ -305,7 +407,7 @@ const SocialScreen: React.FC<Props> = ({ isActive }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={isActive ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.5, ease: NONLINEAR_EASING }}
-          className="font-sans text-xs sm:text-sm text-warm-400 mt-1 sm:mt-2 max-w-xs"
+          className="social-header-line font-sans text-xs sm:text-sm text-warm-400 mt-1 sm:mt-2 max-w-xs"
         >
           连接创作者的数字宇宙
         </motion.p>
@@ -314,25 +416,30 @@ const SocialScreen: React.FC<Props> = ({ isActive }) => {
       {/* Cards grid */}
       <div className="absolute inset-0 flex items-center sm:items-center justify-center p-4 pt-6 sm:pt-20 sm:p-8 md:pt-16 md:p-16 overflow-y-auto">
         <div className="w-full max-w-6xl">
-          {/* Primary — mobile: 1 col, sm: 2 col */}
+          {/* Primary cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-3 sm:mb-4 md:mb-6">
             {primaryPlatforms.map((platform, i) => renderPrimaryCard(platform, i))}
           </div>
 
-          {/* Secondary — hidden on mobile, sm: 3 col */}
+          {/* Secondary cards */}
           <div className="hidden sm:grid grid-cols-3 gap-3 md:gap-4">
-            {secondaryPlatforms.map((platform) => {
-              // Replace WeChat with a custom QR-reveal card
+            {secondaryPlatforms.map((platform, i) => {
               if (platform.id === 'wechat') {
-                return <WeChatCard key="wechat" />;
+                return <WeChatCard key="wechat" index={i} />;
               }
               return (
-                <div
+                <motion.div
                   key={platform.id}
                   className="group relative cursor-pointer"
-                  style={{ transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}
-                  onMouseMove={handleCardMouseMove}
-                  onMouseLeave={handleCardMouseLeave}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
+                  transition={{
+                    duration: 0.5,
+                    delay: 0.4 + i * 0.1,
+                    ease: NONLINEAR_EASING,
+                  }}
+                  onMouseMove={tilt.handleMouseMove}
+                  onMouseLeave={tilt.handleMouseLeave}
                   onMouseEnter={() => setCursor(true)}
                   onClick={() => handleCardClick(platform.url)}
                 >
@@ -348,8 +455,7 @@ const SocialScreen: React.FC<Props> = ({ isActive }) => {
                   </div>
                   <div className="card-shimmer absolute inset-0 rounded-xl opacity-0 pointer-events-none transition-opacity duration-300" />
                   <div className="card-inner relative bg-white/60 dark:bg-ink-700/60 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-warm-200/20 dark:border-warm-800/20 transition-all duration-500"
-                    style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
-                  >
+                    style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
                     <div className="flex items-center gap-2.5 sm:gap-3">
                       <div
                         className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3"
@@ -373,14 +479,14 @@ const SocialScreen: React.FC<Props> = ({ isActive }) => {
                     </div>
                     <span className="visit-arrow inline-block text-xs text-warm-400 opacity-0 ml-1 transition-all duration-500 group-hover:opacity-100 group-hover:translate-x-1">→</span>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
         </div>
       </div>
 
-      {/* ── 赞赏码 (Appreciation QR) — enhanced gold & coin effects ── */}
+      {/* ── Appreciation QR ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={isActive ? { opacity: 1, y: 0 } : {}}
@@ -399,7 +505,7 @@ const SocialScreen: React.FC<Props> = ({ isActive }) => {
             mass: 0.6,
           }}
         >
-          {/* Pulse rings — expand outward on hover */}
+          {/* Pulse rings */}
           <AnimatePresence>
             {appreciateHovered && (
               <>
@@ -431,7 +537,7 @@ const SocialScreen: React.FC<Props> = ({ isActive }) => {
             )}
           </AnimatePresence>
 
-          {/* Orbiting coin particles — 5 coins circle the card */}
+          {/* Orbiting coins */}
           {[0, 1, 2, 3, 4].map((i) => {
             const angle = (i / 5) * 360;
             const r = appreciateHovered ? 56 : 28;
@@ -464,7 +570,7 @@ const SocialScreen: React.FC<Props> = ({ isActive }) => {
             );
           })}
 
-          {/* Floating coin particles — rise upward on hover */}
+          {/* Floating coins */}
           <AnimatePresence>
             {appreciateHovered && [0, 1, 2].map((i) => (
               <motion.div
@@ -505,9 +611,8 @@ const SocialScreen: React.FC<Props> = ({ isActive }) => {
             transition={{ duration: 0.6, ease: NONLINEAR_EASING }}
           />
 
-          {/* Card with rotating gold gradient border */}
+          {/* Card with rotating gradient border */}
           <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden">
-            {/* Rotating conic gradient — creates flowing golden border */}
             <motion.div
               className="absolute -inset-4"
               style={{
@@ -516,13 +621,8 @@ const SocialScreen: React.FC<Props> = ({ isActive }) => {
               animate={appreciateHovered ? { rotate: 360 } : { rotate: 0 }}
               transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
             />
-            {/* Inner content — masks the center, leaves 2px border visible */}
             <div className="absolute inset-[2px] rounded-[10px] overflow-hidden bg-white dark:bg-ink-800 shadow-inner">
-              <img
-                src="/images/赞赏码.JPG"
-                alt="赞赏码"
-                className="w-full h-full object-cover"
-              />
+              <img src="/images/赞赏码.JPG" alt="赞赏码" className="w-full h-full object-cover" />
             </div>
           </div>
 
@@ -550,7 +650,6 @@ const SocialScreen: React.FC<Props> = ({ isActive }) => {
           </motion.div>
         </motion.div>
       </motion.div>
-
     </section>
   );
 };
