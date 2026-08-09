@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import Masthead from '../components/Masthead.astro';
 import Footer from '../components/Footer.astro';
+import Ornament from '../components/Ornament.astro';
 import type { Lang } from '../i18n/detect';
 
 interface Props {
@@ -17,5 +18,6 @@ const { title, description, lang, path } = Astro.props;
   <main class="mx-auto max-w-4xl px-6">
     <slot />
   </main>
+  <Ornament label={lang === 'zh' ? '卷 终' : 'FIN'} />
   <Footer lang={lang} />
 </BaseLayout>

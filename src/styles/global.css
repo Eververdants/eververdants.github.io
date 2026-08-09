@@ -38,3 +38,22 @@ body {
 .prose img { @apply my-6; }
 .prose ul { @apply list-disc pl-5 my-4; }
 .prose ol { @apply list-decimal pl-5 my-4; }
+
+/* 半调网点背景装饰 */
+.halftone {
+  background-image: radial-gradient(color-mix(in srgb, var(--color-cinnabar) 22%, transparent) 1px, transparent 1px);
+  background-size: 10px 10px;
+}
+/* 首字下沉 */
+.drop-cap::first-letter {
+  @apply font-serif-sc font-black text-5xl text-cinnabar float-left mr-2 mt-1 leading-none;
+}
+/* 竖排文字 */
+.vtext {
+  writing-mode: vertical-rl;
+  letter-spacing: 0.2em;
+}
+/* 杂志刊号角标 */
+.issue-mark {
+  @apply font-mono text-[10px] tracking-[0.3em] text-plum;
+}

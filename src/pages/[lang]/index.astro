@@ -7,6 +7,8 @@ import { resumeEn } from '../../data/resume-en';
 import SkillSection from '../../components/SkillSection.astro';
 import Timeline from '../../components/Timeline.astro';
 import SubSiteCards from '../../components/SubSiteCards.astro';
+import VerticalText from '../../components/VerticalText.astro';
+import Stamp from '../../components/Stamp.astro';
 
 export function getStaticPaths() {
   return [{ params: { lang: 'zh' } }, { params: { lang: 'en' } }];
@@ -19,11 +21,12 @@ const path = '';
 ---
 <MagazineLayout title={`${resume.name} · ${resume.title}`} description={resume.slogan} lang={lang} path={path}>
   <!-- Hero -->
-  <section class="py-20 border-b border-line">
+  <section class="relative py-20 border-b border-line">
     <p class="font-mono text-xs uppercase tracking-[0.3em] text-cinnabar">{t('hero.kicker')}</p>
     <h1 class="mt-6 font-serif-sc text-6xl font-black leading-tight">{resume.name}</h1>
     <p class="mt-4 font-display text-2xl text-plum italic">{resume.title}</p>
     <p class="mt-2 text-plum">{resume.slogan}</p>
+    <VerticalText text="万山青未阑" class="absolute right-6 top-24 hidden lg:block" />
   </section>
 
   <!-- 副站入口 -->
@@ -51,6 +54,9 @@ const path = '';
       {resume.contacts.map((c) => (
         <a href={c.href} class="font-mono text-sm text-plum hover:text-cinnabar underline underline-offset-4">{c.label}</a>
       ))}
+    </div>
+    <div class="mt-8">
+      <Stamp text="万山" />
     </div>
   </section>
 </MagazineLayout>

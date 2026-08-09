@@ -19,7 +19,7 @@ const projects = await getProjects(lang);
     <p class="font-mono text-xs uppercase tracking-[0.3em] text-cinnabar">{t('nav.projects').toUpperCase()}</p>
     <h1 class="mt-4 font-serif-sc text-5xl font-black">{t('nav.projects')}</h1>
   </header>
-  <div class="py-10 grid gap-6 sm:grid-cols-2">
+  <div class="halftone py-10 grid gap-6 sm:grid-cols-2">
     {projects.map((project) => <ProjectCard project={project} lang={lang} />)}
   </div>
 </MagazineLayout>
