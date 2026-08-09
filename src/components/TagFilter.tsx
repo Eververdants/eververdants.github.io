@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 const ALL = '__all__';
 
-export default function TagFilter({ tags }: { tags: string[] }) {
+export default function TagFilter({ tags, allLabel }: { tags: string[]; allLabel: string }) {
   const [active, setActive] = useState<string>(ALL);
 
   const apply = (tag: string) => {
@@ -19,15 +19,17 @@ export default function TagFilter({ tags }: { tags: string[] }) {
       <span className="text-plum">Tags</span>
       <button
         type="button"
+        aria-pressed={active === ALL}
         onClick={() => apply(ALL)}
         className={`border px-2 py-0.5 ${active === ALL ? 'border-cinnabar text-cinnabar' : 'border-line text-plum hover:border-cinnabar hover:text-cinnabar'}`}
       >
-        全部 / All
+        {allLabel}
       </button>
       {tags.map((tag) => (
         <button
           key={tag}
           type="button"
+          aria-pressed={active === tag}
           onClick={() => apply(tag)}
           className={`border px-2 py-0.5 ${active === tag ? 'border-cinnabar text-cinnabar' : 'border-line text-plum hover:border-cinnabar hover:text-cinnabar'}`}
         >

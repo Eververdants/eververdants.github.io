@@ -22,7 +22,7 @@ const allTags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
     <h1 class="mt-4 font-serif-sc text-5xl font-black">{t('nav.blog')}</h1>
   </header>
 
-  <TagFilter tags={allTags} client:load />
+  <TagFilter tags={allTags} allLabel={t('blog.all')} client:load />
 
   <div id="post-list" class="divide-y divide-line">
     {posts.map((post) => <PostCard post={post} lang={lang} />)}
