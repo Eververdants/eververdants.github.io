@@ -268,6 +268,9 @@ export const ui = {
     'post.reading': '约 {min} 分钟',
     'project.active': '活跃',
     'project.archived': '归档',
+    'hero.kicker': '作品集 · 简历',
+    'subsite.blog.rule': '题字：随笔与文章',
+    'subsite.projects.rule': '题字：开源与作品',
   },
   en: {
     'site.name': 'Eververdants',
@@ -283,6 +286,9 @@ export const ui = {
     'post.reading': '~{min} min',
     'project.active': 'Active',
     'project.archived': 'Archived',
+    'hero.kicker': 'PORTFOLIO · Resume',
+    'subsite.blog.rule': 'Essays & Notes',
+    'subsite.projects.rule': 'Open Source & Works',
   },
 } as const;
 
@@ -742,8 +748,8 @@ interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const cards = [
-  { href: getRelativeLocaleUrl(lang, 'blog/'), label: t('nav.blog'), en: 'BLOG', rule: '题字：随笔与文章' },
-  { href: getRelativeLocaleUrl(lang, 'projects/'), label: t('nav.projects'), en: 'SOFTWARE', rule: '题字：开源与作品' },
+  { href: getRelativeLocaleUrl(lang, 'blog/'), label: t('nav.blog'), en: 'BLOG', rule: t('subsite.blog.rule') },
+  { href: getRelativeLocaleUrl(lang, 'projects/'), label: t('nav.projects'), en: 'SOFTWARE', rule: t('subsite.projects.rule') },
 ];
 ---
 <div class="mt-20 grid gap-6 sm:grid-cols-2">
@@ -782,7 +788,7 @@ const path = '';
 <MagazineLayout title={`${resume.name} · ${resume.title}`} description={resume.slogan} lang={lang} path={path}>
   <!-- Hero -->
   <section class="py-20 border-b border-line">
-    <p class="font-mono text-xs uppercase tracking-[0.3em] text-cinnabar">PORTFOLIO · 简历</p>
+    <p class="font-mono text-xs uppercase tracking-[0.3em] text-cinnabar">{t('hero.kicker')}</p>
     <h1 class="mt-6 font-serif-sc text-6xl font-black leading-tight">{resume.name}</h1>
     <p class="mt-4 font-display text-2xl text-plum italic">{resume.title}</p>
     <p class="mt-2 text-plum">{resume.slogan}</p>

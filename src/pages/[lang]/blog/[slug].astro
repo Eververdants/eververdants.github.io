@@ -1,0 +1,59 @@
+---
+import MagazineLayout from '../../../layouts/MagazineLayout.astro';
+import { useTranslations, langNames } from '../../../i18n/ui';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import type { Lang } from '../../../i18n/detect';
+import { getPosts, getPost, otherLang } from '../../../content/utils';
+import { readingTime } from '../../../i18n/reading';
+
+export async function getStaticPaths() {
+  const langs: Lang[] = ['zh', 'en'];
+  const params: { params: { lang: Lang; slug: string } }[] = [];
+  for (const lang of langs) {
+    for (const post of await getPosts(lang)) {
+      params.push({ params: { lang, slug: post.slug } });
+    }
+  }
+  return params;
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const slug = Astro.params.slug as string;
+const t = useTranslations(lang);
+let post = await getPost(lang, slug);
+let shownLang = lang;
+if (!post) {
+  shownLang = otherLang(lang);
+  post = await getPost(shownLang, slug);
+}
+if (!post) return Astro.redirect(`/${lang}/blog/`);
+const { Content } = await post.render();
+const minutes = readingTime(post.body ?? '', shownLang);
+const allPosts = await getPosts(lang);
+const idx = allPosts.findIndex((p) => p.slug === post.slug);
+const prev = idx > 0 ? allPosts[idx - 1] : null;
+const next = idx >= 0 && idx < allPosts.length - 1 ? allPosts[idx + 1] : null;
+const path = `blog/${slug}/`;
+---
+<MagazineLayout title={post.data.title} description={post.data.description} lang={lang} path={path}>
+  <article class="py-14 max-w-2xl mx-auto">
+    <time class="font-mono text-xs tracking-widest text-plum">{post.data.date.toISOString().slice(0, 10)} · {t('post.reading').replace('{min}', String(minutes))}</time>
+    <h1 class="mt-4 font-serif-sc text-4xl font-black leading-tight">{post.data.title}</h1>
+    {shownLang !== lang && (
+      <p class="mt-4 border-l-2 border-cinnabar pl-3 font-mono text-xs text-plum">
+        {t('missing.lang').replace('{lang}', langNames[lang] ?? lang).replace('{shown}', langNames[shownLang] ?? shownLang)}
+      </p>
+    )}
+    <div class="mt-6 flex flex-wrap gap-3 font-mono text-xs">
+      {post.data.tags.map((tag) => <span class="border border-line px-2 py-0.5 text-plum">#{tag}</span>)}
+    </div>
+    <div class="prose mt-10">
+      <Content />
+    </div>
+
+    <nav class="mt-16 flex justify-between border-t border-line pt-6 font-mono text-xs">
+      {next ? <a href={getRelativeLocaleUrl(lang, `blog/${next.slug}/`)} class="text-plum hover:text-cinnabar">← {next.data.title}</a> : <span />}
+      {prev ? <a href={getRelativeLocaleUrl(lang, `blog/${prev.slug}/`)} class="text-plum hover:text-cinnabar text-right">{prev.data.title} →</a> : <span />}
+    </nav>
+  </article>
+</MagazineLayout>

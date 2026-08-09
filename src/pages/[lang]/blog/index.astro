@@ -1,0 +1,33 @@
+---
+import MagazineLayout from '../../../layouts/MagazineLayout.astro';
+import { useTranslations } from '../../../i18n/ui';
+import type { Lang } from '../../../i18n/detect';
+import { getPosts } from '../../../content/utils';
+import PostCard from '../../../components/PostCard.astro';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'zh' } }, { params: { lang: 'en' } }];
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const t = useTranslations(lang);
+const path = 'blog/';
+const posts = await getPosts(lang);
+const allTags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
+---
+<MagazineLayout title={`${t('nav.blog')} · ${t('site.name')}`} lang={lang} path={path}>
+  <header class="py-14 border-b border-line">
+    <p class="font-mono text-xs uppercase tracking-[0.3em] text-cinnabar">{t('nav.blog').toUpperCase()}</p>
+    <h1 class="mt-4 font-serif-sc text-5xl font-black">{t('nav.blog')}</h1>
+  </header>
+
+  <!-- 标签行（Task 6 会换成交互岛） -->
+  <nav class="flex flex-wrap gap-3 py-6 border-b border-line font-mono text-xs">
+    <span class="text-plum">Tags</span>
+    {allTags.map((tag) => <button type="button" data-tag={tag} class="border border-line px-2 py-0.5 text-plum hover:border-cinnabar hover:text-cinnabar">{tag}</button>)}
+  </nav>
+
+  <div id="post-list" class="divide-y divide-line">
+    {posts.map((post) => <PostCard post={post} lang={lang} />)}
+  </div>
+</MagazineLayout>
