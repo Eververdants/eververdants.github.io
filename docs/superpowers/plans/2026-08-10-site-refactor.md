@@ -1076,12 +1076,19 @@ import type { Lang } from '../../../i18n/detect';
 import { getPosts, getPost, otherLang } from '../../../content/utils';
 import { readingTime } from '../../../i18n/reading';
 
-export function getStaticPaths() {
+export async function getStaticPaths() {
   const langs: Lang[] = ['zh', 'en'];
-  const params: { params: { lang: Lang; slug: string } }[] = [];
+  // 收集两语言 slug 并集：保证单语文章在另一语言也生成路径，供页面内缺语言回退兜底
+  const slugs = new Set<string>();
   for (const lang of langs) {
     for (const post of await getPosts(lang)) {
-      params.push({ params: { lang, slug: post.slug } });
+      slugs.add(post.slug);
+    }
+  }
+  const params: { params: { lang: Lang; slug: string } }[] = [];
+  for (const lang of langs) {
+    for (const slug of slugs) {
+      params.push({ params: { lang, slug } });
     }
   }
   return params;
@@ -1099,7 +1106,8 @@ if (!post) {
 if (!post) return Astro.redirect(`/${lang}/blog/`);
 const { Content } = await post.render();
 const minutes = readingTime(post.body ?? '', shownLang);
-const allPosts = await getPosts(lang);
+// 前后篇基于展示语言（shownLang）的文章列表，回退场景下也正确
+const allPosts = await getPosts(shownLang);
 const idx = allPosts.findIndex((p) => p.slug === post.slug);
 const prev = idx > 0 ? allPosts[idx - 1] : null;
 const next = idx >= 0 && idx < allPosts.length - 1 ? allPosts[idx + 1] : null;
@@ -1345,12 +1353,19 @@ import type { Lang } from '../../../i18n/detect';
 import { getProjects, otherLang } from '../../../content/utils';
 import { getCollection } from 'astro:content';
 
-export function getStaticPaths() {
+export async function getStaticPaths() {
   const langs: Lang[] = ['zh', 'en'];
-  const params: { params: { lang: Lang; slug: string } }[] = [];
+  // 收集两语言 slug 并集，保证单语项目在另一语言也生成路径（与博客文章页一致）
+  const slugs = new Set<string>();
   for (const lang of langs) {
     for (const project of await getProjects(lang)) {
-      params.push({ params: { lang, slug: project.slug } });
+      slugs.add(project.slug);
+    }
+  }
+  const params: { params: { lang: Lang; slug: string } }[] = [];
+  for (const lang of langs) {
+    for (const slug of slugs) {
+      params.push({ params: { lang, slug } });
     }
   }
   return params;

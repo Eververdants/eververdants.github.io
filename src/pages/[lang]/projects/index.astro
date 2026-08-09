@@ -1,0 +1,25 @@
+---
+import MagazineLayout from '../../../layouts/MagazineLayout.astro';
+import { useTranslations } from '../../../i18n/ui';
+import type { Lang } from '../../../i18n/detect';
+import { getProjects } from '../../../content/utils';
+import ProjectCard from '../../../components/ProjectCard.astro';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'zh' } }, { params: { lang: 'en' } }];
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const t = useTranslations(lang);
+const path = 'projects/';
+const projects = await getProjects(lang);
+---
+<MagazineLayout title={`${t('nav.projects')} · ${t('site.name')}`} lang={lang} path={path}>
+  <header class="py-14 border-b border-line">
+    <p class="font-mono text-xs uppercase tracking-[0.3em] text-cinnabar">{t('nav.projects').toUpperCase()}</p>
+    <h1 class="mt-4 font-serif-sc text-5xl font-black">{t('nav.projects')}</h1>
+  </header>
+  <div class="py-10 grid gap-6 sm:grid-cols-2">
+    {projects.map((project) => <ProjectCard project={project} lang={lang} />)}
+  </div>
+</MagazineLayout>
