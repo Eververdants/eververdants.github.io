@@ -7,8 +7,8 @@ interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const cards = [
-  { href: getRelativeLocaleUrl(lang, 'blog/'), label: t('nav.blog'), en: 'BLOG', rule: '题字：随笔与文章' },
-  { href: getRelativeLocaleUrl(lang, 'projects/'), label: t('nav.projects'), en: 'SOFTWARE', rule: '题字：开源与作品' },
+  { href: getRelativeLocaleUrl(lang, 'blog/'), label: t('nav.blog'), en: 'BLOG', rule: t('subsite.blog.rule') },
+  { href: getRelativeLocaleUrl(lang, 'projects/'), label: t('nav.projects'), en: 'SOFTWARE', rule: t('subsite.projects.rule') },
 ];
 ---
 <div class="mt-20 grid gap-6 sm:grid-cols-2">

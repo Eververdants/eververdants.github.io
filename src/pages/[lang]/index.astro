@@ -20,7 +20,7 @@ const path = '';
 <MagazineLayout title={`${resume.name} · ${resume.title}`} description={resume.slogan} lang={lang} path={path}>
   <!-- Hero -->
   <section class="py-20 border-b border-line">
-    <p class="font-mono text-xs uppercase tracking-[0.3em] text-cinnabar">PORTFOLIO · 简历</p>
+    <p class="font-mono text-xs uppercase tracking-[0.3em] text-cinnabar">{t('hero.kicker')}</p>
     <h1 class="mt-6 font-serif-sc text-6xl font-black leading-tight">{resume.name}</h1>
     <p class="mt-4 font-display text-2xl text-plum italic">{resume.title}</p>
     <p class="mt-2 text-plum">{resume.slogan}</p>
