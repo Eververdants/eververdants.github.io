@@ -28,6 +28,7 @@
 | 语言 | 全站双语（中文 + 英文） |
 | i18n 机制 | Astro 官方 i18n 路由，中文在 `/zh/`，英文在 `/en/`，根路径自动检测语言跳转 |
 | 软件站数据 | 静态数据文件（Content Collection MD 文件，手动维护） |
+| 搜索 | Pagefind 全站搜索，覆盖博客文章 + 软件站项目，build 时建索引 |
 | 旧内容 | 全部丢弃，空白起步 |
 | 部署 | 保留 GitHub Pages 自定义域名，更新 CI 构建 Astro |
 
@@ -38,8 +39,9 @@
 - **Astro 5**，static 输出（无需 adapter）
 - **TypeScript**
 - **Tailwind CSS**（设计 token 由 Tailwind 配置承载）
-- **React 岛**（`<ClientOnly>` 或按需）：语言切换、标签过滤、项目卡片 hover 交互
+- **React 岛**（`<ClientOnly>` 或按需）：语言切换、标签过滤、项目卡片 hover 交互、搜索结果
 - **Content Collections** 管博客文章与软件站项目
+- **Pagefind**（`@pagefind/astro`）：全站搜索，build 时生成索引，无服务器，支持双语与子路径
 - 弃用：Three.js / GSAP / Framer Motion / Gemini API 逻辑
 
 ### 仓库结构
@@ -123,9 +125,16 @@ public/
 - **详情页**：项目名、完整描述、标签、repo 链接 + demo 链接（按钮）、配图、状态、更新时间
 - **frontmatter**：`name, tagline, description, tags[], category, repoUrl, demoUrl?, image, status(active|archived), date, featured?`
 
+### 搜索（全站）
+
+- 覆盖范围：**博客文章 + 软件站项目**
+- 实现：Pagefind（`@pagefind/astro`），build 时生成索引，纯静态、无服务器、支持中文与子路径
+- 入口：页头搜索框，全站可用；结果按语言分区（`/zh/` 搜中文索引、`/en/` 搜英文索引）
+- 搜索框 UI 走杂志风样式（铅字感输入框）
+
 ### 公共
 
-- 页头：站名（刊名感）+ 语言切换 + 三区导航
+- 页头：站名（刊名感）+ 语言切换 + 三区导航 + 搜索框
 - 页脚：版权 + 副站链接
 - 面包屑（杂志目录式）
 
@@ -189,9 +198,10 @@ public/
 2. 主站简历页（双语数据）
 3. 博客（content collection + 列表 + 文章页 + 标签过滤）
 4. 软件站（project collection + 列表 + 详情）
-5. 视觉打磨（噪点/版画/题花/印章/竖排）
-6. krea2 配图接入（skill 安装后）
-7. 部署验证（CI + 本地 preview）
+5. 搜索（Pagefind 接入 + 页头搜索框）
+6. 视觉打磨（噪点/版画/题花/印章/竖排）
+7. krea2 配图接入（skill 安装后）
+8. 部署验证（CI + 本地 preview）
 
 ## 明确不做（YAGNI）
 
@@ -199,5 +209,4 @@ public/
 - 不做视频作品集
 - 不做暗色模式
 - 不做运行时 GitHub API 拉取
-- 不做搜索功能（首版）
 - 不迁移旧内容（项目、文章、社交数据全弃）
