@@ -4,6 +4,7 @@ import { useTranslations } from '../../../i18n/ui';
 import type { Lang } from '../../../i18n/detect';
 import { getPosts } from '../../../content/utils';
 import PostCard from '../../../components/PostCard.astro';
+import TagFilter from '../../../components/TagFilter.tsx';
 
 export function getStaticPaths() {
   return [{ params: { lang: 'zh' } }, { params: { lang: 'en' } }];
@@ -21,11 +22,7 @@ const allTags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
     <h1 class="mt-4 font-serif-sc text-5xl font-black">{t('nav.blog')}</h1>
   </header>
 
-  <!-- 标签行（Task 6 会换成交互岛） -->
-  <nav class="flex flex-wrap gap-3 py-6 border-b border-line font-mono text-xs">
-    <span class="text-plum">Tags</span>
-    {allTags.map((tag) => <button type="button" data-tag={tag} class="border border-line px-2 py-0.5 text-plum hover:border-cinnabar hover:text-cinnabar">{tag}</button>)}
-  </nav>
+  <TagFilter tags={allTags} client:load />
 
   <div id="post-list" class="divide-y divide-line">
     {posts.map((post) => <PostCard post={post} lang={lang} />)}
