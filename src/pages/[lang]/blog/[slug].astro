@@ -8,10 +8,16 @@ import { readingTime } from '../../../i18n/reading';
 
 export async function getStaticPaths() {
   const langs: Lang[] = ['zh', 'en'];
-  const params: { params: { lang: Lang; slug: string } }[] = [];
+  const slugs = new Set<string>();
   for (const lang of langs) {
     for (const post of await getPosts(lang)) {
-      params.push({ params: { lang, slug: post.slug } });
+      slugs.add(post.slug);
+    }
+  }
+  const params: { params: { lang: Lang; slug: string } }[] = [];
+  for (const lang of langs) {
+    for (const slug of slugs) {
+      params.push({ params: { lang, slug } });
     }
   }
   return params;
@@ -29,7 +35,7 @@ if (!post) {
 if (!post) return Astro.redirect(`/${lang}/blog/`);
 const { Content } = await post.render();
 const minutes = readingTime(post.body ?? '', shownLang);
-const allPosts = await getPosts(lang);
+const allPosts = await getPosts(shownLang);
 const idx = allPosts.findIndex((p) => p.slug === post.slug);
 const prev = idx > 0 ? allPosts[idx - 1] : null;
 const next = idx >= 0 && idx < allPosts.length - 1 ? allPosts[idx + 1] : null;
