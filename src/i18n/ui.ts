@@ -2,7 +2,7 @@ import type { Lang } from './detect';
 
 export const ui = {
   zh: {
-    'site.name': '长夜孤灯',
+    'site.name': '万山青未阑',
     'nav.home': '首页',
     'nav.blog': '博客',
     'nav.projects': '软件站',
