@@ -1,0 +1,19 @@
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import { useTranslations } from '../i18n/ui';
+import type { Lang } from '../i18n/detect';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const year = 2026;
+---
+<footer class="border-t border-line">
+  <div class="mx-auto max-w-4xl px-6 py-6 flex flex-wrap items-center justify-between gap-2 font-mono text-xs text-plum">
+    <span>© {year} {t('site.name')} · {t('footer.rights')}</span>
+    <span class="flex gap-4">
+      <a href={getRelativeLocaleUrl(lang, 'blog/')} class="hover:text-cinnabar">{t('nav.blog')}</a>
+      <a href={getRelativeLocaleUrl(lang, 'projects/')} class="hover:text-cinnabar">{t('nav.projects')}</a>
+    </span>
+  </div>
+</footer>

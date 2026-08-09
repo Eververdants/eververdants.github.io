@@ -241,6 +241,7 @@ export function detectLanguage(languages: readonly string[]): Lang {
   const list = languages.length > 0 ? languages : ['zh'];
   for (const item of list) {
     const primary = item.toLowerCase().slice(0, 2);
+    if (primary === 'zh') return 'zh';
     if (primary === 'en') return 'en';
   }
   return 'zh';
@@ -254,7 +255,7 @@ import type { Lang } from './detect';
 
 export const ui = {
   zh: {
-    'site.name': '长夜孤灯',
+    'site.name': '万山青未阑',
     'nav.home': '首页',
     'nav.blog': '博客',
     'nav.projects': '软件站',
@@ -1585,7 +1586,7 @@ const { text } = Astro.props;
 
 - [ ] **Step 5: 接入各页**
 
-- `src/pages/[lang]/index.astro`：Hero 区右侧放 `VerticalText text="长夜孤灯"`（`class="absolute right-6 top-24 hidden lg:block"`，Hero 容器加 `relative`）；联系区后加 `Stamp text="长夜"`。
+- `src/pages/[lang]/index.astro`：Hero 区右侧放 `VerticalText text="万山青未阑"`（`class="absolute right-6 top-24 hidden lg:block"`，Hero 容器加 `relative`）；联系区后加 `Stamp text="万山"`。
 - `src/pages/[lang]/blog/[slug].astro`：正文 `<div class="prose mt-10">` 改 `<div class="prose mt-10 drop-cap">`（正文第一段首字下沉）。
 - `src/layouts/MagazineLayout.astro`：`<main>` 后、`<Footer>` 前加 `<Ornament label={lang === 'zh' ? '卷 终' : 'FIN'} />`。
 - `src/pages/[lang]/projects/index.astro`：列表容器加 `halftone` 装饰（可选）。

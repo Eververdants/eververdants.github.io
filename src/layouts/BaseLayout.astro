@@ -1,0 +1,39 @@
+---
+import '@fontsource/geist-mono';
+import '../styles/global.css';
+import { getAbsoluteLocaleUrl } from 'astro:i18n';
+import type { Lang } from '../i18n/detect';
+
+interface Props {
+  title: string;
+  description?: string;
+  lang: Lang;
+  path: string;
+}
+const { title, description, lang, path } = Astro.props;
+const locales: Lang[] = ['zh', 'en'];
+const canonical = getAbsoluteLocaleUrl(lang, path);
+---
+<!DOCTYPE html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonical} />
+    {locales.map((l) => (
+      <link rel="alternate" hreflang={l} href={getAbsoluteLocaleUrl(l, path)} />
+    ))}
+    <link rel="icon" type="image/png" href="/image.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700;900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
