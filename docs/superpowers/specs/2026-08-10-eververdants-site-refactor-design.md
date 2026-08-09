@@ -24,7 +24,7 @@
 | 技术栈 | Astro 5 + TypeScript + Tailwind + 少量 React 岛 |
 | 主站板块 | Hero 简介、技能与经历、联系；**不提供 PDF 简历下载**；有副站跳转入口 |
 | 视觉 | 编辑杂志风 + 六七十年代印刷质感，米黄纸色 + 朱红 + 墨黑，仅浅色 |
-| 配图 | 本地 krea2 生图 skill（尚未安装，设计预留图片位） |
+| 配图 | 本地 krea2 MCP 生图（`krea2_t2i` / `krea2_i2i` / `krea2_edit`，已就绪），统一纸色套印风格 |
 | 语言 | 全站双语（中文 + 英文） |
 | i18n 机制 | Astro 官方 i18n 路由，中文在 `/zh/`，英文在 `/en/`，根路径自动检测语言跳转 |
 | 软件站数据 | 静态数据文件（Content Collection MD 文件，手动维护） |
@@ -170,6 +170,15 @@ public/
 
 只取六七十年代的**印刷工艺语言**（版画、活字、纸张、印章、排版风格）。**禁止**使用：政治人物形象、政治口号、政党组织符号、宣传性图像。所有 krea2 配图生成时需显式排除政治内容。
 
+### 配图规范（krea2 MCP）
+
+- 生成工具：本地 krea2 MCP（`krea2_t2i` 文生图 / `krea2_i2i` 图生图 / `krea2_edit` 指令编辑）
+- 提示词：只用英文 + 具象名词（物体/材质/光线/动作），禁抽象概念词
+- 统一风格：纸色套印/木刻版画风（米黄纸 + 墨黑 + 朱红两到三色），全站配图风格一致
+- 尺寸：按用途定（Hero 插画、文章封面、项目卡片图）
+- 输出落位：`public/images/`，路径写进 frontmatter/data
+- 生成即明确排除政治内容（遵守非政治硬约束）
+
 ### 动效
 
 - 克制：hover 微反馈 + 页面淡入
@@ -180,8 +189,8 @@ public/
 - 博客：新增 `.mdx` 文件，Content Collections schema 校验
 - 软件站：新增项目 `.md` 文件，frontmatter schema 校验
 - 简历：改 TS 数据文件文本
-- 配图：krea2 skill 生成 → `public/images/`，路径写进 frontmatter/data
-- 配图占位：krea2 未接入前，用纯色 + 题字占位图
+- 配图：krea2 MCP 生成 → `public/images/`，路径写进 frontmatter/data
+- 配图占位：开发期先用纯色 + 题字占位图，内容定稿后生成正式配图
 
 ## 部署
 
@@ -200,7 +209,7 @@ public/
 4. 软件站（project collection + 列表 + 详情）
 5. 搜索（Pagefind 接入 + 页头搜索框）
 6. 视觉打磨（噪点/版画/题花/印章/竖排）
-7. krea2 配图接入（skill 安装后）
+7. krea2 MCP 配图生成（Hero 插画、文章封面、项目卡片图，统一纸色套印风格）
 8. 部署验证（CI + 本地 preview）
 
 ## 明确不做（YAGNI）
