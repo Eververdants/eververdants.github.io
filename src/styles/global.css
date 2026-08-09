@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #f4eedd;
+  --color-paper-2: #ece3c8;
+  --color-ink: #17140f;
+  --color-cinnabar: #b63a2a;
+  --color-cinnabar-dark: #8e2b1f;
+  --color-plum: #2e2a23;
+  --color-line: #d8ccae;
+
+  --font-serif-sc: "Noto Serif SC", "Songti SC", serif;
+  --font-sans-sc: "Noto Sans SC", system-ui, sans-serif;
+  --font-display: "EB Garamond", "Noto Serif SC", serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  @apply bg-paper text-ink font-sans-sc antialiased;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+::selection { background: color-mix(in srgb, var(--color-cinnabar) 25%, transparent); color: var(--color-ink); }
+
+/* 杂志正文排版（博客/项目正文复用） */
+.prose { @apply text-base leading-7 text-ink; }
+.prose h1, .prose h2, .prose h3 { @apply font-serif-sc font-bold text-ink; }
+.prose h2 { @apply mt-10 mb-4 text-2xl border-b border-line pb-2; }
+.prose h3 { @apply mt-8 mb-3 text-xl; }
+.prose p { @apply my-4; }
+.prose a { @apply text-cinnabar underline decoration-line underline-offset-4 hover:text-cinnabar-dark; }
+.prose blockquote { @apply my-6 border-l-2 border-cinnabar pl-4 font-serif-sc italic text-plum; }
+.prose code { @apply font-mono text-sm bg-paper-2 px-1 py-0.5; }
+.prose pre { @apply my-6 p-4 bg-ink text-paper overflow-x-auto font-mono text-sm; }
+.prose pre code { @apply bg-transparent p-0 text-paper; }
+.prose img { @apply my-6; }
+.prose ul { @apply list-disc pl-5 my-4; }
+.prose ol { @apply list-decimal pl-5 my-4; }
