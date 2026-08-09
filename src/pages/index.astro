@@ -1,6 +1,15 @@
 ---
 ---
 <html lang="zh">
-  <head><meta charset="utf-8" /><title>Eververdants</title></head>
-  <body><h1>placeholder</h1></body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Eververdants</title>
+  </head>
+  <body>
+    <script>
+      import { detectLanguage } from '../i18n/detect';
+      const lang = detectLanguage(navigator.languages ?? [navigator.language]);
+      location.replace(`/${lang}/`);
+    </script>
+  </body>
 </html>

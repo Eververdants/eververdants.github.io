@@ -1,0 +1,16 @@
+---
+import { useTranslations } from '../../i18n/ui';
+import type { Lang } from '../../i18n/detect';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'zh' } }, { params: { lang: 'en' } }];
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const t = useTranslations(lang);
+---
+<!DOCTYPE html>
+<html lang={lang}>
+  <head><meta charset="utf-8" /><title>{t('site.name')}</title></head>
+  <body><h1>{t('site.name')}</h1></body>
+</html>
