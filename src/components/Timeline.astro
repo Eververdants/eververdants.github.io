@@ -1,0 +1,17 @@
+---
+import type { ResumeData } from '../data/resume-zh';
+interface Props { items: { period: string; org: string; role?: string; desc: string }[]; }
+const { items } = Astro.props;
+---
+<ol class="relative border-l border-line pl-6 ml-2 space-y-8">
+  {items.map((item) => (
+    <li class="relative">
+      <span class="absolute -left-[7px] top-1 h-3 w-3 rounded-full bg-cinnabar border-2 border-paper" aria-hidden="true" />
+      <p class="font-mono text-xs tracking-widest text-plum">{item.period}</p>
+      <h3 class="font-serif-sc font-bold text-lg mt-1">
+        {item.role ? `${item.role} · ${item.org}` : item.org}
+      </h3>
+      <p class="text-sm text-plum mt-1">{item.desc}</p>
+    </li>
+  ))}
+</ol>

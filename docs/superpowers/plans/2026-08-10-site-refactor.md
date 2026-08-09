@@ -396,18 +396,17 @@ git commit -m "feat: i18n 路由基础 + 根路径语言检测跳转 + i18n 单�
 ```astro
 ---
 import { getRelativeLocaleUrl } from 'astro:i18n';
-import { langNames, useTranslations } from '../i18n/ui';
+import { langNames } from '../i18n/ui';
 import type { Lang } from '../i18n/detect';
 
 interface Props { lang: Lang; path: string; }
 const { lang, path } = Astro.props;
-const t = useTranslations(lang);
 const others: Lang[] = lang === 'zh' ? ['en'] : ['zh'];
 ---
 <span class="font-mono text-xs tracking-widest">
   {others.map((other) => (
     <a href={getRelativeLocaleUrl(other, path)} class="text-plum hover:text-cinnabar transition-colors">
-      {t('lang.name') === '中文' && other === 'en' ? 'EN' : t('lang.name')}
+      {langNames[other]}
     </a>
   ))}
 </span>

@@ -2,6 +2,11 @@
 import MagazineLayout from '../../layouts/MagazineLayout.astro';
 import { useTranslations } from '../../i18n/ui';
 import type { Lang } from '../../i18n/detect';
+import { resumeZh } from '../../data/resume-zh';
+import { resumeEn } from '../../data/resume-en';
+import SkillSection from '../../components/SkillSection.astro';
+import Timeline from '../../components/Timeline.astro';
+import SubSiteCards from '../../components/SubSiteCards.astro';
 
 export function getStaticPaths() {
   return [{ params: { lang: 'zh' } }, { params: { lang: 'en' } }];
@@ -9,10 +14,43 @@ export function getStaticPaths() {
 
 const { lang } = Astro.params as { lang: Lang };
 const t = useTranslations(lang);
+const resume = lang === 'zh' ? resumeZh : resumeEn;
 const path = '';
 ---
-<MagazineLayout title={t('site.name')} description="Eververdants" lang={lang} path={path}>
-  <section class="py-24 text-center">
-    <h1 class="font-serif-sc text-5xl font-black">{t('site.name')}</h1>
+<MagazineLayout title={`${resume.name} · ${resume.title}`} description={resume.slogan} lang={lang} path={path}>
+  <!-- Hero -->
+  <section class="py-20 border-b border-line">
+    <p class="font-mono text-xs uppercase tracking-[0.3em] text-cinnabar">PORTFOLIO · 简历</p>
+    <h1 class="mt-6 font-serif-sc text-6xl font-black leading-tight">{resume.name}</h1>
+    <p class="mt-4 font-display text-2xl text-plum italic">{resume.title}</p>
+    <p class="mt-2 text-plum">{resume.slogan}</p>
+  </section>
+
+  <!-- 副站入口 -->
+  <SubSiteCards lang={lang} />
+
+  <!-- 技能 -->
+  <SkillSection skills={resume.skills} />
+
+  <!-- 经历 -->
+  <section class="mt-16">
+    <h2 class="font-mono text-xs uppercase tracking-[0.3em] text-cinnabar border-b border-line pb-2 mb-6">Experience / 经历</h2>
+    <Timeline items={resume.experience} />
+  </section>
+
+  <!-- 教育 -->
+  <section class="mt-16">
+    <h2 class="font-mono text-xs uppercase tracking-[0.3em] text-cinnabar border-b border-line pb-2 mb-6">Education / 教育</h2>
+    <Timeline items={resume.education} />
+  </section>
+
+  <!-- 联系 -->
+  <section class="mt-16 mb-24">
+    <h2 class="font-mono text-xs uppercase tracking-[0.3em] text-cinnabar border-b border-line pb-2 mb-6">Contact / 联系</h2>
+    <div class="flex flex-wrap gap-6">
+      {resume.contacts.map((c) => (
+        <a href={c.href} class="font-mono text-sm text-plum hover:text-cinnabar underline underline-offset-4">{c.label}</a>
+      ))}
+    </div>
   </section>
 </MagazineLayout>
