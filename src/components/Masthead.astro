@@ -3,6 +3,7 @@ import { getRelativeLocaleUrl } from 'astro:i18n';
 import { useTranslations } from '../i18n/ui';
 import type { Lang } from '../i18n/detect';
 import LangSwitch from './LangSwitch.astro';
+import SearchBox from './SearchBox.tsx';
 
 interface Props { lang: Lang; path: string; }
 const { lang, path } = Astro.props;
@@ -27,6 +28,7 @@ const activeKey = path.split('/')[0];
         ]}>{item.label}</a>
       ))}
       <LangSwitch lang={lang} path={path} />
+      <SearchBox lang={lang} placeholder={t('search.placeholder')} client:load />
     </nav>
   </div>
 </header>
