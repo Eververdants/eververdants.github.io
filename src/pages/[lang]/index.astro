@@ -26,6 +26,11 @@ const path = '';
     <h1 class="mt-6 font-serif-sc text-6xl font-black leading-tight">{resume.name}</h1>
     <p class="mt-4 font-display text-2xl text-plum italic">{resume.title}</p>
     <p class="mt-2 text-plum">{resume.slogan}</p>
+    {resume.avatar && (
+      <div class="mt-10 inline-block border-2 border-ink bg-paper-2 p-2">
+        <img src={resume.avatar} alt={resume.name} width={240} class="block" />
+      </div>
+    )}
     <VerticalText text="万山青未阑" class="absolute right-6 top-24 hidden lg:block" />
   </section>
 

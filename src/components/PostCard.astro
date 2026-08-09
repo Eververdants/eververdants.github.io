@@ -11,6 +11,7 @@ const t = useTranslations(lang);
 const minutes = readingTime(post.body ?? '', lang);
 ---
 <article class="border-b border-line py-8" data-tags={post.data.tags.join(' ')}>
+  {post.data.cover && <img src={post.data.cover} alt={post.data.title} class="mb-4 w-full border border-line" loading="lazy" />}
   <time class="font-mono text-xs tracking-widest text-plum">{post.data.date.toISOString().slice(0, 10)}</time>
   <h2 class="mt-2 font-serif-sc text-2xl font-bold">
     <a href={getRelativeLocaleUrl(lang, `blog/${post.slug}/`)} class="hover:text-cinnabar transition-colors">{post.data.title}</a>
