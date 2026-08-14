@@ -30,11 +30,9 @@
 }
 
 /*
- * Shop-style scroll transition (mirrors shopify.design entry motion):
- * - screen 1 hero lifts up + fades as it exits
- * - screen 2 RESUME rises in, letters stamp in with a stepped scale-pop + drift
- *   (wr-text: scale(.35) -> 1, color transparent -> inherit, then 0.08em drift)
- * All scroll-driven via CSS view timelines — no JS.
+ * Scroll transition: screen 2 RESUME rises in on scroll (rv-in, view
+ * timeline). Screen 1 exits without transition animation; blur happens in
+ * the fixed .blur-band strip at the bottom of the viewport.
  */
 
 /* Lenis smooth-scroll baseline */
@@ -90,24 +88,15 @@ html::-webkit-scrollbar {
   background: rgba(255, 255, 255, 0.5);
 }
 
-/* ---- blur-parallax scroll reveal (charlieosborne.co style, site-wide) ----
-   .rv-in  : element blurs-in + rises as it scrolls into view (own view timeline)
-   .rv-out : element blurs + drifts up as its section scrolls out (section timeline)
-   Add either class to any content that should animate with scroll. */
+/* ---- scroll reveal (site-wide) ----
+   .rv-in  : element rises as it scrolls into view (own view timeline).
+   Exit direction (top) has no transition animation — elements just scroll
+   out and blur via the fixed .blur-band strip. */
 
 @keyframes rvIn {
   from {
     opacity: 0;
-    filter: blur(14px);
     transform: translateY(5vh);
-  }
-}
-
-@keyframes rvOut {
-  to {
-    opacity: 0;
-    filter: blur(10px);
-    transform: translateY(-7vh);
   }
 }
 
@@ -119,32 +108,9 @@ html::-webkit-scrollbar {
   animation-range: entry 0% entry 55%;
 }
 
-.rv-out {
-  animation-name: rvOut;
-  animation-timeline: view();
-  animation-timing-function: linear;
-  animation-fill-mode: both;
-  animation-range: exit 0% exit 100%;
-}
-
-/* hero content: blur + drift up over the whole first-screen cover
-   (0 -> 100vh of scroll), so it leaves exactly as RESUME enters */
-.hero-scene {
-  view-timeline-name: --hero;
-  view-timeline-axis: block;
-}
-
-.hero-content {
-  animation-name: rvOut;
-  animation-timeline: --hero;
-  animation-timing-function: linear;
-  animation-fill-mode: both;
-  animation-range: cover 55% cover 100%;
-}
-
-/* universal blur-parallax: every content element reveals with blur + rise
-   on scroll — no per-element classes needed. Hero content is excluded: it's
-   visible at load (mount animation) and exits via .hero-content rvOut. */
+/* universal reveal: every content element rises on entry — no per-element
+   classes needed. Hero content is excluded: it's visible at load (mount
+   animation) and needs no reveal. */
 main img:not(.hero-content *),
 main h1:not(.hero-content *),
 main h2:not(.hero-content *),
@@ -158,10 +124,24 @@ main li:not(.hero-content *) {
   animation-range: entry 0% entry 60%;
 }
 
+/*
+ * Fixed-position blur band: a fixed strip at the
+ * bottom of the viewport. Blur happens only where content scrolls beneath
+ * this strip (via stacked backdrop-filter layers, each masked to its own
+ * window so blur ramps ~0 -> 36px downward) — elements stay sharp elsewhere.
+ */
+.blur-band {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 22vh;
+  z-index: 2;
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rv-in,
-  .rv-out,
-  .hero-content,
   main img,
   main h1,
   main h2,

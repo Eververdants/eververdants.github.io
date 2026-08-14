@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import Background from './components/Background';
+import FocusBand from './components/FocusBand';
 import HeroScene from './components/HeroScene';
 import ResumeScene from './components/ResumeScene';
 import Scrollbar from './components/Scrollbar';
@@ -14,10 +15,11 @@ export default function App() {
   return (
     <>
       <Background />
-      <main className="relative z-[1]">
+      <main className="relative">
         <HeroScene />
         <ResumeScene />
       </main>
+      <FocusBand />
       <Scrollbar />
     </>
   );

@@ -1,4 +1,4 @@
-/* Lenis smooth scroll — same feel as charlieosborne.co. */
+/* Lenis smooth scroll. */
 
 import Lenis from "lenis";
 

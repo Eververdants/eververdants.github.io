@@ -16,7 +16,7 @@ export default function HeroScene() {
           I would rather leave something behind than simply pass through.
         </p>
       </div>
-      <div className="scroll-hint" aria-hidden="true">
+      <div className="scroll-hint z-[60]" aria-hidden="true">
         <span className="scroll-hint-label">SCROLL</span>
         <span className="scroll-hint-track">
           <span className="scroll-hint-fill" />
