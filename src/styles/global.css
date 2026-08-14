@@ -5,6 +5,8 @@
   --font-fraunces: "Fraunces", Georgia, "Times New Roman", serif;
   --animate-fluid-in: fluidIn 1.8s ease-out both;
   --animate-hero-in: heroIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-hint-in: hintIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-scroll-fill: scrollFill 2.4s ease-in-out infinite;
 
   @keyframes fluidIn {
     from {
@@ -21,19 +23,44 @@
     from {
       opacity: 0;
       transform: translateY(18px);
+      filter: blur(14px);
     }
     to {
       opacity: 1;
       transform: none;
+      filter: blur(0);
+    }
+  }
+
+  @keyframes hintIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 10px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+
+  @keyframes scrollFill {
+    0% {
+      height: 0;
+      opacity: 0;
+    }
+    25% {
+      opacity: 1;
+    }
+    70% {
+      height: 100%;
+      opacity: 1;
+    }
+    100% {
+      height: 100%;
+      opacity: 0;
     }
   }
 }
-
-/*
- * Scroll transition: screen 2 RESUME rises in on scroll (rv-in, view
- * timeline). Screen 1 exits without transition animation; blur happens in
- * the fixed .blur-band strip at the bottom of the viewport.
- */
 
 /* Lenis smooth-scroll baseline */
 html.lenis,
@@ -54,44 +81,10 @@ html::-webkit-scrollbar {
   display: none;
 }
 
-/* Custom overlay scrollbar — fixed, never affects layout */
-.scrollbar {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: clamp(10px, 0.9vw, 14px);
-  z-index: 50;
-  background: rgba(255, 255, 255, 0.05);
-  border-left: 1px solid rgba(255, 255, 255, 0.07);
-  opacity: 0.5;
-  transition: opacity 0.25s ease;
-}
-
-.scrollbar-thumb {
-  position: absolute;
-  left: 2px;
-  right: 2px;
-  top: 0;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
-  transition: background 0.2s ease;
-}
-
-.scrollbar:hover,
-.scrollbar.dragging {
-  opacity: 1;
-}
-
-.scrollbar-thumb:hover,
-.scrollbar.dragging .scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.5);
-}
-
 /* ---- scroll reveal (site-wide) ----
    .rv-in  : element rises as it scrolls into view (own view timeline).
    Exit direction (top) has no transition animation — elements just scroll
-   out and blur via the fixed .blur-band strip. */
+   out and blur via the fixed blur band at the bottom of the viewport. */
 
 @keyframes rvIn {
   from {
@@ -124,22 +117,6 @@ main li:not(.hero-content *) {
   animation-range: entry 0% entry 60%;
 }
 
-/*
- * Fixed-position blur band: a fixed strip at the
- * bottom of the viewport. Blur happens only where content scrolls beneath
- * this strip (via stacked backdrop-filter layers, each masked to its own
- * window so blur ramps ~0 -> 36px downward) — elements stay sharp elsewhere.
- */
-.blur-band {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 22vh;
-  z-index: 2;
-  pointer-events: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .rv-in,
   main img,
@@ -150,77 +127,7 @@ main li:not(.hero-content *) {
   main li {
     animation: none;
   }
-}
 
-/* Scroll-down hint (screen 1 bottom): fluid gradient drips down the line */
-.scroll-hint {
-  position: absolute;
-  bottom: clamp(22px, 4.5vh, 40px);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  animation: hint-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: 0.5s;
-}
-
-@keyframes hint-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 10px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-}
-
-.scroll-hint-label {
-  font-size: 10px;
-  letter-spacing: 0.42em;
-  text-indent: 0.42em;
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.scroll-hint-track {
-  position: relative;
-  width: 1px;
-  height: 46px;
-  background: rgba(255, 255, 255, 0.12);
-  overflow: hidden;
-}
-
-.scroll-hint-fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 0;
-  background: linear-gradient(to bottom, #10aec2, #f9a633);
-  animation: scroll-fill 2.4s ease-in-out infinite;
-}
-
-@keyframes scroll-fill {
-  0% {
-    height: 0;
-    opacity: 0;
-  }
-  25% {
-    opacity: 1;
-  }
-  70% {
-    height: 100%;
-    opacity: 1;
-  }
-  100% {
-    height: 100%;
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
   .scroll-hint {
     display: none;
   }

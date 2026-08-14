@@ -7,7 +7,12 @@ import { initDots } from "./dots";
 import { initSmoothScroll } from "./smoothScroll";
 import { initScrollbar } from "./scrollbar";
 
-export function initLanding(): () => void {
+export interface LandingHandle {
+  destroy: () => void;
+  lenis: Lenis | null;
+}
+
+export function initLanding(): LandingHandle {
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const disposers: Array<() => void> = [];
 
@@ -38,9 +43,12 @@ export function initLanding(): () => void {
   );
   if (barDispose) disposers.push(barDispose);
 
-  return function destroy() {
-    for (let i = disposers.length - 1; i >= 0; i--) {
-      disposers[i]();
+  return {
+    lenis,
+    destroy: function () {
+      for (let i = disposers.length - 1; i >= 0; i--) {
+        disposers[i]();
+      }
     }
   };
 }

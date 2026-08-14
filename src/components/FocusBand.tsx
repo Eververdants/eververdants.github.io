@@ -20,7 +20,10 @@ const LAYERS: Array<{ radius: number; mask: string }> = [
 
 export default function FocusBand() {
   return (
-    <div className="blur-band" aria-hidden="true">
+    <div
+      className="pointer-events-none fixed bottom-0 left-0 right-0 z-[2] h-[22vh]"
+      aria-hidden="true"
+    >
       {LAYERS.map((layer, i) => {
         const mask = `linear-gradient(to bottom, ${layer.mask})`;
         const style: CSSProperties = {
