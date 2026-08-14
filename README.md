@@ -4,8 +4,10 @@ Eververdants 的个人网站。
 
 ## 技术栈
 
-- [Astro](https://astro.build) — 静态站点生成
+- [React](https://react.dev) — 组件化 UI
+- [Vite](https://vite.dev) — 构建工具
 - [Tailwind CSS v4](https://tailwindcss.com) — 原子化样式
+- [Lenis](https://github.com/darkroomengineering/lenis) — 平滑滚动
 - WebGL2 — 全屏流体动态背景（teal）
 - 字体：Inter（UI）+ Fraunces（名字）
 
