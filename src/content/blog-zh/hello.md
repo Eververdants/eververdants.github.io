@@ -1,8 +1,0 @@
----
-title: 你好，新站
-description: 重构之后的第一篇。
-date: 2026-08-10
-tags: [杂记]
-cover: /images/covers/hello.png
----
-这是新站的第一篇文章。设计走了编辑杂志风，取自六七十年代的印刷工艺质感。
