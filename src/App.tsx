@@ -10,7 +10,13 @@ export default function App() {
   useEffect(() => {
     const handle = initLanding();
 
-    const isResume = window.location.pathname.replace(/\/+$/, "") === "/resume";
+    // Normalize unknown paths (e.g. /foo served via 404.html) to the root.
+    const path = window.location.pathname.replace(/\/+$/, "");
+    if (path !== "" && path !== "/resume") {
+      history.replaceState(null, "", "/");
+    }
+
+    const isResume = path === "/resume";
     const isResumePath = () => window.location.pathname.replace(/\/+$/, "") === "/resume";
 
     // Deep link: visiting /resume lands directly on the resume screen.
