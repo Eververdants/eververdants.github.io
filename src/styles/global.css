@@ -7,6 +7,35 @@
   --animate-hero-in: heroIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-hint-in: hintIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-scroll-fill: scrollFill 2.4s ease-in-out infinite;
+  --animate-hero-cover: heroCoverFade linear both, heroDrift linear both;
+  --animate-glass-in: heroGlassIn linear both;
+
+  @keyframes heroCoverFade {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes heroDrift {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-16vh);
+    }
+  }
+
+  @keyframes heroGlassIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 
   @keyframes fluidIn {
     from {
@@ -90,6 +119,7 @@ html::-webkit-scrollbar {
   from {
     opacity: 0;
     transform: translateY(5vh);
+    filter: blur(10px);
   }
 }
 

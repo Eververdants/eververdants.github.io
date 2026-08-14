@@ -1,6 +1,16 @@
 export default function HeroScene() {
   return (
-    <section className="relative flex h-dvh items-center justify-center p-[clamp(16px,2.4vh,28px)_clamp(14px,3vw,32px)] text-center">
+    <section className="sticky top-0 z-0 flex h-dvh items-center justify-center p-[clamp(16px,2.4vh,28px)_clamp(14px,3vw,32px)] text-center animate-hero-cover motion-reduce:animate-none [animation-timeline:scroll(root)] [animation-range:0px_100vh]">
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] opacity-0 animate-glass-in motion-reduce:animate-none [animation-timeline:scroll(root)] [animation-range:0px_100vh] bg-gradient-to-b from-[#08080a]/60 via-[#08080a]/30 to-[#08080a]/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+        style={{
+          // Inline: Lightning CSS dedups -webkit-backdrop-filter to one alias,
+          // and Chrome needs the standard property for the blur to render.
+          backdropFilter: "blur(26px) saturate(1.25)",
+          WebkitBackdropFilter: "blur(26px) saturate(1.25)"
+        }}
+        aria-hidden="true"
+      />
       <div className="hero-content flex flex-col items-center">
         <div className="motion-reduce:[filter:none] [filter:drop-shadow(0_14px_44px_rgba(0,0,0,0.55))]">
           <img
