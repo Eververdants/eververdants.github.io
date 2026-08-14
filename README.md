@@ -6,7 +6,7 @@ Eververdants 的个人网站。
 
 - [Astro](https://astro.build) — 静态站点生成
 - [Tailwind CSS v4](https://tailwindcss.com) — 原子化样式
-- WebGL2 — 全屏流体动态背景（teal），移植自 deepseek harness 官网效果
+- WebGL2 — 全屏流体动态背景（teal）
 - 字体：Inter（UI）+ Fraunces（名字）
 
 ## 本地开发
