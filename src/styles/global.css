@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-fraunces: "Fraunces", Georgia, "Times New Roman", serif;
+  --animate-fluid-in: fluidIn 1.8s ease-out both;
+  --animate-hero-in: heroIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes fluidIn {
+    from {
+      opacity: 0;
+      filter: blur(20px);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+    }
+  }
+
+  @keyframes heroIn {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
