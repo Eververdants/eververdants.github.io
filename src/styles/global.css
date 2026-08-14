@@ -28,3 +28,220 @@
     }
   }
 }
+
+/*
+ * Shop-style scroll transition (mirrors shopify.design entry motion):
+ * - screen 1 hero lifts up + fades as it exits
+ * - screen 2 RESUME rises in, letters stamp in with a stepped scale-pop + drift
+ *   (wr-text: scale(.35) -> 1, color transparent -> inherit, then 0.08em drift)
+ * All scroll-driven via CSS view timelines — no JS.
+ */
+
+/* Lenis smooth-scroll baseline */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+/* Hide native scrollbar (no gutter -> no layout shift) */
+html {
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom overlay scrollbar — fixed, never affects layout */
+.scrollbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: clamp(10px, 0.9vw, 14px);
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+  opacity: 0.5;
+  transition: opacity 0.25s ease;
+}
+
+.scrollbar-thumb {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  transition: background 0.2s ease;
+}
+
+.scrollbar:hover,
+.scrollbar.dragging {
+  opacity: 1;
+}
+
+.scrollbar-thumb:hover,
+.scrollbar.dragging .scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* ---- blur-parallax scroll reveal (charlieosborne.co style, site-wide) ----
+   .rv-in  : element blurs-in + rises as it scrolls into view (own view timeline)
+   .rv-out : element blurs + drifts up as its section scrolls out (section timeline)
+   Add either class to any content that should animate with scroll. */
+
+@keyframes rvIn {
+  from {
+    opacity: 0;
+    filter: blur(14px);
+    transform: translateY(5vh);
+  }
+}
+
+@keyframes rvOut {
+  to {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(-7vh);
+  }
+}
+
+.rv-in {
+  animation-name: rvIn;
+  animation-timeline: view();
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-range: entry 0% entry 55%;
+}
+
+.rv-out {
+  animation-name: rvOut;
+  animation-timeline: view();
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-range: exit 0% exit 100%;
+}
+
+/* hero content: blur + drift up over the whole first-screen cover
+   (0 -> 100vh of scroll), so it leaves exactly as RESUME enters */
+.hero-scene {
+  view-timeline-name: --hero;
+  view-timeline-axis: block;
+}
+
+.hero-content {
+  animation-name: rvOut;
+  animation-timeline: --hero;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-range: cover 55% cover 100%;
+}
+
+/* universal blur-parallax: every content element reveals with blur + rise
+   on scroll — no per-element classes needed. Hero content is excluded: it's
+   visible at load (mount animation) and exits via .hero-content rvOut. */
+main img:not(.hero-content *),
+main h1:not(.hero-content *),
+main h2:not(.hero-content *),
+main h3:not(.hero-content *),
+main p:not(.hero-content *),
+main li:not(.hero-content *) {
+  animation-name: rvIn;
+  animation-timeline: view();
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-range: entry 0% entry 60%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-in,
+  .rv-out,
+  .hero-content,
+  main img,
+  main h1,
+  main h2,
+  main h3,
+  main p,
+  main li {
+    animation: none;
+  }
+}
+
+/* Scroll-down hint (screen 1 bottom): fluid gradient drips down the line */
+.scroll-hint {
+  position: absolute;
+  bottom: clamp(22px, 4.5vh, 40px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  animation: hint-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.5s;
+}
+
+@keyframes hint-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.scroll-hint-label {
+  font-size: 10px;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.scroll-hint-track {
+  position: relative;
+  width: 1px;
+  height: 46px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.scroll-hint-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 0;
+  background: linear-gradient(to bottom, #10aec2, #f9a633);
+  animation: scroll-fill 2.4s ease-in-out infinite;
+}
+
+@keyframes scroll-fill {
+  0% {
+    height: 0;
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  70% {
+    height: 100%;
+    opacity: 1;
+  }
+  100% {
+    height: 100%;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hint {
+    display: none;
+  }
+}

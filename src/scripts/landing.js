@@ -1,3 +1,5 @@
+import Lenis from "lenis";
+
 (function () {
   "use strict";
 
@@ -14,6 +16,15 @@
     ];
   }
 
+  /* direct RGB lerp: cyan -> orange, no hue detour through green */
+  function mixRgb(c1, c2, t) {
+    return [
+      c1[0] + (c2[0] - c1[0]) * t,
+      c1[1] + (c2[1] - c1[1]) * t,
+      c1[2] + (c2[2] - c1[2]) * t
+    ];
+  }
+
   var FLUID_PARAMS = {
     mouseRadius: 0.09,
     mouseStrength: 1.8,
@@ -24,7 +35,8 @@
     noiseBoost: 0.3,
     swirlBoost: 0.8,
     glowIntensity: 0.06,
-    glowColors: ["#d6fff7", "#00fecb", "#007d6d"],
+    glowColors: ["#c9f6ff", "#10AEC2", "#0a6a75"],
+    glowColorsB: ["#e0b070", "#b06a12", "#4a2b00"],
     speed: 28,
     distortion: 18,
     swirl: 20,
@@ -37,7 +49,8 @@
     offsetX: -124,
     offsetY: -48,
     grain: 0.005,
-    colors: ["#000000", "#00483e", "#00967f", "#45cbb4", "#000000"],
+    colors: ["#000000", "#0b3a45", "#10AEC2", "#7adfe8", "#000000"],
+    colorsB: ["#000000", "#331d00", "#c97f1e", "#d69a55", "#000000"],
     lightX: 0.89,
     lightY: 0.46,
     lightCore: 0.04,
@@ -252,28 +265,39 @@
       gl.uniform1f(flu.grain, params.grain);
       gl.uniform1f(flu.distortBoost, params.distortBoost);
       gl.uniform1f(flu.swirlBoost, params.swirlBoost);
+      var maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      var mix = Math.max(0, Math.min(1, window.scrollY / maxScroll));
+      var dim = 1 - mix * 0.5; /* tone down light/bloom toward the orange end */
+
       var lx = (params.lightX != null ? params.lightX : 0.89) +
         (mouse.sx - (params.lightX != null ? params.lightX : 0.89)) *
         (useMouse && params.lightFollow ? params.lightFollow : 0);
       var ly = params.lightY != null ? params.lightY : 0.46;
       gl.uniform2f(flu.lightPos, lx, ly);
-      gl.uniform1f(flu.lightCore, touch ? 0 : (params.lightCore != null ? params.lightCore : 0.14));
-      gl.uniform1f(flu.lightHalo, touch ? 0 : (params.lightHalo != null ? params.lightHalo : 0.2));
+      gl.uniform1f(flu.lightCore, touch ? 0 : (params.lightCore != null ? params.lightCore : 0.14) * dim);
+      gl.uniform1f(flu.lightHalo, touch ? 0 : (params.lightHalo != null ? params.lightHalo : 0.2) * dim);
       gl.uniform1f(flu.vignette, params.vignette != null ? params.vignette : 0.38);
       gl.uniform1f(flu.bloomThreshold, params.bloomThreshold != null ? params.bloomThreshold : 0.61);
       gl.uniform1f(flu.bloomRange, params.bloomRange != null ? params.bloomRange : 0.18);
-      gl.uniform1f(flu.bloomStrength, params.bloomStrength != null ? params.bloomStrength : 0.4);
+      gl.uniform1f(flu.bloomStrength, (params.bloomStrength != null ? params.bloomStrength : 0.4) * dim);
       gl.uniform1f(flu.glowIntensity, params.glowIntensity);
-      var g1 = hexToRgb(params.glowColors[0] || "#ffffff");
-      var g2 = hexToRgb(params.glowColors[1] || params.glowColors[0] || "#ffffff");
-      var g3 = hexToRgb(params.glowColors[2] || params.glowColors[0] || "#ffffff");
+
+      var gA = params.glowColors || ["#ffffff"];
+      var gB = params.glowColorsB || gA;
+      var g1 = mixRgb(hexToRgb(gA[0] || "#ffffff"), hexToRgb(gB[0] || gB[gB.length - 1] || "#ffffff"), mix);
+      var g2 = mixRgb(hexToRgb(gA[1] || gA[0] || "#ffffff"), hexToRgb(gB[1] || gB[0] || gB[gB.length - 1] || "#ffffff"), mix);
+      var g3 = mixRgb(hexToRgb(gA[2] || gA[0] || "#ffffff"), hexToRgb(gB[2] || gB[0] || gB[gB.length - 1] || "#ffffff"), mix);
       gl.uniform3f(flu.glowColor1, g1[0], g1[1], g1[2]);
       gl.uniform3f(flu.glowColor2, g2[0], g2[1], g2[2]);
       gl.uniform3f(flu.glowColor3, g3[0], g3[1], g3[2]);
+
       var cols = params.colors || ["#000000", "#1A3870", "#204a7e", "#eed8aa", "#000000"];
+      var colsB = params.colorsB || cols;
       var clocs = [flu.c1, flu.c2, flu.c3, flu.c4, flu.c5];
       for (var ci = 0; ci < 5; ci++) {
-        var rgb = hexToRgb(cols[ci] || cols[cols.length - 1] || "#000000");
+        var cA = hexToRgb(cols[ci] || cols[cols.length - 1] || "#000000");
+        var cB = hexToRgb(colsB[ci] || colsB[cols.length - 1] || "#000000");
+        var rgb = mixRgb(cA, cB, mix);
         gl.uniform3f(clocs[ci], rgb[0], rgb[1], rgb[2]);
       }
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -498,4 +522,118 @@
   }
 
   initDots(document.getElementById("bg-dots"));
+
+  /* ---------- lenis smooth scroll (same feel as charlieosborne.co) ---------- */
+
+  var lenis = null;
+
+  function initSmoothScroll() {
+    if (prefersReduced) return;
+    if (window.matchMedia("(hover: none), (pointer: coarse)").matches) return;
+    lenis = new Lenis({
+      lerp: 0.1,
+      wheelMultiplier: 1,
+      smoothWheel: true
+    });
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+  }
+
+  initSmoothScroll();
+
+  /* ---------- custom overlay scrollbar ---------- */
+
+  function initScrollbar() {
+    var bar = document.getElementById("scrollbar");
+    var thumb = document.getElementById("scrollbar-thumb");
+    if (!bar || !thumb) return;
+
+    var doc = document.documentElement;
+    var hidden = false;
+    var go = lenis ? function (y) { lenis.scrollTo(y); } : function (y) { window.scrollTo(0, y); };
+
+    function size() {
+      var sh = doc.scrollHeight - window.innerHeight;
+      if (sh <= 0) {
+        bar.style.display = "none";
+        hidden = true;
+        return;
+      }
+      if (hidden) {
+        bar.style.display = "";
+        hidden = false;
+      }
+      var track = bar.clientHeight;
+      thumb.style.height = Math.max(24, (window.innerHeight / doc.scrollHeight) * track) + "px";
+    }
+
+    function update() {
+      if (hidden) return;
+      var sh = doc.scrollHeight - window.innerHeight;
+      var track = bar.clientHeight;
+      var max = track - thumb.offsetHeight;
+      thumb.style.top = (sh > 0 ? (window.scrollY / sh) * max : 0) + "px";
+    }
+
+    size();
+    update();
+
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", function () {
+      size();
+      update();
+    });
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        size();
+        update();
+      });
+    }
+
+    /* drag thumb */
+    var dragging = false;
+    var startY = 0;
+    var startTop = 0;
+    thumb.addEventListener("mousedown", function (e) {
+      dragging = true;
+      startY = e.clientY;
+      startTop = thumb.offsetTop;
+      e.preventDefault();
+      bar.classList.add("dragging");
+      function onMove(ev) {
+        if (!dragging) return;
+        var track = bar.clientHeight;
+        var max = track - thumb.offsetHeight;
+        var sh = doc.scrollHeight - window.innerHeight;
+        var top = Math.max(0, Math.min(max, startTop + (ev.clientY - startY)));
+        thumb.style.top = top + "px";
+        if (max > 0) go(sh * (top / max));
+      }
+      function onUp() {
+        dragging = false;
+        bar.classList.remove("dragging");
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+      }
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    });
+
+    /* click on track: jump thumb to click point */
+    bar.addEventListener("mousedown", function (e) {
+      if (e.target === thumb) return;
+      var track = bar.clientHeight;
+      var max = track - thumb.offsetHeight;
+      var sh = doc.scrollHeight - window.innerHeight;
+      var top = e.clientY - bar.getBoundingClientRect().top - thumb.offsetHeight / 2;
+      top = Math.max(0, Math.min(max, top));
+      thumb.style.top = top + "px";
+      if (max > 0) go(sh * (top / max));
+    });
+  }
+
+  initScrollbar();
 })();

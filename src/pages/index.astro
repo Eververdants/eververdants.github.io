@@ -3,7 +3,7 @@ import '../styles/global.css';
 ---
 
 <!doctype html>
-<html lang="en" class="h-full">
+<html lang="en" class="h-full overflow-x-hidden">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -24,12 +24,10 @@ import '../styles/global.css';
       rel="stylesheet"
     />
   </head>
-  <body
-    class="h-dvh overflow-hidden bg-black font-sans text-white antialiased"
-  >
-    <div class="absolute inset-0 overflow-hidden bg-[#0a0a0a]">
+  <body class="bg-black font-sans text-white antialiased">
+    <div class="fixed inset-0 overflow-hidden bg-[#0a0a0a]">
       <div
-        class="absolute inset-0 animate-fluid-in pointer-events-none motion-reduce:animate-none [mask:linear-gradient(#000000fc_0%,#000000e8_8.98%,transparent_100%)] [-webkit-mask:linear-gradient(#000000fc_0%,#000000e8_8.98%,transparent_100%)]"
+        class="absolute inset-0 animate-fluid-in pointer-events-none motion-reduce:animate-none"
       >
         <canvas id="bg-fluid" class="block h-full w-full"></canvas>
       </div>
@@ -38,37 +36,67 @@ import '../styles/global.css';
         class="absolute left-0 top-0 hidden h-full w-full pointer-events-none min-[721px]:block [mask:linear-gradient(#000000fc_0%,#000000e8_8.98%,transparent_100%)] [-webkit-mask:linear-gradient(#000000fc_0%,#000000e8_8.98%,transparent_100%)]"
       ></canvas>
       <div
-        class="absolute -bottom-[100px] left-[10%] z-0 h-[500px] w-[500px] opacity-30 pointer-events-none [background:radial-gradient(circle,#1a3870_0%,transparent_70%)] blur-[80px]"
+        class="absolute -top-[120px] left-[10%] z-0 h-[500px] w-[500px] opacity-35 pointer-events-none [background:radial-gradient(circle,#10AEC2_0%,transparent_70%)] blur-[90px]"
       ></div>
       <div
-        class="absolute -bottom-[50px] left-1/2 z-0 h-[400px] w-[700px] opacity-40 -translate-x-1/2 pointer-events-none [background:radial-gradient(ellipse_at_center,#2d5f9e_0%,#1a3870_40%,transparent_70%)] blur-[100px]"
+        class="absolute -bottom-[50px] left-1/2 z-0 h-[400px] w-[700px] opacity-25 -translate-x-1/2 pointer-events-none [background:radial-gradient(ellipse_at_center,#b06a12_0%,#10AEC2_45%,transparent_75%)] blur-[100px]"
       ></div>
       <div
-        class="absolute -bottom-[80px] right-[10%] z-0 h-[400px] w-[400px] opacity-20 pointer-events-none [background:radial-gradient(circle,#4a8ac4_0%,#2d5f9e_30%,transparent_70%)] blur-[60px]"
+        class="absolute -bottom-[80px] right-[10%] z-0 h-[400px] w-[400px] opacity-15 pointer-events-none [background:radial-gradient(circle,#b06a12_0%,#10AEC2_35%,transparent_70%)] blur-[70px]"
+      ></div>
+      <div
+        class="absolute inset-0 bg-black/40 pointer-events-none"
       ></div>
     </div>
 
-    <main
-      class="relative z-[1] flex h-dvh flex-col items-center justify-center p-[clamp(16px,2.4vh,28px)_clamp(14px,3vw,32px)] text-center"
-    >
-      <img
-        class="h-[clamp(120px,22vw,168px)] w-[clamp(120px,22vw,168px)] animate-hero-in object-cover motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:[filter:none] [filter:drop-shadow(0_14px_44px_rgba(0,0,0,0.55))]"
-        src="/assets/avatar.webp"
-        alt="Eververdants"
-        width="1024"
-        height="1024"
-      />
-      <h1
-        class="mt-[clamp(20px,3vh,32px)] whitespace-nowrap font-fraunces text-[clamp(36px,6vw,68px)] font-medium leading-[1.08] tracking-[-0.01em] text-white animate-hero-in [animation-delay:0.12s] motion-reduce:animate-none motion-reduce:opacity-100"
+    <main class="relative z-[1]">
+      <!-- Screen 1: identity -->
+      <section
+        class="hero-scene relative flex h-dvh items-center justify-center p-[clamp(16px,2.4vh,28px)_clamp(14px,3vw,32px)] text-center"
       >
-        Eververdants
-      </h1>
-      <p
-        class="mt-[clamp(12px,2vh,20px)] max-w-[min(520px,90%)] font-normal leading-[1.6] text-[#8e8e8e] text-[clamp(14px,1.7vw,17px)] animate-hero-in [animation-delay:0.24s] motion-reduce:animate-none motion-reduce:opacity-100"
+        <div class="hero-content flex flex-col items-center">
+          <img
+            class="h-[clamp(120px,22vw,168px)] w-[clamp(120px,22vw,168px)] animate-hero-in object-cover motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:[filter:none] [filter:drop-shadow(0_14px_44px_rgba(0,0,0,0.55))]"
+            src="/assets/avatar.webp"
+            alt="Eververdants"
+            width="1024"
+            height="1024"
+          />
+          <h1
+            class="mt-[clamp(20px,3vh,32px)] whitespace-nowrap font-fraunces text-[clamp(36px,6vw,68px)] font-medium leading-[1.08] tracking-[-0.01em] text-white animate-hero-in [animation-delay:0.12s] motion-reduce:animate-none motion-reduce:opacity-100"
+          >
+            Eververdants
+          </h1>
+          <p
+            class="mt-[clamp(12px,2vh,20px)] max-w-[min(520px,90%)] font-normal leading-[1.6] text-[#8e8e8e] text-[clamp(14px,1.7vw,17px)] animate-hero-in [animation-delay:0.24s] motion-reduce:animate-none motion-reduce:opacity-100"
+          >
+            I would rather leave something behind than simply pass through.
+          </p>
+        </div>
+        <div class="scroll-hint" aria-hidden="true">
+          <span class="scroll-hint-label">SCROLL</span>
+          <span class="scroll-hint-track"
+            ><span class="scroll-hint-fill"></span
+          ></span>
+        </div>
+      </section>
+
+      <!-- Screen 2: resume -->
+      <section
+        class="flex h-dvh items-center justify-center px-[clamp(14px,3vw,32px)] text-center"
       >
-        I would rather leave something behind than simply pass through.
-      </p>
+        <h2
+          class="rv-in select-none whitespace-nowrap font-fraunces font-medium leading-none tracking-[0.03em] text-white text-[clamp(72px,16vw,240px)]"
+          aria-label="Resume"
+        >
+          RESUME
+        </h2>
+      </section>
     </main>
+
+    <div id="scrollbar" class="scrollbar" aria-hidden="true">
+      <div id="scrollbar-thumb" class="scrollbar-thumb"></div>
+    </div>
 
     <script>
       import '../scripts/landing.js';
