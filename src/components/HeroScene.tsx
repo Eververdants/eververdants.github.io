@@ -43,7 +43,7 @@ export default function HeroScene() {
           (fades it out on scroll). An entrance fill would fight gsap's inline
           styles — gsap captured that animated value as the tween start. */}
       <div
-        className="scroll-hint absolute bottom-[clamp(22px,4.5vh,40px)] left-1/2 z-[60] flex flex-col items-center gap-3"
+        className="scroll-hint absolute bottom-[clamp(22px,4.5vh,40px)] left-1/2 z-[60] flex -translate-x-1/2 flex-col items-center gap-3"
         aria-hidden="true"
         data-hero-hint
       >
