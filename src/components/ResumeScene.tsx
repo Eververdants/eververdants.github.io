@@ -126,34 +126,49 @@ function Awards() {
         </p>
       </div>
 
+      {/* Poster composition instead of a text stack: contest name as a wall
+          of big type on the left, results as a sparse indexed list on the
+          right, with the event reduced to a quiet detail line. */}
       <div className="relative z-[2] mt-[clamp(80px,16vh,200px)] pb-[clamp(160px,26vh,320px)]">
-        <div className="line-mask">
-          {award.contest.split("\n").map((line) => (
-            <span
-              key={line}
-              className="block text-grad font-fraunces font-medium leading-[1.08] tracking-[-0.01em] text-[clamp(28px,5vw,68px)]"
-            >
-              {line}
-            </span>
-          ))}
+        <div className="grid gap-[clamp(56px,12vh,140px)] lg:grid-cols-[1.5fr_1fr] lg:gap-x-[clamp(48px,8vw,120px)]">
+          {/* contest name — big editorial wall */}
+          <div>
+            <div className="line-mask">
+              {award.contest.split("\n").map((line) => (
+                <span
+                  key={line}
+                  className="block text-grad font-fraunces font-medium leading-[1.08] tracking-[-0.01em] text-[clamp(34px,6vw,80px)]"
+                >
+                  {line}
+                </span>
+              ))}
+            </div>
+            <p className="mt-[clamp(28px,6vh,56px)] max-w-[46ch] text-[13px] leading-[1.7] text-[#6f6f6f]">
+              {award.event}
+            </p>
+          </div>
+
+          {/* results — sparse indexed rows */}
+          <div className="lg:pt-[clamp(8px,2vh,20px)]">
+            <p className="text-[11px] tracking-[0.42em] text-white/30">RESULTS</p>
+            <ul className="mt-[clamp(24px,5vh,48px)]">
+              {award.results.map((result, i) => (
+                <li
+                  key={result}
+                  className="no-rv row-in flex items-baseline gap-5 border-t border-white/10 py-[clamp(22px,4.5vh,40px)]"
+                >
+                  <span className="font-fraunces italic text-[clamp(13px,1.3vw,18px)] text-white/25">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="font-fraunces text-[clamp(19px,2.2vw,30px)] leading-snug text-white">
+                    {result}
+                  </span>
+                </li>
+              ))}
+              <li className="border-t border-white/10" aria-hidden />
+            </ul>
+          </div>
         </div>
-        <p className="mt-[clamp(32px,6vh,56px)] max-w-[620px] text-[clamp(13px,1.4vw,16px)] leading-[1.7] text-[#8e8e8e]">
-          {award.event}
-        </p>
-        <ul className="mt-[clamp(48px,9vh,96px)]">
-          {award.results.map((result) => (
-            <li
-              key={result}
-              className="no-rv row-in flex items-center gap-4 border-t border-white/10 py-[clamp(24px,5vh,44px)]"
-            >
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#f9a633]" />
-              <span className="font-fraunces text-[clamp(18px,2.6vw,32px)] text-white">
-                {result}
-              </span>
-            </li>
-          ))}
-          <li className="border-t border-white/10" aria-hidden />
-        </ul>
       </div>
     </div>
   );
