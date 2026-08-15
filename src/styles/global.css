@@ -113,6 +113,34 @@ html::-webkit-scrollbar {
   width: max-content;
 }
 
+/* ---- handscroll fallback: reduced motion never pins or slides, so the
+   horizontal track becomes a normal vertical stack of full-height panels ---- */
+@media (prefers-reduced-motion: reduce) {
+  [data-hscroll] {
+    overflow: visible;
+  }
+
+  /* Un-stick the viewport wrapper so the vertical stack flows normally */
+  [data-hscroll] > * {
+    position: static;
+    height: auto;
+    overflow: visible;
+  }
+
+  [data-hscroll-track] {
+    flex-direction: column;
+    width: auto;
+    height: auto;
+  }
+
+  [data-hscroll-track] > * {
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    flex-shrink: 0;
+  }
+}
+
 /* Hero mount entrance is hidden pre-JS (GSAP animates it to visible the
    same frame it runs). Reduced motion must unhide it. */
 [data-hero-in] {

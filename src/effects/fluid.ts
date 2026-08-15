@@ -254,6 +254,25 @@ export function initFluid(
   let rafId = 0;
   let ping = false;
 
+  /* Color transition endpoint — pinned to the RESUME masthead, not the page
+     bottom: cyan -> orange finishes as the masthead's big letters reach
+     center, then holds orange through the works finale. Falling back to the
+     page bottom if the masthead is missing keeps resume-only/deep-link loads
+     working. Re-measured on fonts.ready (big-type shifts layout) and resize. */
+  let colorEnd = -1;
+  function measureColorEnd() {
+    const mast = document.querySelector<HTMLElement>("[data-masthead]");
+    if (mast) {
+      const rect = mast.getBoundingClientRect();
+      colorEnd = rect.top + window.scrollY + rect.height / 2;
+    } else {
+      colorEnd = -1;
+    }
+  }
+  measureColorEnd();
+  if (document.fonts?.ready) document.fonts.ready.then(measureColorEnd);
+  window.addEventListener("resize", measureColorEnd);
+
   function frame(now: number) {
     if (now - last < THROTTLE) return;
     last = now - ((now - last) % THROTTLE);
@@ -305,8 +324,9 @@ export function initFluid(
     gl.uniform1f(flu.grain, params.grain);
     gl.uniform1f(flu.distortBoost, params.distortBoost);
     gl.uniform1f(flu.swirlBoost, params.swirlBoost);
-    const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    const mix = Math.max(0, Math.min(1, window.scrollY / maxScroll));
+    const transitionEnd =
+      colorEnd > 0 ? colorEnd : Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const mix = Math.max(0, Math.min(1, window.scrollY / transitionEnd));
     const dim = 1 - mix * 0.5; /* tone down light/bloom toward the orange end */
 
     const lx =
@@ -367,6 +387,7 @@ export function initFluid(
   return function destroy() {
     if (rafId) cancelAnimationFrame(rafId);
     if (useMouse) window.removeEventListener("mousemove", onMouse);
+    window.removeEventListener("resize", measureColorEnd);
     if (io) io.disconnect();
     const lose = gl.getExtension("WEBGL_lose_context");
     if (lose) lose.loseContext();

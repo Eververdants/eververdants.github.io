@@ -1,10 +1,14 @@
 /*
  * Fixed-position blur band:
- * a fixed strip at the bottom of the viewport where blur ramps from ~0 at
- * the top edge to ~36px at the bottom edge. 8 stacked backdrop-filter layers,
- * each masked to its own vertical window, so only content passing beneath the
- * strip is blurred — elements stay sharp everywhere else.
+ * normally a strip at the bottom of the viewport where blur ramps from ~0 at
+ * the top edge to ~36px at the bottom edge — content leaving via the bottom.
+ * While the selected-works handscroll is on screen the content moves
+ * sideways instead, so the band relocates to the right edge (same ramp,
+ * "to right" mirrors it so the strongest blur sits at the screen edge).
+ * 8 stacked backdrop-filter layers, each masked to its own window, so only
+ * content passing the strip is blurred — everything else stays sharp.
  */
+import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 
 const LAYERS: Array<{ radius: number; mask: string }> = [
@@ -19,13 +23,36 @@ const LAYERS: Array<{ radius: number; mask: string }> = [
 ];
 
 export default function FocusBand() {
+  const [right, setRight] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      const sec = document.querySelector<HTMLElement>("[data-works]");
+      if (!sec) return setRight(false);
+      const r = sec.getBoundingClientRect();
+      // Section pinned at the top → the horizontal unroll owns the screen.
+      // (Switching earlier — on first entry — read as premature while the
+      // title is still rising vertically.)
+      setRight(r.top <= 0 && r.bottom > 0);
+    };
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    return () => {
+      window.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+    };
+  }, []);
+
   return (
     <div
-      className="pointer-events-none fixed bottom-0 left-0 right-0 z-[2] h-[22vh]"
+      className={`pointer-events-none fixed z-[2] ${
+        right ? "right-0 top-0 bottom-0 w-[22vw]" : "bottom-0 left-0 right-0 h-[22vh]"
+      }`}
       aria-hidden="true"
     >
       {LAYERS.map((layer, i) => {
-        const mask = `linear-gradient(to bottom, ${layer.mask})`;
+        const mask = `linear-gradient(${right ? "to right" : "to bottom"}, ${layer.mask})`;
         const style: CSSProperties = {
           position: "absolute",
           inset: 0,

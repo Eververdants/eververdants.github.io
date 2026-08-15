@@ -19,7 +19,7 @@ export default function ResumeScene() {
   // timelines, freezing every reveal inside it. Horizontal bleed (giant
   // numerals, marquees) is clipped by <html class="overflow-x-hidden">.
   return (
-    <section className="relative z-[1] px-[clamp(16px,4vw,48px)]">
+    <section className="relative z-[1] px-[clamp(16px,4vw,48px)]" data-resume>
       <Masthead />
       <Education age={age} />
       <Awards />
