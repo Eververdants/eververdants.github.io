@@ -6,6 +6,7 @@ import { initFluid, FLUID_PARAMS } from "./fluid";
 import { initDots } from "./dots";
 import { initSmoothScroll } from "./smoothScroll";
 import { initScrollbar } from "./scrollbar";
+import { initGsap } from "./gsap";
 
 export interface LandingHandle {
   destroy: () => void;
@@ -42,6 +43,9 @@ export function initLanding(): LandingHandle {
     lenis
   );
   if (barDispose) disposers.push(barDispose);
+
+  // GSAP runs last: it needs the hero/resume DOM mounted and Lenis ready.
+  disposers.push(initGsap(prefersReduced, lenis).destroy);
 
   return {
     lenis,

@@ -33,15 +33,19 @@ export default function ResumeScene() {
 
 function Masthead() {
   return (
-    <div className="relative flex h-[120vh] items-center justify-center text-center">
+    <div className="relative flex h-[120vh] items-center justify-center text-center" data-masthead>
       <span
         aria-hidden
-        className="drift text-stroke-faint absolute left-1/2 top-[6%] -translate-x-1/2 font-fraunces italic leading-none text-[clamp(120px,26vw,360px)]"
+        className="text-stroke-faint absolute left-1/2 top-[6%] -translate-x-1/2 font-fraunces italic leading-none text-[clamp(120px,26vw,360px)]"
+        data-parallax
       >
         {resume.birthYear}
       </span>
       <div className="relative z-[1]">
-        <h2 className="no-rv mast font-fraunces font-medium leading-[0.82] tracking-[-0.02em] text-white text-[clamp(72px,18vw,300px)]">
+        <h2
+          className="no-rv font-fraunces font-medium leading-[0.82] tracking-[-0.02em] text-white text-[clamp(72px,18vw,300px)]"
+          data-mast
+        >
           RESUME
         </h2>
         <p className="mt-[clamp(16px,3vh,30px)] font-fraunces text-[clamp(15px,1.8vw,24px)] tracking-[0.08em] text-white/55">
@@ -71,7 +75,8 @@ function Education({ age }: { age: number }) {
         <div className="relative">
           <span
             aria-hidden
-            className="drift text-stroke-accent absolute right-0 top-[-24%] font-fraunces italic leading-none text-[clamp(150px,30vw,440px)]"
+            className="text-stroke-accent absolute right-0 top-[-24%] font-fraunces italic leading-none text-[clamp(150px,30vw,440px)]"
+            data-parallax
           >
             {age}
           </span>
@@ -145,11 +150,14 @@ function FocusMarquee() {
       <div className="flex flex-col gap-[clamp(20px,4vh,48px)]">
         <Marquee
           words={words}
-          className="marquee-fast text-stroke-faint text-[clamp(60px,12vw,200px)]"
+          className="text-stroke-faint text-[clamp(60px,12vw,200px)]"
+          dataMarquee="fast"
         />
         <Marquee
           words={words}
-          className="marquee-slow marquee-reverse text-grad-warm text-[clamp(60px,12vw,200px)]"
+          className="text-grad-warm text-[clamp(60px,12vw,200px)]"
+          dataMarquee="slow"
+          dataMarqueeReverse
         />
       </div>
     </div>
@@ -159,7 +167,17 @@ function FocusMarquee() {
 /* One marquee band: two identical groups inside a track, animated -50% so
    the loop is seamless. -mx cancels the section's side padding for a
    full-bleed band. */
-function Marquee({ words, className }: { words: string[]; className?: string }) {
+function Marquee({
+  words,
+  className,
+  dataMarquee,
+  dataMarqueeReverse
+}: {
+  words: string[];
+  className?: string;
+  dataMarquee?: string;
+  dataMarqueeReverse?: boolean;
+}) {
   const group = (
     <>
       {words.map((word, i) => (
@@ -177,7 +195,11 @@ function Marquee({ words, className }: { words: string[]; className?: string }) 
 
   return (
     <div className="marquee-mask -mx-[clamp(16px,4vw,48px)] overflow-hidden">
-      <div className={`marquee-track ${className ?? ""}`}>
+      <div
+        className={`marquee-track ${className ?? ""}`}
+        data-marquee={dataMarquee}
+        data-marquee-reverse={dataMarqueeReverse ? "" : undefined}
+      >
         <div className="flex items-center whitespace-nowrap">{group}</div>
         <div aria-hidden className="flex items-center whitespace-nowrap">
           {group}

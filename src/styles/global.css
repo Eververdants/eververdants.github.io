@@ -3,39 +3,11 @@
 @theme {
   --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
   --font-fraunces: "Fraunces", Georgia, "Times New Roman", serif;
+  /* Remaining CSS animations are time-based only (canvas mount, scroll hint).
+     Everything scroll-driven lives in src/effects/gsap.ts (ScrollTrigger). */
   --animate-fluid-in: fluidIn 1.8s ease-out both;
-  --animate-hero-in: heroIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-hint-in: hintIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-scroll-fill: scrollFill 2.4s ease-in-out infinite;
-  --animate-hero-cover: heroCoverFade linear both, heroDrift linear both;
-  --animate-glass-in: heroGlassIn linear both;
-
-  @keyframes heroCoverFade {
-    from {
-      opacity: 1;
-    }
-    to {
-      opacity: 0;
-    }
-  }
-
-  @keyframes heroDrift {
-    from {
-      transform: translateY(0);
-    }
-    to {
-      transform: translateY(-16vh);
-    }
-  }
-
-  @keyframes heroGlassIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
 
   @keyframes fluidIn {
     from {
@@ -44,19 +16,6 @@
     }
     to {
       opacity: 1;
-      filter: blur(0);
-    }
-  }
-
-  @keyframes heroIn {
-    from {
-      opacity: 0;
-      transform: translateY(18px);
-      filter: blur(14px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
       filter: blur(0);
     }
   }
@@ -110,65 +69,9 @@ html::-webkit-scrollbar {
   display: none;
 }
 
-/* ============================================================
-   Resume — scroll cinema
-   Big-type chapters driven entirely by CSS scroll-timeline
-   (view()) + position:sticky. No JS frame loop. Add .no-rv to
-   any element that runs one of these instead of the universal
-   reveal above.
-   ============================================================ */
+/* ---- resume big-type: structural utilities ----
+   GSAP animates these; the classes only style. */
 
-/* Masthead RESUME: blur-rise in, zoom-out fade away — one view()
-   timeline spanning the full visibility window. */
-@keyframes mastLife {
-  0% {
-    opacity: 0;
-    transform: scale(0.95);
-    filter: blur(18px);
-  }
-  30% {
-    opacity: 1;
-    transform: scale(1);
-    filter: blur(0);
-  }
-  70% {
-    opacity: 1;
-    transform: scale(1);
-    filter: blur(0);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.08);
-    filter: blur(16px);
-  }
-}
-
-.mast {
-  animation-name: mastLife;
-  animation-timing-function: linear;
-  animation-fill-mode: both;
-  animation-timeline: view();
-}
-
-/* Giant background numerals: slow vertical drift (parallax). */
-@keyframes drift {
-  from {
-    transform: translateY(8vh);
-  }
-  to {
-    transform: translateY(-8vh);
-  }
-}
-
-.drift {
-  animation-name: drift;
-  animation-timing-function: linear;
-  animation-fill-mode: both;
-  animation-timeline: view();
-  animation-range: entry 0% exit 100%;
-}
-
-/* Stroke-only display type — the big chapter labels. */
 .text-stroke {
   color: transparent;
   -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
@@ -184,7 +87,6 @@ html::-webkit-scrollbar {
   -webkit-text-stroke: 1.5px rgba(16, 174, 194, 0.65);
 }
 
-/* Gradient-filled display type. */
 .text-grad {
   background: linear-gradient(115deg, #ffffff 20%, #9be7f2 55%, #10aec2 100%);
   -webkit-background-clip: text;
@@ -199,49 +101,12 @@ html::-webkit-scrollbar {
   color: transparent;
 }
 
-/* Line-mask reveal: clip each display line, slide it up in. */
+/* Line-mask wrapper: clips the span while GSAP slides it up from below. */
 .line-mask {
   overflow: hidden;
 }
 
-.line-mask > span {
-  display: block;
-  animation-name: lineUp;
-  animation-timing-function: linear;
-  animation-fill-mode: both;
-  animation-timeline: view();
-  animation-range: entry 0% entry 45%;
-}
-
-@keyframes lineUp {
-  from {
-    transform: translateY(110%);
-  }
-}
-
-/* Award result rows: slide in from the left. */
-@keyframes rowIn {
-  from {
-    opacity: 0;
-    transform: translateX(-28px);
-  }
-}
-
-.row-in {
-  animation-name: rowIn;
-  animation-timing-function: linear;
-  animation-fill-mode: both;
-  animation-timeline: view();
-  animation-range: entry 0% entry 35%;
-}
-
-/* Focus marquee: continuous horizontal scroll, two bands. */
-@keyframes marquee {
-  to {
-    transform: translateX(-50%);
-  }
-}
-
+/* Marquee band: mask fades the edges; track is the GSAP-xPercent loop. */
 .marquee-mask {
   mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
@@ -250,75 +115,17 @@ html::-webkit-scrollbar {
 .marquee-track {
   display: flex;
   width: max-content;
-  animation-name: marquee;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
 }
 
-.marquee-fast {
-  animation-duration: 28s;
-}
-
-.marquee-slow {
-  animation-duration: 52s;
-}
-
-.marquee-reverse {
-  animation-direction: reverse;
-}
-
-/* ---- scroll reveal (site-wide) ----
-   .rv-in  : element rises as it scrolls into view (own view timeline).
-   Exit direction (top) has no transition animation — elements just scroll
-   out and blur via the fixed blur band at the bottom of the viewport. */
-
-@keyframes rvIn {
-  from {
-    opacity: 0;
-    transform: translateY(5vh);
-  }
-}
-
-.rv-in {
-  animation-name: rvIn;
-  animation-timeline: view();
-  animation-timing-function: linear;
-  animation-fill-mode: both;
-  animation-range: entry 0% entry 55%;
-}
-
-/* universal reveal: every content element rises on entry — no per-element
-   classes needed. Hero content is excluded: it's visible at load (mount
-   animation) and needs no reveal. Elements tagged .no-rv run their own
-   scroll-timeline animation instead (see resume cinema below). */
-main img:not(.hero-content *):not(.no-rv),
-main h1:not(.hero-content *):not(.no-rv),
-main h2:not(.hero-content *):not(.no-rv),
-main h3:not(.hero-content *):not(.no-rv),
-main p:not(.hero-content *):not(.no-rv),
-main li:not(.hero-content *):not(.no-rv) {
-  animation-name: rvIn;
-  animation-timeline: view();
-  animation-timing-function: linear;
-  animation-fill-mode: both;
-  animation-range: entry 0% entry 60%;
+/* Hero mount entrance is hidden pre-JS (GSAP animates it to visible the
+   same frame it runs). Reduced motion must unhide it. */
+[data-hero-in] {
+  opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rv-in,
-  main img,
-  main h1,
-  main h2,
-  main h3,
-  main p,
-  main li,
-  .no-rv,
-  .mast,
-  .drift,
-  .line-mask > span,
-  .row-in,
-  .marquee-track {
-    animation: none;
+  [data-hero-in] {
+    opacity: 1;
   }
 
   .scroll-hint {
