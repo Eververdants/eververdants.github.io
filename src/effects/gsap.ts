@@ -93,34 +93,57 @@ export function initGsap(prefersReduced: boolean, lenis: Lenis | null): GsapHand
       );
 
     /* ---- resume masthead RESUME (was .mast) ----
-       Blur-rise in, hold, zoom-out fade: one scrub over the masthead's
-       visibility window. */
-    gsap.fromTo(
-      "[data-mast]",
-      { scale: 0.95, autoAlpha: 0, filter: "blur(18px)" },
-      {
-        keyframes: [
-          { scale: 1, autoAlpha: 1, filter: "blur(0px)", duration: 0.3 },
-          { scale: 1, autoAlpha: 1, filter: "blur(0px)", duration: 0.4 },
-          { scale: 1.08, autoAlpha: 0, filter: "blur(16px)", duration: 0.3 }
-        ],
-        ease: "none",
-        scrollTrigger: {
-          trigger: "[data-masthead]",
-          start: "top bottom",
-          end: "bottom top",
-          scrub: true
-        }
-      }
-    );
+       Title card: letters blur-rise in staggered as the masthead enters,
+       hold, then fly apart as it leaves. One scrub over the visibility
+       window. */
+    const letters = gsap.utils.toArray<HTMLElement>("[data-mast-letter]");
+    if (letters.length) {
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: "[data-masthead]",
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true
+          }
+        })
+        .fromTo(
+          letters,
+          { yPercent: 130, autoAlpha: 0, filter: "blur(18px)" },
+          {
+            yPercent: 0,
+            autoAlpha: 1,
+            filter: "blur(0px)",
+            duration: 0.3,
+            stagger: 0.06,
+            ease: "none"
+          },
+          0
+        )
+        .to({}, { duration: 0.4 })
+        .to(
+          letters,
+          {
+            scale: 1.1,
+            autoAlpha: 0,
+            filter: "blur(16px)",
+            x: (i: number) => (i - (letters.length - 1) / 2) * 50,
+            duration: 0.3,
+            stagger: { each: 0.05, from: "start" },
+            ease: "none"
+          },
+          0.7
+        );
+    }
 
-    /* ---- parallax numerals (was .drift) ---- */
+    /* ---- parallax numerals (was .drift) + skew swing ---- */
     gsap.utils.toArray<HTMLElement>("[data-parallax]").forEach((el) => {
       gsap.fromTo(
         el,
-        { y: () => window.innerHeight * 0.08 },
+        { y: () => window.innerHeight * 0.08, skewX: -6 },
         {
           y: () => window.innerHeight * -0.08,
+          skewX: 6,
           ease: "none",
           scrollTrigger: {
             trigger: el,
@@ -133,6 +156,20 @@ export function initGsap(prefersReduced: boolean, lenis: Lenis | null): GsapHand
       );
     });
 
+    /* ---- sticky chapter labels: clip-path curtain wipe ----
+       Trigger on the non-sticky act container, not the sticky label: a
+       pinned label's geometry freezes, so a once-trigger on it never lets
+       the tween finish. */
+    gsap.utils.toArray<HTMLElement>("[data-wipe]").forEach((el) => {
+      const trigger = el.closest("[data-act]") ?? el;
+      gsap.from(el, {
+        clipPath: "inset(0 100% 0 0)",
+        duration: 0.9,
+        ease: "power4.inOut",
+        scrollTrigger: { trigger, start: "top 88%", once: true }
+      });
+    });
+
     /* ---- line-mask reveals (was .line-mask > span lineUp) ----
        Trigger on the mask so all its sibling lines fire together, then
        stagger the slide per line index. */
@@ -141,9 +178,11 @@ export function initGsap(prefersReduced: boolean, lenis: Lenis | null): GsapHand
       lines.forEach((span, i) => {
         gsap.fromTo(
           span,
-          { yPercent: 110 },
+          { yPercent: 110, filter: "blur(8px)", scale: 1.02 },
           {
             yPercent: 0,
+            filter: "blur(0px)",
+            scale: 1,
             duration: 0.9,
             ease: "power3.out",
             delay: i * 0.08,
@@ -157,10 +196,11 @@ export function initGsap(prefersReduced: boolean, lenis: Lenis | null): GsapHand
     gsap.utils.toArray<HTMLElement>(".row-in").forEach((row) => {
       gsap.fromTo(
         row,
-        { autoAlpha: 0, x: -28 },
+        { autoAlpha: 0, x: -28, filter: "blur(6px)" },
         {
           autoAlpha: 1,
           x: 0,
+          filter: "blur(0px)",
           duration: 0.7,
           ease: "power2.out",
           scrollTrigger: { trigger: row, start: "top 92%", once: true }
@@ -179,6 +219,41 @@ export function initGsap(prefersReduced: boolean, lenis: Lenis | null): GsapHand
         { xPercent: reverse ? -50 : 0 },
         { xPercent: reverse ? 0 : -50, repeat: -1, ease: "none", duration: slow ? 52 : 28 }
       );
+    });
+
+    /* ---- marquee bands: scroll-scrubbed skew swing ---- */
+    gsap.utils.toArray<HTMLElement>("[data-marquee-parallax]").forEach((band, i) => {
+      gsap.fromTo(
+        band,
+        { skewX: i % 2 ? -3 : 3 },
+        {
+          skewX: i % 2 ? 3 : -3,
+          ease: "none",
+          scrollTrigger: {
+            trigger: band,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true
+          }
+        }
+      );
+    });
+
+    /* ---- film grain flicker ---- */
+    gsap.to("[data-film-grain]", {
+      backgroundPosition: "300px 300px",
+      duration: 1.2,
+      ease: "none",
+      repeat: -1
+    });
+
+    /* ---- hero avatar: slow living zoom (ken burns) ---- */
+    gsap.to("[data-hero-avatar]", {
+      scale: 1.07,
+      duration: 9,
+      ease: "sine.inOut",
+      yoyo: true,
+      repeat: -1
     });
   });
 

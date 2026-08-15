@@ -42,11 +42,14 @@ function Masthead() {
         {resume.birthYear}
       </span>
       <div className="relative z-[1]">
-        <h2
-          className="no-rv font-fraunces font-medium leading-[0.82] tracking-[-0.02em] text-white text-[clamp(72px,18vw,300px)]"
-          data-mast
-        >
-          RESUME
+        {/* Letters stagger in as the masthead rises, then fly apart as it
+            leaves (gsap.ts animates [data-mast-letter] on a scrub timeline). */}
+        <h2 className="no-rv whitespace-nowrap font-fraunces font-medium leading-[0.82] tracking-[-0.02em] text-white text-[clamp(72px,18vw,300px)]">
+          {"RESUME".split("").map((ch, i) => (
+            <span key={i} className="inline-block" data-mast-letter>
+              {ch}
+            </span>
+          ))}
         </h2>
         <p className="mt-[clamp(16px,3vh,30px)] font-fraunces text-[clamp(15px,1.8vw,24px)] tracking-[0.08em] text-white/55">
           EST. {resume.birthYear} — Student. Builder. Creator.
@@ -60,13 +63,16 @@ function Masthead() {
 
 function Education({ age }: { age: number }) {
   return (
-    <div className="relative pt-[clamp(80px,14vh,180px)]">
+    <div className="relative pt-[clamp(80px,14vh,180px)]" data-act>
       {/* Sticky heading is static (no-rv): a view() reveal on a sticky
          element freezes at whatever progress it was at when pinned —
          leaving it invisible or half-translated. The scroll-over effect
          is the drama; the label needs no entrance animation. */}
       <div className="sticky top-[10vh] z-[1]">
-        <h3 className={`${giant} no-rv font-medium text-[clamp(60px,15vw,250px)]`}>
+        <h3
+          className={`${giant} no-rv font-medium text-[clamp(60px,15vw,250px)]`}
+          data-wipe
+        >
           EDUCATION
         </h3>
       </div>
@@ -106,11 +112,12 @@ function Education({ age }: { age: number }) {
 function Awards() {
   const award = resume.awards[0];
   return (
-    <div className="relative pt-[clamp(80px,14vh,180px)]">
+    <div className="relative pt-[clamp(80px,14vh,180px)]" data-act>
       <div className="sticky top-[10vh] z-[1]">
         <h3 className="sr-only">Awards</h3>
         <p
           className={`${giant} no-rv font-light italic text-[clamp(90px,20vw,320px)]`}
+          data-wipe
         >
           01
         </p>
@@ -205,8 +212,17 @@ function Marquee({
     </>
   );
 
+  // 20px side inset (not full-bleed): the tilt rotate + skew scrub grow
+  // the band's bounding box, and a full-bleed band would overflow the
+  // viewport. The mask gradient already fades the edges, so the inset is
+  // invisible.
   return (
-    <div className="marquee-mask -mx-[clamp(16px,4vw,48px)] overflow-hidden">
+    <div
+      className={`marquee-mask -mx-[calc(clamp(16px,4vw,48px)-20px)] overflow-hidden ${
+        dataMarquee === "slow" ? "rotate-[1.2deg]" : "rotate-[-1.6deg]"
+      }`}
+      data-marquee-parallax
+    >
       <div
         className={`marquee-track ${className ?? ""}`}
         data-marquee={dataMarquee}

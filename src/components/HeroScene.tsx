@@ -16,7 +16,10 @@ export default function HeroScene() {
         data-hero-glass
       />
       <div className="hero-content flex flex-col items-center" data-hero-fade>
-        <div className="motion-reduce:[filter:none] [filter:drop-shadow(0_14px_44px_rgba(0,0,0,0.55))]">
+        <div
+          className="motion-reduce:[filter:none] [filter:drop-shadow(0_14px_44px_rgba(0,0,0,0.55))]"
+          data-hero-avatar
+        >
           <img
             className="h-[clamp(120px,22vw,168px)] w-[clamp(120px,22vw,168px)] object-cover"
             src="/assets/avatar.webp"

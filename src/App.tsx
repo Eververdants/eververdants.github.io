@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import Background from './components/Background';
+import FilmGrain from './components/FilmGrain';
 import FocusBand from './components/FocusBand';
 import HeroScene from './components/HeroScene';
 import ResumeScene from './components/ResumeScene';
@@ -60,6 +61,7 @@ export default function App() {
         <HeroScene />
         <ResumeScene />
       </main>
+      <FilmGrain />
       <FocusBand />
       <Scrollbar />
     </>
