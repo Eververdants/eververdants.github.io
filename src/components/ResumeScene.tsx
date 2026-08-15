@@ -126,49 +126,44 @@ function Awards() {
         </p>
       </div>
 
-      {/* Poster composition instead of a text stack: contest name as a wall
-          of big type on the left, results as a sparse indexed list on the
-          right, with the event reduced to a quiet detail line. */}
-      <div className="relative z-[2] mt-[clamp(80px,16vh,200px)] pb-[clamp(160px,26vh,320px)]">
-        <div className="grid gap-[clamp(56px,12vh,140px)] lg:grid-cols-[1.5fr_1fr] lg:gap-x-[clamp(48px,8vw,120px)]">
-          {/* contest name — big editorial wall */}
-          <div>
-            <div className="line-mask">
-              {award.contest.split("\n").map((line) => (
-                <span
-                  key={line}
-                  className="block text-grad font-fraunces font-medium leading-[1.08] tracking-[-0.01em] text-[clamp(34px,6vw,80px)]"
-                >
-                  {line}
-                </span>
-              ))}
-            </div>
-            <p className="mt-[clamp(28px,6vh,56px)] max-w-[46ch] text-[13px] leading-[1.7] text-[#6f6f6f]">
-              {award.event}
-            </p>
-          </div>
-
-          {/* results — sparse indexed rows */}
-          <div className="lg:pt-[clamp(8px,2vh,20px)]">
-            <p className="text-[11px] tracking-[0.42em] text-white/30">RESULTS</p>
-            <ul className="mt-[clamp(24px,5vh,48px)]">
-              {award.results.map((result, i) => (
-                <li
-                  key={result}
-                  className="no-rv row-in flex items-baseline gap-5 border-t border-white/10 py-[clamp(22px,4.5vh,40px)]"
-                >
-                  <span className="font-fraunces italic text-[clamp(13px,1.3vw,18px)] text-white/25">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="font-fraunces text-[clamp(19px,2.2vw,30px)] leading-snug text-white">
-                    {result}
-                  </span>
-                </li>
-              ))}
-              <li className="border-t border-white/10" aria-hidden />
-            </ul>
-          </div>
+      {/* Epic single-column: contest name as a wall of giant uppercase
+          gradient type (matches the masthead/education scale), event as a
+          quiet detail line, results as oversized indexed rows. */}
+      <div className="relative z-[2] mt-[clamp(80px,16vh,200px)] pb-[clamp(200px,32vh,420px)]">
+        {/* contest name — epic wall */}
+        <div className="line-mask">
+          {award.contest.split("\n").map((line) => (
+            <span
+              key={line}
+              className="block uppercase text-grad font-fraunces font-medium leading-[1.05] tracking-[-0.01em] text-[clamp(36px,9vw,140px)]"
+            >
+              {line}
+            </span>
+          ))}
         </div>
+
+        {/* event detail */}
+        <p className="mt-[clamp(36px,7vh,72px)] max-w-[52ch] text-[13px] leading-[1.7] text-[#6f6f6f]">
+          {award.event}
+        </p>
+
+        {/* results — oversized indexed rows */}
+        <ul className="mt-[clamp(80px,16vh,220px)]">
+          {award.results.map((result, i) => (
+            <li
+              key={result}
+              className="no-rv row-in flex items-baseline gap-[clamp(20px,3vw,48px)] border-t border-white/10 py-[clamp(32px,7vh,72px)]"
+            >
+              <span className="font-fraunces italic text-[clamp(20px,2.4vw,34px)] text-white/25">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="font-fraunces text-[clamp(28px,5vw,72px)] leading-[1.05] text-white">
+                {result}
+              </span>
+            </li>
+          ))}
+          <li className="border-t border-white/10" aria-hidden />
+        </ul>
       </div>
     </div>
   );
