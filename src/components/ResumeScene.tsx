@@ -1,99 +1,212 @@
+import { Fragment } from "react";
 import { resume } from "../data/resume";
 
-/* Editorial big-type resume. Height is free — no viewport lock. Giant
-   Fraunces labels as the spine, small body text beside, hairline dividers.
-   Reveal is handled globally in global.css (rvIn, now with blur). */
+/* Scroll-cinema resume. Height is free — each act is a tall chapter with
+   sticky giant type that the body scrolls up over. All motion is pure CSS
+   scroll-timeline (view()) + position:sticky; no JS frame loop. Reduced
+   motion opts out in global.css. Copy lives in data/resume.ts. */
+
+/* Shared giant chapter-label styling. Weight added per use (AWARDS uses
+   font-light italic instead of medium). */
+const giant = "text-stroke font-fraunces leading-[0.85] tracking-[-0.02em]";
 
 export default function ResumeScene() {
   // Age derived from birth year at runtime so it never goes stale.
   const age = new Date().getFullYear() - resume.birthYear;
 
-  const giantLabel =
-    "font-fraunces text-[clamp(32px,5.5vw,88px)] font-medium leading-none tracking-[-0.01em] text-transparent bg-gradient-to-b from-white to-white/25 bg-clip-text";
-
+  // NOTE: no overflow-x: clip anywhere in this subtree. In Chrome, an
+  // overflow-x: clip ancestor becomes the scroll container for view()
+  // timelines, freezing every reveal inside it. Horizontal bleed (giant
+  // numerals, marquees) is clipped by <html class="overflow-x-hidden">.
   return (
-    <section className="relative z-[1] px-[clamp(16px,4vw,48px)] py-[clamp(48px,9vh,130px)]">
-      <div className="mx-auto w-full max-w-[1200px]">
-        {/* Cover headline: leads the sheet as it slides up over the hero */}
-        <div className="text-left">
-          <h2 className="font-fraunces text-[clamp(56px,15vw,220px)] font-medium leading-[0.9] tracking-[-0.01em] text-white">
-            RESUME
-          </h2>
-          <p className="mt-[clamp(12px,2vh,20px)] font-fraunces text-[clamp(16px,1.8vw,22px)] text-white/70">
-            Student. Builder. Creator.
+    <section className="relative z-[1] px-[clamp(16px,4vw,48px)]">
+      <Masthead />
+      <Education age={age} />
+      <Awards />
+      <FocusMarquee />
+      <Contact />
+    </section>
+  );
+}
+
+/* ---- Act 0 — masthead: giant RESUME, unveils as the hero fades ---- */
+
+function Masthead() {
+  return (
+    <div className="relative flex h-[120vh] items-center justify-center text-center">
+      <span
+        aria-hidden
+        className="drift text-stroke-faint absolute left-1/2 top-[6%] -translate-x-1/2 font-fraunces italic leading-none text-[clamp(120px,26vw,360px)]"
+      >
+        {resume.birthYear}
+      </span>
+      <div className="relative z-[1]">
+        <h2 className="no-rv mast font-fraunces font-medium leading-[0.82] tracking-[-0.02em] text-white text-[clamp(72px,18vw,300px)]">
+          RESUME
+        </h2>
+        <p className="mt-[clamp(16px,3vh,30px)] font-fraunces text-[clamp(15px,1.8vw,24px)] tracking-[0.08em] text-white/55">
+          EST. {resume.birthYear} — Student. Builder. Creator.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ---- Act 1 — EDUCATION: sticky stroke label, school scrolls over it ---- */
+
+function Education({ age }: { age: number }) {
+  return (
+    <div className="relative pt-[clamp(80px,14vh,180px)]">
+      {/* Sticky heading is static (no-rv): a view() reveal on a sticky
+         element freezes at whatever progress it was at when pinned —
+         leaving it invisible or half-translated. The scroll-over effect
+         is the drama; the label needs no entrance animation. */}
+      <div className="sticky top-[10vh] z-[1]">
+        <h3 className={`${giant} no-rv font-medium text-[clamp(60px,15vw,250px)]`}>
+          EDUCATION
+        </h3>
+      </div>
+
+      <div className="relative z-[2] mt-[clamp(48px,10vh,120px)] pb-[clamp(100px,18vh,220px)]">
+        <div className="relative">
+          <span
+            aria-hidden
+            className="drift text-stroke-accent absolute right-0 top-[-24%] font-fraunces italic leading-none text-[clamp(150px,30vw,440px)]"
+          >
+            {age}
+          </span>
+          <div className="line-mask relative z-[1] max-w-[18ch]">
+            <span className="font-fraunces font-medium leading-[1.02] tracking-[-0.01em] text-white text-[clamp(38px,7.5vw,104px)]">
+              {resume.education.school}
+            </span>
+          </div>
+          <p className="relative z-[1] mt-[clamp(22px,4vh,44px)] max-w-[520px] text-[clamp(14px,1.5vw,17px)] leading-[1.7] text-[#8e8e8e]">
+            {resume.education.role} · {resume.education.location}
           </p>
         </div>
+      </div>
+    </div>
+  );
+}
 
-        {/* Sections */}
-        <div className="mt-[clamp(48px,9vh,120px)] border-t border-white/10">
-          {/* Education */}
-          <div className="grid gap-[clamp(16px,3vh,28px)] border-b border-white/10 py-[clamp(32px,6vh,64px)] md:grid-cols-[1fr_1.25fr] md:gap-x-16">
-            <h3 className={giantLabel}>EDUCATION</h3>
-            <div className="md:pt-[clamp(4px,0.8vh,10px)]">
-              <p className="font-fraunces text-[clamp(16px,1.6vw,20px)] leading-snug text-white">
-                {resume.education.role} — {resume.education.school}
-              </p>
-              <p className="mt-2 text-[13px] leading-[1.8] text-[#8e8e8e]">
-                {resume.education.location} · Age {age} (b. {resume.birthYear})
-              </p>
-            </div>
-          </div>
+/* ---- Act 2 — AWARDS: sticky giant index, numbered results ---- */
 
-          {/* Awards */}
-          <div className="grid gap-[clamp(16px,3vh,28px)] border-b border-white/10 py-[clamp(32px,6vh,64px)] md:grid-cols-[1fr_1.25fr] md:gap-x-16">
-            <h3 className={giantLabel}>AWARDS</h3>
-            <div className="md:pt-[clamp(4px,0.8vh,10px)]">
-              <p className="font-fraunces text-[clamp(16px,1.6vw,20px)] leading-snug text-white">
-                {resume.awards[0].contest}
-              </p>
-              <p className="mt-1.5 text-[13px] leading-[1.7] text-[#8e8e8e]">
-                {resume.awards[0].event}
-              </p>
-              <ul className="mt-3 space-y-1.5">
-                {resume.awards[0].results.map((result) => (
-                  <li
-                    key={result}
-                    className="flex items-center gap-2 text-[13px] leading-snug text-[#c9c9c9]"
-                  >
-                    <span className="h-1 w-1 shrink-0 rounded-full bg-[#f9a633]" />
-                    {result}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+function Awards() {
+  const award = resume.awards[0];
+  return (
+    <div className="relative pt-[clamp(80px,14vh,180px)]">
+      <div className="sticky top-[10vh] z-[1]">
+        <h3 className="sr-only">Awards</h3>
+        <p
+          className={`${giant} no-rv font-light italic text-[clamp(90px,20vw,320px)]`}
+        >
+          01
+        </p>
+        <p className="no-rv mt-1 text-[11px] tracking-[0.42em] text-white/30">
+          AWARDS
+        </p>
+      </div>
 
-          {/* Focus */}
-          <div className="grid gap-[clamp(16px,3vh,28px)] py-[clamp(32px,6vh,64px)] md:grid-cols-[1fr_1.25fr] md:gap-x-16">
-            <h3 className={giantLabel}>FOCUS</h3>
-            <div className="md:pt-[clamp(4px,0.8vh,10px)]">
-              <ul className="flex flex-wrap gap-2">
-                {resume.focus.map((item) => (
-                  <li
-                    key={item}
-                    className="rounded-full border border-white/15 px-3.5 py-1.5 text-[13px] text-[#c9c9c9] transition-colors hover:border-[#10aec2]/60 hover:text-white"
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+      <div className="relative z-[2] mt-[clamp(48px,10vh,120px)] pb-[clamp(100px,18vh,220px)]">
+        <div className="line-mask max-w-[24ch]">
+          <span className="text-grad font-fraunces font-medium leading-[1.04] tracking-[-0.01em] text-[clamp(28px,5vw,68px)]">
+            {award.contest}
+          </span>
         </div>
+        <p className="mt-[clamp(18px,3.5vh,36px)] max-w-[620px] text-[clamp(13px,1.4vw,16px)] leading-[1.7] text-[#8e8e8e]">
+          {award.event}
+        </p>
+        <ul className="mt-[clamp(32px,6vh,64px)]">
+          {award.results.map((result) => (
+            <li
+              key={result}
+              className="no-rv row-in flex items-center gap-4 border-t border-white/10 py-[clamp(16px,3vh,30px)]"
+            >
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#f9a633]" />
+              <span className="font-fraunces text-[clamp(18px,2.6vw,32px)] text-white">
+                {result}
+              </span>
+            </li>
+          ))}
+          <li className="border-t border-white/10" aria-hidden />
+        </ul>
+      </div>
+    </div>
+  );
+}
 
-        {/* Contact */}
-        <div className="mt-[clamp(40px,7vh,80px)] flex items-center gap-3 border-t border-white/10 pt-[clamp(24px,4vh,40px)] text-[14px]">
-          <span className="text-[#8e8e8e]">{resume.contact.label}</span>
-          <a
-            href={resume.contact.href}
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium text-white underline decoration-[#10aec2] underline-offset-4 transition-colors hover:text-[#10aec2]"
-          >
-            {resume.contact.handle}
-          </a>
+/* ---- Act 3 — FOCUS: two counter-rotating marquee bands of giant type ---- */
+
+function FocusMarquee() {
+  const words = resume.focus.map((w) => w.toUpperCase());
+  return (
+    <div className="relative py-[clamp(80px,14vh,180px)]">
+      <h3 className="sr-only">Focus</h3>
+      <div className="flex flex-col gap-[clamp(20px,4vh,48px)]">
+        <Marquee
+          words={words}
+          className="marquee-fast text-stroke-faint text-[clamp(60px,12vw,200px)]"
+        />
+        <Marquee
+          words={words}
+          className="marquee-slow marquee-reverse text-grad-warm text-[clamp(60px,12vw,200px)]"
+        />
+      </div>
+    </div>
+  );
+}
+
+/* One marquee band: two identical groups inside a track, animated -50% so
+   the loop is seamless. -mx cancels the section's side padding for a
+   full-bleed band. */
+function Marquee({ words, className }: { words: string[]; className?: string }) {
+  const group = (
+    <>
+      {words.map((word, i) => (
+        <Fragment key={i}>
+          <span className="whitespace-nowrap px-[0.5em] font-fraunces leading-none">
+            {word}
+          </span>
+          <span aria-hidden className="text-[0.5em] leading-none text-[#10aec2]">
+            ●
+          </span>
+        </Fragment>
+      ))}
+    </>
+  );
+
+  return (
+    <div className="marquee-mask -mx-[clamp(16px,4vw,48px)] overflow-hidden">
+      <div className={`marquee-track ${className ?? ""}`}>
+        <div className="flex items-center whitespace-nowrap">{group}</div>
+        <div aria-hidden className="flex items-center whitespace-nowrap">
+          {group}
         </div>
       </div>
-    </section>
+    </div>
+  );
+}
+
+/* ---- Act 4 — CONTACT: giant gradient handle as the close ---- */
+
+function Contact() {
+  return (
+    <div className="relative flex min-h-[100vh] flex-col items-center justify-center pb-[clamp(120px,20vh,240px)] pt-[clamp(60px,10vh,120px)] text-center">
+      <p className="text-[11px] tracking-[0.45em] text-white/30">CONTACT</p>
+      <p className="mt-[clamp(24px,5vh,56px)] max-w-[660px] font-fraunces text-[clamp(20px,3vw,40px)] leading-[1.3] text-white/75">
+        {resume.about}
+      </p>
+      <a
+        href={resume.contact.href}
+        target="_blank"
+        rel="noreferrer"
+        className="text-grad mt-[clamp(40px,8vh,96px)] font-fraunces font-medium leading-none tracking-[-0.02em] transition-opacity hover:opacity-75 text-[clamp(44px,9vw,132px)]"
+      >
+        @{resume.contact.handle}
+      </a>
+      <p className="mt-[clamp(22px,4vh,44px)] text-[13px] text-[#8e8e8e]">
+        {resume.contact.label} <span aria-hidden>↗</span>
+      </p>
+    </div>
   );
 }
