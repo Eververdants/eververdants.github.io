@@ -39,9 +39,13 @@ export default function HeroScene() {
           I would rather leave something behind than simply pass through.
         </p>
       </div>
+      {/* No entrance animation: the hero cover scrub owns the hint's opacity
+          (fades it out on scroll). An entrance fill would fight gsap's inline
+          styles — gsap captured that animated value as the tween start. */}
       <div
-        className="scroll-hint absolute bottom-[clamp(22px,4.5vh,40px)] left-1/2 z-[60] flex animate-hint-in flex-col items-center gap-3 [animation-delay:0.5s]"
+        className="scroll-hint absolute bottom-[clamp(22px,4.5vh,40px)] left-1/2 z-[60] flex flex-col items-center gap-3"
         aria-hidden="true"
+        data-hero-hint
       >
         <span className="text-[10px] tracking-[0.42em] indent-[0.42em] text-white/40">
           SCROLL

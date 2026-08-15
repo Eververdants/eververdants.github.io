@@ -80,7 +80,11 @@ export function initGsap(prefersReduced: boolean, lenis: Lenis | null): GsapHand
         { y: () => -window.innerHeight * 0.16, opacity: 0, ease: "none" },
         0
       )
-      .to("[data-hero-glass]", { opacity: 1, ease: "none" }, 0);
+      .to("[data-hero-glass]", { opacity: 1, ease: "none" }, 0)
+      // Scroll hint lives in the sticky hero, so it must fade with it too —
+      // otherwise it sticks on screen forever. Explicit from start: gsap
+      // otherwise captures the element's opacity-at-create as the tween start.
+      .fromTo("[data-hero-hint]", { opacity: 1 }, { opacity: 0, ease: "none" }, 0);
 
     /* ---- resume masthead RESUME (was .mast) ----
        Blur-rise in, hold, zoom-out fade: one scrub over the masthead's

@@ -3,10 +3,9 @@
 @theme {
   --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
   --font-fraunces: "Fraunces", Georgia, "Times New Roman", serif;
-  /* Remaining CSS animations are time-based only (canvas mount, scroll hint).
-     Everything scroll-driven lives in src/effects/gsap.ts (ScrollTrigger). */
+  /* Remaining CSS animations are time-based only (canvas mount, scroll hint
+     line fill). Everything scroll-driven lives in src/effects/gsap.ts. */
   --animate-fluid-in: fluidIn 1.8s ease-out both;
-  --animate-hint-in: hintIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-scroll-fill: scrollFill 2.4s ease-in-out infinite;
 
   @keyframes fluidIn {
@@ -17,17 +16,6 @@
     to {
       opacity: 1;
       filter: blur(0);
-    }
-  }
-
-  @keyframes hintIn {
-    from {
-      opacity: 0;
-      transform: translate(-50%, 10px);
-    }
-    to {
-      opacity: 1;
-      transform: translate(-50%, 0);
     }
   }
 
