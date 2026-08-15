@@ -126,16 +126,16 @@ function Awards() {
         </p>
       </div>
 
-      {/* Epic single-column: contest name as a wall of giant uppercase
-          gradient type (matches the masthead/education scale), event as a
-          quiet detail line, results as oversized indexed rows. */}
-      <div className="relative z-[2] mt-[clamp(80px,16vh,200px)] pb-[clamp(200px,32vh,420px)]">
-        {/* contest name — epic wall */}
+      {/* Refined wall, same serif scale as the school line: solid white,
+          title case — the gradient/uppercase read as cheap. The sticky
+          italic 01 already carries the giant-number drama. */}
+      <div className="relative z-[2] mt-[clamp(80px,16vh,200px)] pb-[clamp(180px,28vh,380px)]">
+        {/* contest name */}
         <div className="line-mask">
           {award.contest.split("\n").map((line) => (
             <span
               key={line}
-              className="block uppercase text-grad font-fraunces font-medium leading-[1.05] tracking-[-0.01em] text-[clamp(36px,9vw,140px)]"
+              className="block font-fraunces font-medium leading-[1.06] tracking-[-0.01em] text-white text-[clamp(38px,7.5vw,104px)]"
             >
               {line}
             </span>
@@ -143,21 +143,21 @@ function Awards() {
         </div>
 
         {/* event detail */}
-        <p className="mt-[clamp(36px,7vh,72px)] max-w-[52ch] text-[13px] leading-[1.7] text-[#6f6f6f]">
+        <p className="mt-[clamp(28px,6vh,56px)] max-w-[52ch] text-[13px] leading-[1.7] text-[#6f6f6f]">
           {award.event}
         </p>
 
-        {/* results — oversized indexed rows */}
-        <ul className="mt-[clamp(80px,16vh,220px)]">
+        {/* results — refined indexed rows */}
+        <ul className="mt-[clamp(64px,12vh,160px)]">
           {award.results.map((result, i) => (
             <li
               key={result}
-              className="no-rv row-in flex items-baseline gap-[clamp(20px,3vw,48px)] border-t border-white/10 py-[clamp(32px,7vh,72px)]"
+              className="no-rv row-in flex items-baseline gap-[clamp(16px,2vw,32px)] border-t border-white/10 py-[clamp(20px,4vh,36px)]"
             >
-              <span className="font-fraunces italic text-[clamp(20px,2.4vw,34px)] text-white/25">
+              <span className="font-fraunces italic text-[clamp(13px,1.4vw,18px)] text-white/25">
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <span className="font-fraunces text-[clamp(28px,5vw,72px)] leading-[1.05] text-white">
+              <span className="font-fraunces text-[clamp(18px,2.4vw,32px)] leading-snug text-white">
                 {result}
               </span>
             </li>
