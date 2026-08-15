@@ -63,7 +63,7 @@ function Masthead() {
 
 function Education({ age }: { age: number }) {
   return (
-    <div className="relative pt-[clamp(80px,14vh,180px)]" data-act>
+    <div className="relative pt-[clamp(120px,20vh,240px)]" data-act>
       {/* Sticky heading is static (no-rv): a view() reveal on a sticky
          element freezes at whatever progress it was at when pinned —
          leaving it invisible or half-translated. The scroll-over effect
@@ -77,7 +77,7 @@ function Education({ age }: { age: number }) {
         </h3>
       </div>
 
-      <div className="relative z-[2] mt-[clamp(48px,10vh,120px)] pb-[clamp(100px,18vh,220px)]">
+      <div className="relative z-[2] mt-[clamp(80px,16vh,200px)] pb-[clamp(160px,26vh,320px)]">
         <div className="relative">
           <span
             aria-hidden
@@ -92,13 +92,13 @@ function Education({ age }: { age: number }) {
             {resume.education.school.split("\n").map((line) => (
               <span
                 key={line}
-                className="block font-fraunces font-medium leading-[1.02] tracking-[-0.01em] text-white text-[clamp(38px,7.5vw,104px)]"
+                className="block font-fraunces font-medium leading-[1.06] tracking-[-0.01em] text-white text-[clamp(38px,7.5vw,104px)]"
               >
                 {line}
               </span>
             ))}
           </div>
-          <p className="relative z-[1] mt-[clamp(22px,4vh,44px)] max-w-[520px] text-[clamp(14px,1.5vw,17px)] leading-[1.7] text-[#8e8e8e]">
+          <p className="relative z-[1] mt-[clamp(36px,7vh,72px)] max-w-[520px] text-[clamp(14px,1.5vw,17px)] leading-[1.7] text-[#8e8e8e]">
             {resume.education.role} · {resume.education.location}
           </p>
         </div>
@@ -112,7 +112,7 @@ function Education({ age }: { age: number }) {
 function Awards() {
   const award = resume.awards[0];
   return (
-    <div className="relative pt-[clamp(80px,14vh,180px)]" data-act>
+    <div className="relative pt-[clamp(120px,20vh,240px)]" data-act>
       <div className="sticky top-[10vh] z-[1]">
         <h3 className="sr-only">Awards</h3>
         <p
@@ -126,25 +126,25 @@ function Awards() {
         </p>
       </div>
 
-      <div className="relative z-[2] mt-[clamp(48px,10vh,120px)] pb-[clamp(100px,18vh,220px)]">
+      <div className="relative z-[2] mt-[clamp(80px,16vh,200px)] pb-[clamp(160px,26vh,320px)]">
         <div className="line-mask">
           {award.contest.split("\n").map((line) => (
             <span
               key={line}
-              className="block text-grad font-fraunces font-medium leading-[1.04] tracking-[-0.01em] text-[clamp(28px,5vw,68px)]"
+              className="block text-grad font-fraunces font-medium leading-[1.08] tracking-[-0.01em] text-[clamp(28px,5vw,68px)]"
             >
               {line}
             </span>
           ))}
         </div>
-        <p className="mt-[clamp(18px,3.5vh,36px)] max-w-[620px] text-[clamp(13px,1.4vw,16px)] leading-[1.7] text-[#8e8e8e]">
+        <p className="mt-[clamp(32px,6vh,56px)] max-w-[620px] text-[clamp(13px,1.4vw,16px)] leading-[1.7] text-[#8e8e8e]">
           {award.event}
         </p>
-        <ul className="mt-[clamp(32px,6vh,64px)]">
+        <ul className="mt-[clamp(48px,9vh,96px)]">
           {award.results.map((result) => (
             <li
               key={result}
-              className="no-rv row-in flex items-center gap-4 border-t border-white/10 py-[clamp(16px,3vh,30px)]"
+              className="no-rv row-in flex items-center gap-4 border-t border-white/10 py-[clamp(24px,5vh,44px)]"
             >
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#f9a633]" />
               <span className="font-fraunces text-[clamp(18px,2.6vw,32px)] text-white">
