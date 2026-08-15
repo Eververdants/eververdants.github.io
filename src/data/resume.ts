@@ -35,7 +35,8 @@ export const resume: Resume = {
     {
       // \n = explicit editorial line break for the giant display line
       contest: "National Youth\nCommunication\nTechnology\nInnovation\nCompetition",
-      event: "Zhenxin Technology · Intelligent Communication Technology Innovation Contest",
+      // 振芯科技 puns 振兴 (revive): RevCore = Rev(e)+Core(芯), same trick in English.
+      event: "RevCore Technology · Intelligent Communication Technology Innovation Contest",
       results: ["Jiangsu Provincial · First Prize", "National Finals · Third Prize"],
     },
   ],
