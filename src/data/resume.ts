@@ -34,7 +34,7 @@ export const resume: Resume = {
   awards: [
     {
       // \n = explicit editorial line break for the giant display line
-      contest: "National Youth\nCommunication\nTechnology Innovation\nCompetition",
+      contest: "National Youth\nCommunication\nTechnology\nInnovation\nCompetition",
       event: "Zhenxin Technology · Intelligent Communication Technology Innovation Contest",
       results: ["Jiangsu Provincial · First Prize", "National Finals · Third Prize"],
     },
