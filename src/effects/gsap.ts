@@ -133,18 +133,24 @@ export function initGsap(prefersReduced: boolean, lenis: Lenis | null): GsapHand
       );
     });
 
-    /* ---- line-mask reveals (was .line-mask > span lineUp) ---- */
-    gsap.utils.toArray<HTMLElement>(".line-mask > span").forEach((span) => {
-      gsap.fromTo(
-        span,
-        { yPercent: 110 },
-        {
-          yPercent: 0,
-          duration: 0.9,
-          ease: "power3.out",
-          scrollTrigger: { trigger: span, start: "top 92%", once: true }
-        }
-      );
+    /* ---- line-mask reveals (was .line-mask > span lineUp) ----
+       Trigger on the mask so all its sibling lines fire together, then
+       stagger the slide per line index. */
+    gsap.utils.toArray<HTMLElement>(".line-mask").forEach((mask) => {
+      const lines = Array.from(mask.querySelectorAll<HTMLElement>(":scope > span"));
+      lines.forEach((span, i) => {
+        gsap.fromTo(
+          span,
+          { yPercent: 110 },
+          {
+            yPercent: 0,
+            duration: 0.9,
+            ease: "power3.out",
+            delay: i * 0.08,
+            scrollTrigger: { trigger: mask, start: "top 92%", once: true }
+          }
+        );
+      });
     });
 
     /* ---- award result rows (was .row-in) ---- */

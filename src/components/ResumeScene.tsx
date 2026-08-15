@@ -80,13 +80,17 @@ function Education({ age }: { age: number }) {
           >
             {age}
           </span>
-          {/* block span: max-w-[Nch] would size against the wrapper's own
-              (16px) font, not the giant display font — clipping the right
-              edge. Full-width block wraps naturally. */}
+          {/* \n in the data splits into designed lines; each slides up in
+              sequence (gsap.ts staggers siblings in a .line-mask). */}
           <div className="line-mask relative z-[1]">
-            <span className="block font-fraunces font-medium leading-[1.02] tracking-[-0.01em] text-white text-[clamp(38px,7.5vw,104px)]">
-              {resume.education.school}
-            </span>
+            {resume.education.school.split("\n").map((line) => (
+              <span
+                key={line}
+                className="block font-fraunces font-medium leading-[1.02] tracking-[-0.01em] text-white text-[clamp(38px,7.5vw,104px)]"
+              >
+                {line}
+              </span>
+            ))}
           </div>
           <p className="relative z-[1] mt-[clamp(22px,4vh,44px)] max-w-[520px] text-[clamp(14px,1.5vw,17px)] leading-[1.7] text-[#8e8e8e]">
             {resume.education.role} · {resume.education.location}
@@ -117,9 +121,14 @@ function Awards() {
 
       <div className="relative z-[2] mt-[clamp(48px,10vh,120px)] pb-[clamp(100px,18vh,220px)]">
         <div className="line-mask">
-          <span className="block text-grad font-fraunces font-medium leading-[1.04] tracking-[-0.01em] text-[clamp(28px,5vw,68px)]">
-            {award.contest}
-          </span>
+          {award.contest.split("\n").map((line) => (
+            <span
+              key={line}
+              className="block text-grad font-fraunces font-medium leading-[1.04] tracking-[-0.01em] text-[clamp(28px,5vw,68px)]"
+            >
+              {line}
+            </span>
+          ))}
         </div>
         <p className="mt-[clamp(18px,3.5vh,36px)] max-w-[620px] text-[clamp(13px,1.4vw,16px)] leading-[1.7] text-[#8e8e8e]">
           {award.event}
