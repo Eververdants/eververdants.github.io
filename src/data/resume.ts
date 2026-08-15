@@ -28,13 +28,13 @@ export const resume: Resume = {
   education: {
     role: "Student",
     // \n = explicit editorial line break for the giant display line
-    school: "Kunshan Bailu\nSenior High School",
+    school: "Kunshan Bailu\nSenior High\nSchool",
     location: "Kunshan, Jiangsu",
   },
   awards: [
     {
       // \n = explicit editorial line break for the giant display line
-      contest: "National Youth Communication\nTechnology Innovation\nCompetition",
+      contest: "National Youth\nCommunication\nTechnology Innovation\nCompetition",
       event: "Zhenxin Technology · Intelligent Communication Technology Innovation Contest",
       results: ["Jiangsu Provincial · First Prize", "National Finals · Third Prize"],
     },
