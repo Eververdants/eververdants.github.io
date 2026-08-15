@@ -192,20 +192,18 @@ export function initGsap(prefersReduced: boolean, lenis: Lenis | null): GsapHand
       });
     });
 
-    /* ---- award result rows (was .row-in) ---- */
-    gsap.utils.toArray<HTMLElement>(".row-in").forEach((row) => {
-      gsap.fromTo(
-        row,
-        { autoAlpha: 0, x: -28, filter: "blur(6px)" },
-        {
-          autoAlpha: 1,
-          x: 0,
-          filter: "blur(0px)",
-          duration: 0.7,
-          ease: "power2.out",
-          scrollTrigger: { trigger: row, start: "top 92%", once: true }
-        }
-      );
+    /* ---- award prize rows: ceremony curtain wipe (was .row-in slide) ----
+       Each trophy row is clipped to zero width, then the curtain sweeps
+       left-to-right as it scrolls in. Trigger on the row itself (not the
+       act), so each prize reveals in sequence — a spotlight, not a list. */
+    gsap.utils.toArray<HTMLElement>("[data-row-wipe]").forEach((row, i) => {
+      gsap.from(row, {
+        clipPath: "inset(0 100% 0 0)",
+        duration: 0.9,
+        ease: "power4.inOut",
+        delay: i * 0.15,
+        scrollTrigger: { trigger: row, start: "top 92%", once: true }
+      });
     });
 
     /* ---- focus marquee bands (was CSS marquee loop) ----

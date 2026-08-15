@@ -37,7 +37,11 @@ Communication Technology
 Innovation Competition
 ```
 
-- Class: `font-fraunces font-medium leading-[1.06] tracking-[-0.01em] text-white text-[clamp(38px,7.5vw,104px)]`
+- Class: `font-fraunces font-medium leading-[1.06] tracking-[-0.01em] text-white text-[clamp(25px,6.9vw,104px)]`
+  (min 25px / 6.9vw, not 38px/7.5vw, so "Communication Technology" holds its
+  line from ~375px up. Fraunces optical sizing makes glyph width non-linear
+  in font size, so 6.9vw was tuned empirically; at the old 38px/7.5vw the
+  long line wraps into a dense mobile wall.)
 - Same `.line-mask` staggered rise reveal (unchanged).
 - `event` stays as the ceremony subtitle: small muted line, larger top gap.
 

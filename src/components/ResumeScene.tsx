@@ -107,7 +107,11 @@ function Education({ age }: { age: number }) {
   );
 }
 
-/* ---- Act 2 — AWARDS: sticky giant index, numbered results ---- */
+/* ---- Act 2 — AWARDS: ceremony title card + giant ranking list ----
+   The sticky italic 01 is the background curtain the content scrolls over.
+   Two acts: the contest name as a giant title card, then each prize as a
+   full-width trophy row led by a ghost number — an award-ceremony moment,
+   airy rather than list-y. */
 
 function Awards() {
   const award = resume.awards[0];
@@ -126,40 +130,52 @@ function Awards() {
         </p>
       </div>
 
-      {/* Refined wall, same serif scale as the school line: solid white,
-          title case — the gradient/uppercase read as cheap. The sticky
-          italic 01 already carries the giant-number drama. */}
       <div className="relative z-[2] mt-[clamp(80px,16vh,200px)] pb-[clamp(180px,28vh,380px)]">
-        {/* contest name */}
+        {/* act 1 — title card: contest name, three giant lines (2/2/2).
+            Min is 28px not 38px so "Communication Technology" holds its
+            line down to ~390px; below that the long lines wrap into a
+            dense wall, which is exactly the stuffiness this redesign
+            removes. Optical sizing keeps desktop narrow and clean. */}
         <div className="line-mask">
           {award.contest.split("\n").map((line) => (
             <span
               key={line}
-              className="block font-fraunces font-medium leading-[1.06] tracking-[-0.01em] text-white text-[clamp(38px,7.5vw,104px)]"
+              className="block font-fraunces font-medium leading-[1.06] tracking-[-0.01em] text-white text-[clamp(25px,6.9vw,104px)]"
             >
               {line}
             </span>
           ))}
         </div>
 
-        {/* event detail */}
-        <p className="mt-[clamp(28px,6vh,56px)] max-w-[52ch] text-[13px] leading-[1.7] text-[#6f6f6f]">
+        {/* ceremony subtitle */}
+        <p className="mt-[clamp(36px,7vh,72px)] max-w-[52ch] text-[13px] leading-[1.7] text-[#6f6f6f]">
           {award.event}
         </p>
 
-        {/* results — refined indexed rows */}
-        <ul className="mt-[clamp(64px,12vh,160px)]">
+        {/* act 2 — giant ranking list. .no-rv keeps rows out of the
+            universal reveal: the GSAP curtain wipe owns their entrance. */}
+        <ul className="mt-[clamp(96px,18vh,240px)]">
           {award.results.map((result, i) => (
             <li
-              key={result}
-              className="no-rv row-in flex items-baseline gap-[clamp(16px,2vw,32px)] border-t border-white/10 py-[clamp(20px,4vh,36px)]"
+              key={result.tier}
+              className="no-rv border-t border-white/10 py-[clamp(48px,9vh,88px)]"
+              data-row-wipe
             >
-              <span className="font-fraunces italic text-[clamp(13px,1.4vw,18px)] text-white/25">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span className="font-fraunces text-[clamp(18px,2.4vw,32px)] leading-snug text-white">
-                {result}
-              </span>
+              <div className="flex items-baseline gap-[clamp(20px,3vw,44px)]">
+                <span
+                  aria-hidden
+                  className="font-fraunces italic leading-none text-white/20 text-[clamp(40px,6vw,96px)]"
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="font-fraunces font-medium leading-[0.95] tracking-[-0.01em] text-white text-[clamp(32px,6.5vw,96px)]">
+                  {result.tier}
+                </span>
+              </div>
+              {/* scope aligns under the tier, past the ghost number */}
+              <p className="no-rv mt-[clamp(12px,2vh,20px)] pl-[calc(clamp(40px,6vw,96px)+clamp(20px,3vw,44px))] text-[13px] leading-[1.6] text-[#6f6f6f]">
+                {result.scope}
+              </p>
             </li>
           ))}
           <li className="border-t border-white/10" aria-hidden />
