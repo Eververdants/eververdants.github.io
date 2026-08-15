@@ -94,6 +94,14 @@ html::-webkit-scrollbar {
   overflow: hidden;
 }
 
+/* Each display line needs bottom room for descenders (g/y/j/p/q). With tight
+   leading the glyphs dip below the line box into the next line's text and get
+   painted over by it — looking clipped. em is relative to the line's own
+   giant font. */
+.line-mask > span {
+  padding-bottom: 0.3em;
+}
+
 /* Marquee band: mask fades the edges; track is the GSAP-xPercent loop. */
 .marquee-mask {
   mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
