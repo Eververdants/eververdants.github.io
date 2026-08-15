@@ -80,8 +80,11 @@ function Education({ age }: { age: number }) {
           >
             {age}
           </span>
-          <div className="line-mask relative z-[1] max-w-[18ch]">
-            <span className="font-fraunces font-medium leading-[1.02] tracking-[-0.01em] text-white text-[clamp(38px,7.5vw,104px)]">
+          {/* block span: max-w-[Nch] would size against the wrapper's own
+              (16px) font, not the giant display font — clipping the right
+              edge. Full-width block wraps naturally. */}
+          <div className="line-mask relative z-[1]">
+            <span className="block font-fraunces font-medium leading-[1.02] tracking-[-0.01em] text-white text-[clamp(38px,7.5vw,104px)]">
               {resume.education.school}
             </span>
           </div>
@@ -113,8 +116,8 @@ function Awards() {
       </div>
 
       <div className="relative z-[2] mt-[clamp(48px,10vh,120px)] pb-[clamp(100px,18vh,220px)]">
-        <div className="line-mask max-w-[24ch]">
-          <span className="text-grad font-fraunces font-medium leading-[1.04] tracking-[-0.01em] text-[clamp(28px,5vw,68px)]">
+        <div className="line-mask">
+          <span className="block text-grad font-fraunces font-medium leading-[1.04] tracking-[-0.01em] text-[clamp(28px,5vw,68px)]">
             {award.contest}
           </span>
         </div>
