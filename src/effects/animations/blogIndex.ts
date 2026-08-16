@@ -4,7 +4,14 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 /* Blog sub-site hero — mount entrance + scroll-hint exit.
    Self-contained: the global initGsap animates only the main site's
    [data-hero-in] and runs once at App mount; the sub-site mounts later, so
-   it owns its own timeline, scoped to its own section. */
+   it owns its own timeline, scoped to its own section.
+
+   No filter-blur in the entrance: a filter tween froze mid-flight in this
+   context (the main site's hero entrance is created synchronously at mount
+   and survives, but the sub-site's later-created one stalls), leaving text
+   permanently soft. The rise + fade reads the same without it. clearProps
+   drops the residual transform so the text returns to native subpixel
+   rendering once the entrance settles. */
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,17 +24,20 @@ export function initBlogIndex(root: HTMLElement, prefersReduced: boolean): () =>
       return;
     }
 
-    // mount entrance — staggered rise + focus
+    // mount entrance — staggered rise + focus. clearProps after the stagger
+    // finishes (not in the vars: it missed the earlier elements under GSAP's
+    // individual-transform handling), so the text settles onto native
+    // subpixel rendering instead of a residual transform layer.
     gsap.fromTo(
       "[data-blog-in]",
-      { y: 18, filter: "blur(14px)" },
+      { y: 18 },
       {
         autoAlpha: 1,
         y: 0,
-        filter: "blur(0px)",
         duration: 0.8,
         stagger: 0.12,
-        ease: "power3.out"
+        ease: "power3.out",
+        onComplete: () => gsap.set("[data-blog-in]", { clearProps: "transform,filter" })
       }
     );
 
