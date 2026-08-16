@@ -5,6 +5,7 @@ import FilmGrain from './components/FilmGrain';
 import FocusBand from './components/FocusBand';
 import HeroScene from './components/HeroScene';
 import LoadingOverlay from './components/LoadingOverlay';
+import OutroScene from './components/OutroScene';
 import PortfolioScene from './components/PortfolioScene';
 import ResumeScene from './components/ResumeScene';
 import Scrollbar from './components/Scrollbar';
@@ -130,6 +131,7 @@ export default function App() {
         <ResumeScene />
         <PortfolioScene />
         <BlogScene />
+        <OutroScene />
       </main>
       {/* Film grain stays mounted (its gsap loop targets it). Focus blur is
           the dark handscroll edge. */}

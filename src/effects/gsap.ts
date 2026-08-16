@@ -23,6 +23,7 @@ import { initResume } from "./animations/resume";
 import { initHandscroll, markHandscrollsDone } from "./animations/portfolio";
 import { initJournal } from "./animations/journal";
 import { initFilmGrain } from "./animations/ambient";
+import { initOutro, bindOutroHome } from "./animations/outro";
 import { initScrollTriggerGlue } from "./scrollTriggerGlue";
 
 export interface GsapHandle {
@@ -39,6 +40,7 @@ export function initGsap(prefersReduced: boolean, lenis: Lenis | null): GsapHand
       // matching (covers JS/CSS mismatch).
       gsap.set("[data-hero-in]", { autoAlpha: 1 });
       markHandscrollsDone();
+      bindOutroHome(lenis);
       return;
     }
 
@@ -50,6 +52,7 @@ export function initGsap(prefersReduced: boolean, lenis: Lenis | null): GsapHand
     initJournal();
     initFilmGrain();
     initHeroAvatar();
+    initOutro(lenis);
   });
 
   return {

@@ -465,3 +465,30 @@ body.nav-loading.nav-reveal::before {
    米白 LOADING screen: the outgoing page fades the cover in and holds it
    while it navigates; the incoming page is covered from its first paint by
    the static body.nav-loading::before (above) and fades it out. */
+
+/* ---- outro: dissolving finale ----
+   Every stage is hidden pre-JS (the gsap scrub reveals them, anti-flash).
+   The black layer fades in over the fixed ambient canvas so the finale ends
+   on clean black. Under reduced motion the scrub never runs (the gsap
+   coordinator returns early): collapse straight to the last state — one
+   sentence and the home ↗ on black, one static screen. */
+[data-outro-line],
+[data-outro-name],
+[data-outro-end],
+[data-outro-home],
+[data-outro-black] {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-outro-stage1],
+  [data-outro-name] {
+    display: none;
+  }
+
+  [data-outro-black],
+  [data-outro-end],
+  [data-outro-home] {
+    opacity: 1;
+  }
+}

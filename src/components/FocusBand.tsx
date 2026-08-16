@@ -27,6 +27,7 @@ const LAYERS: Array<{ radius: number; mask: string }> = [
 
 export default function FocusBand() {
   const [right, setRight] = useState(false);
+  const [outro, setOutro] = useState(false);
   const [coarse] = useState(
     () =>
       typeof window !== "undefined" &&
@@ -45,6 +46,12 @@ export default function FocusBand() {
       // to the bottom for whatever the vertical scroll brings next.
       const done = sec.hasAttribute("data-hscroll-done");
       setRight(r.top <= 0 && r.bottom > 0 && !done);
+      // The dissolving finale ends on clean black — no bottom blur strip on
+      // it. Drop the band while the outro occupies any of the viewport.
+      const end = document.querySelector<HTMLElement>("[data-outro]");
+      if (!end) return setOutro(false);
+      const er = end.getBoundingClientRect();
+      setOutro(er.top < window.innerHeight && er.bottom > 0);
     };
     check();
     window.addEventListener("scroll", check, { passive: true });
@@ -58,7 +65,7 @@ export default function FocusBand() {
   /* Coarse pointers (phones/tablets): drop the band entirely — 8 stacked
      backdrop-filter layers are a GPU sink and render as an odd blur strip
      at the screen edge on mobile. Desktop keeps the cinematic focus band. */
-  if (coarse) return null;
+  if (coarse || outro) return null;
 
   return (
     <div

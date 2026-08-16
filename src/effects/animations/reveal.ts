@@ -9,7 +9,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
    tears it all down. */
 
 const REVEAL_SELECTOR =
-  "main :where(h1,h2,h3,p,li,img):not(.hero-content *):not(.no-rv):not([data-works] *)";
+  "main :where(h1,h2,h3,p,li,img):not(.hero-content *):not(.no-rv):not([data-works] *):not([data-outro] *)";
 
 export function initUniversalReveal() {
   gsap.set(REVEAL_SELECTOR, { autoAlpha: 0, y: () => window.innerHeight * 0.05 });
