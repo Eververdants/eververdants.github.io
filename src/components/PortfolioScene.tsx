@@ -15,8 +15,8 @@ export default function PortfolioScene() {
       {/* Sticky viewport: holds the track while the section's JS-set height
           scrolls past. Sticky (not gsap pin) keeps the section in normal
           flow, so the horizontal scrub's measurements stay stable. */}
-      <div className="sticky top-0 h-screen overflow-hidden [contain:paint]">
-        <div className="flex h-screen w-max" data-hscroll-track>
+      <div className="sticky top-0 h-dvh overflow-hidden [contain:paint]">
+        <div className="flex h-dvh w-max" data-hscroll-track>
         <TitlePanel />
         <ChapterPanel num="01" label="GITHUB PROJECTS" accent="text-[#10aec2]/80" />
         {works.projects.map((p, i) => (
@@ -43,7 +43,7 @@ export default function PortfolioScene() {
 
 function TitlePanel() {
   return (
-    <div className="relative flex h-screen w-screen flex-shrink-0 items-center justify-center text-center">
+    <div className="relative flex h-dvh w-screen flex-shrink-0 items-center justify-center text-center">
       <div className="relative">
         <div className="line-mask">
           <span className="block font-fraunces font-medium leading-[0.82] tracking-[-0.02em] text-white text-[clamp(52px,11vw,190px)]">
@@ -80,7 +80,7 @@ function ChapterPanel({
   notice?: string;
 }) {
   return (
-    <div className="relative flex h-screen w-screen flex-shrink-0 items-center justify-center text-center">
+    <div className="relative flex h-dvh w-screen flex-shrink-0 items-center justify-center text-center">
       <div className="relative">
         <p className={`font-fraunces font-light tracking-[0.26em] text-[clamp(16px,2.4vw,32px)] ${accent}`}>
           {label}
@@ -149,7 +149,7 @@ function Mount({
 
 function ProjectPanel({ project, index }: { project: (typeof works.projects)[number]; index: number }) {
   return (
-    <div className="relative flex h-screen w-screen flex-shrink-0 items-center px-[clamp(24px,6vw,100px)]">
+    <div className="relative flex h-dvh w-screen flex-shrink-0 items-center px-[clamp(24px,6vw,100px)]">
       <span
         aria-hidden
         className="text-stroke-faint absolute right-[clamp(20px,4vw,72px)] top-[6vh] font-fraunces italic leading-none text-[clamp(56px,9vw,150px)]"
@@ -179,7 +179,7 @@ function ProjectPanel({ project, index }: { project: (typeof works.projects)[num
 
 function PhotoPanel({ photo, index }: { photo: (typeof works.photos)[number]; index: number }) {
   return (
-    <div className="relative flex h-screen w-screen flex-shrink-0 items-center px-[clamp(24px,6vw,100px)]">
+    <div className="relative flex h-dvh w-screen flex-shrink-0 items-center px-[clamp(24px,6vw,100px)]">
       <span
         aria-hidden
         className="text-stroke-faint absolute right-[clamp(20px,4vw,72px)] top-[6vh] font-fraunces italic leading-none text-[clamp(56px,9vw,150px)]"
@@ -212,7 +212,7 @@ function PhotoPanel({ photo, index }: { photo: (typeof works.photos)[number]; in
 
 function EndPanel() {
   return (
-    <div className="relative flex h-screen w-screen flex-shrink-0 items-center justify-center text-center">
+    <div className="relative flex h-dvh w-screen flex-shrink-0 items-center justify-center text-center">
       <div className="relative">
         <span
           aria-hidden

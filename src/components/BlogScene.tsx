@@ -102,7 +102,7 @@ function Deck({ deck, onOpen }: { deck: JournalPost[]; onOpen: (slug: string) =>
       {deck.map((post, i) => (
         <article
           key={post.title}
-          className="group relative h-screen cursor-pointer"
+          className="group relative h-dvh cursor-pointer"
           data-journal-spread
           onClick={() => onOpen(post.slug)}
           role="button"
@@ -172,7 +172,7 @@ function Deck({ deck, onOpen }: { deck: JournalPost[]; onOpen: (slug: string) =>
 
 function Close() {
   return (
-    <div className="flex min-h-[100vh] flex-col items-center justify-center pb-[clamp(120px,20vh,240px)] pt-[clamp(60px,10vh,120px)] text-center">
+    <div className="flex min-h-dvh flex-col items-center justify-center pb-[clamp(120px,20vh,240px)] pt-[clamp(60px,10vh,120px)] text-center">
       <div className="line-mask">
         {journal.close.line.split(" ").map((w, i) => (
           <span

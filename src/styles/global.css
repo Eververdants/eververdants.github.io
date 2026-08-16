@@ -200,7 +200,7 @@ html::-webkit-scrollbar {
   [data-hscroll-track] > * {
     width: 100%;
     height: auto;
-    min-height: 100vh;
+    min-height: 100dvh;
     flex-shrink: 0;
   }
 }
