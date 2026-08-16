@@ -1,3 +1,12 @@
+---
+slug: little-prince-and-the-baobabs
+title: "The Grown-Ups\nLove Numbers\n— Notes on The Little Prince"
+category: ESSAY
+date: 2026.06.20
+excerpt: Grown-ups love figures — but how do you measure a flower, a star, a sheep? From chapter four to seven, one line runs through: the sickness, the cause, the loneliness, and the keeping.
+tags: [Literature, Reading Notes]
+---
+
 Grown-ups love figures. — It is the sharpest cut in *The Little Prince*.
 
 Figures make us feel we have the world in our hands: age, weight, income, rank, follower count. But the Little Prince would ask: a flower, a star, a sheep — what figure do you measure them by?

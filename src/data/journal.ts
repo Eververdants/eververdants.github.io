@@ -1,8 +1,11 @@
 /* Journal content for the fourth screen (SELECTED BLOG — the journal).
-   Keep metadata here, layout in BlogScene.tsx / ArticleScene.tsx, so
-   editing text never touches markup. \n in a title is an explicit editorial
-   break for the giant display line. Article bodies live in src/blog/*.md
-   (rendered by data/articles.ts).
+   Site-level copy lives here: the cover masthead and the close line. Per-post
+   metadata (slug, title, category, date, excerpt, tags) lives in each essay's
+   frontmatter (src/blog/*.md) and parses in data/articles.ts — reading time
+   is computed from the body, never written by hand.
+
+   The order array is the curated deck, the featured essay first; it drives
+   the reading deck, the /blog list, and prev/next inside an article.
 
    License: the articles are CC BY-NC-SA 4.0 (see LICENSE-BLOG.md).
    Code around them is MIT (see LICENSE). */
@@ -14,6 +17,7 @@ export interface JournalPost {
   title: string;
   category: string;
   date: string;
+  // "N MIN" — computed from the body in articles.ts, never stored.
   read: string;
   // One-line teaser shown on the blog deck.
   excerpt: string;
@@ -29,9 +33,8 @@ export interface Journal {
     subtitle: string;
     caption: string;
   };
-  // Featured essay leads the deck; the rest are the following posts.
-  featured: JournalPost;
-  posts: JournalPost[];
+  // Featured essay leads the deck; the rest follow.
+  order: string[];
   close: {
     year: number;
     line: string;
@@ -45,37 +48,10 @@ export const journal: Journal = {
     subtitle: "Essays · Notes · Field Records",
     caption: "FIELD NOTES · MMXXIV — MMXXVI",
   },
-  featured: {
-    slug: "stone-and-egg-three-classics",
-    title: "The Stone Is Hard,\nthe Egg Is Light",
-    category: "ESSAY",
-    date: "2026.08",
-    read: "7 MIN",
-    excerpt:
-      "On Contradiction, On Protracted War, and A Single Spark Can Start a Prairie Fire — three essays, three periods, and the strategic framework they build for overturning an unequal contest.",
-    tags: ["Mao Zedong", "Strategy", "Reading Notes"],
-  },
-  posts: [
-    {
-      slug: "get-the-direction-right-first",
-      title: "Don't Rush\nto Work Hard",
-      category: "ESSAY",
-      date: "2026.08",
-      read: "5 MIN",
-      excerpt:
-        "Two methodologies from Mao Zedong's 1941 essay 'Reform Our Study' — seek truth from facts, and aim the arrow at the target — and how they cut through modern confusion.",
-      tags: ["Mao Zedong", "Methodology", "Reading Notes"],
-    },
-    {
-      slug: "little-prince-and-the-baobabs",
-      title: "The Grown-Ups\nLove Numbers\n— Notes on The Little Prince",
-      category: "ESSAY",
-      date: "2026.06",
-      read: "6 MIN",
-      excerpt:
-        "Grown-ups love figures — but how do you measure a flower, a star, a sheep? From chapter four to seven, one line runs through: the sickness, the cause, the loneliness, and the keeping.",
-      tags: ["Literature", "Reading Notes"],
-    },
+  order: [
+    "stone-and-egg-three-classics",
+    "get-the-direction-right-first",
+    "little-prince-and-the-baobabs",
   ],
   close: {
     year: 2026,

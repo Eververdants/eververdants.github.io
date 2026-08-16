@@ -1,3 +1,12 @@
+---
+slug: get-the-direction-right-first
+title: "Don't Rush\nto Work Hard"
+category: ESSAY
+date: 2026.07.03
+excerpt: Two methodologies from Mao Zedong's 1941 essay 'Reform Our Study' — seek truth from facts, and aim the arrow at the target — and how they cut through modern confusion.
+tags: [Mao Zedong, Methodology, Reading Notes]
+---
+
 Who hasn't been there? A bookmark folder stuffed with a dozen posts about "escaping confusion." Scrolling your phone at 2 a.m., hunting for an answer. During the day you sit at your desk, books open, convinced you're giving it everything — but the moment you stop and ask yourself, *what exactly am I working toward? Does any of this effort actually mean anything?* — the words die in your throat.
 
 What if the real problem isn't that you don't work hard enough, but that you've turned "working hard" itself into a lifeline? Sounds counterintuitive, doesn't it?

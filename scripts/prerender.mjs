@@ -8,7 +8,7 @@
 //
 // Safety: never fails the build. Missing Chrome / render failure => warn and
 // skip (the SPA itself still works for real browsers).
-import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync, mkdirSync, existsSync, rmSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 import { join, resolve, extname } from "node:path";
@@ -35,20 +35,31 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const esc = (s) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-/* ---- parse src/data/journal.ts for post metadata (featured + posts) ---- */
+/* ---- parse essay frontmatter (src/blog/*.md) for post metadata ---- */
 function parsePosts() {
-  const src = readFileSync(join(ROOT, "src/data/journal.ts"), "utf8");
-  const re =
-    /slug:\s*"([^"]+)",\s*title:\s*"((?:[^"\\]|\\.)*)",\s*category:\s*"([^"]+)",\s*date:\s*"([^"]+)",[\s\S]*?excerpt:\s*"((?:[^"\\]|\\.)*)"/g;
+  const dir = join(ROOT, "src/blog");
   const posts = new Map();
-  let m;
-  while ((m = re.exec(src))) {
-    posts.set(m[1], {
-      slug: m[1],
-      title: m[2].replace(/\\n/g, " "),
-      category: m[3],
-      date: m[4].slice(0, 7),
-      excerpt: m[5].replace(/\\n/g, " "),
+  for (const file of readdirSync(dir).filter((f) => f.endsWith(".md"))) {
+    const src = readFileSync(join(dir, file), "utf8");
+    const fm = src.match(/^---\n([\s\S]*?)\n---/);
+    if (!fm) continue;
+    const kv = (key) => {
+      const line = fm[1].match(new RegExp(`^${key}:\\s*(.*)$`, "m"));
+      if (!line) return "";
+      let v = line[1].trim();
+      if (v.startsWith('"')) {
+        v = v.replace(/^"|"$/g, "").replace(/\\n/g, " ").replace(/\\"/g, '"');
+      }
+      return v;
+    };
+    const slug = kv("slug");
+    if (!slug) continue;
+    posts.set(slug, {
+      slug,
+      title: kv("title").replace(/\\n/g, " "),
+      category: kv("category"),
+      date: kv("date"),
+      excerpt: kv("excerpt").replace(/\\n/g, " "),
     });
   }
   return [...posts.values()];
@@ -163,7 +174,7 @@ async function renderArticle(chromePath, slug) {
 /* ---- build a static shell for one article from the built index.html template ---- */
 function buildStatic(post, articleHtml) {
   const url = `${SITE}/blog/${post.slug}/`;
-  const dateISO = post.date.replace(".", "-"); // "2026.08" -> "2026-08" (ISO year-month)
+  const dateISO = post.date.replace(/\./g, "-"); // "2026.07.04" -> "2026-07-04" (ISO date)
   let tpl = readFileSync(join(ROOT, "dist/index.html"), "utf8");
   tpl = tpl.replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(post.title)} — Eververdants</title>`);
   tpl = tpl.replace(/<meta name="description"[^>]*\/>/, `<meta name="description" content="${esc(post.excerpt)}" />`);
@@ -212,8 +223,9 @@ function writeSitemap(posts) {
   const urls = [
     `<url><loc>${SITE}/</loc><priority>1.0</priority></url>`,
     `<url><loc>${SITE}/selected-blog/</loc><priority>0.8</priority></url>`,
+    `<url><loc>${SITE}/blog/</loc><priority>0.7</priority></url>`,
     ...posts.map(
-      (p) => `<url><loc>${SITE}/blog/${p.slug}/</loc><lastmod>${p.date.replace(".", "-")}-01</lastmod><priority>0.9</priority></url>`
+      (p) => `<url><loc>${SITE}/blog/${p.slug}/</loc><lastmod>${p.date.replace(/\./g, "-")}</lastmod><priority>0.9</priority></url>`
     ),
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { journal, type JournalPost } from "../data/journal";
+import { getDeck } from "../data/articles";
 import { initReadingDeck } from "../effects/animations/journal";
 
 /* Fourth screen — SELECTED BLOG, the journal.
@@ -19,11 +20,12 @@ import { initReadingDeck } from "../effects/animations/journal";
       ghost index numeral behind. No sticky chapter numerals, no marquee.
    3. Close — one line that types out word by word.
 
-   Reduced motion opts out via gsap.ts; copy lives in data/journal.ts. */
+   Reduced motion opts out via gsap.ts; site copy lives in data/journal.ts,
+   per-post copy in each essay's frontmatter (data/articles.ts). */
 
 export default function BlogScene({ onOpen, onOpenBlog }: { onOpen: (slug: string) => void; onOpenBlog: () => void }) {
   const rootRef = useRef<HTMLElement>(null);
-  const deck = [journal.featured, ...journal.posts];
+  const deck = getDeck();
 
   /* The reading deck's scroll animation is owned here, not the global
      coordinator: it runs once for the curated deck (the tag-filtered full

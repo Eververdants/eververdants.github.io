@@ -1,3 +1,12 @@
+---
+slug: stone-and-egg-three-classics
+title: "The Stone Is Hard,\nthe Egg Is Light"
+category: ESSAY
+date: 2026.07.04
+excerpt: On Contradiction, On Protracted War, and A Single Spark Can Start a Prairie Fire — three essays, three periods, and the strategic framework they build for overturning an unequal contest.
+tags: [Mao Zedong, Strategy, Reading Notes]
+---
+
 Common sense tells us: when an egg strikes a stone, the egg breaks.
 
 Yet across the real arc of history, we keep seeing the same paradox: a latecomer with an absolute disadvantage in troops, equipment, and resources ends up overturning a giant. That reversal of the balance of power was never luck — it was the product of cold, rigorous strategic reasoning.
