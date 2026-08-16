@@ -23,7 +23,7 @@ export interface Resume {
 }
 
 export const resume: Resume = {
-  about: "High-school student building at the intersection of code, design, and photography.",
+  about: "High-school student building at the intersection of code, design, photography, and essays on Mao Zedong's Selected Works.",
   birthYear: 2011,
   education: {
     role: "Student",
