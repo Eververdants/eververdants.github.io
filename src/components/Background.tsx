@@ -1,6 +1,6 @@
-export default function Background() {
+export default function Background({ className = "" }: { className?: string }) {
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#0a0a0a]">
+    <div className={`fixed inset-0 overflow-hidden bg-[#0a0a0a] ${className}`}>
       <div className="absolute inset-0 animate-fluid-in pointer-events-none motion-reduce:animate-none">
         <canvas id="bg-fluid" className="block h-full w-full" />
       </div>

@@ -32,13 +32,19 @@ export function initHandscroll() {
     const vh = window.innerHeight;
     const dist = () => Math.max(0, track.scrollWidth - section.clientWidth);
     // Horizontal begins once the section top reaches this viewport fraction,
-    // so the title rises into view first; the rounded corner then arcs over
-    // the remaining rise and completes exactly at the transition.
+    // so the title rises into view first. The two corners round the scroll
+    // trajectory: the ENTRY arc bends vertical → horizontal as the title
+    // rises and pins, and the EXIT arc bends horizontal → vertical as the
+    // section un-pins into the journal — no right-angle anywhere.
     const startFrac = 0.4;
-    const cornerScroll = () => vh * startFrac;               // arc's vertical travel
-    const scrollRoom = () => dist() + cornerScroll();        // timeline range
-    const cornerFrac = () => cornerScroll() / scrollRoom();  // corner segment
-    const cornerPx = Math.round(vh * startFrac);             // arc radius (circular)
+    const cornerScroll = () => vh * startFrac;   // entry arc's vertical travel
+    const exitScroll = () => vh - cornerScroll(); // exit arc's vertical travel
+    const cornerPx = Math.round(vh * startFrac);  // entry arc radius (circular)
+    const exitPx = Math.round(exitScroll());      // exit arc radius
+    const room = () => dist() + vh;               // timeline range = section height
+    const eIn = () => cornerScroll() / room();    // entry corner fraction
+    const lin = () => dist() / room();            // linear unroll fraction
+    const eOut = () => exitScroll() / room();     // exit corner fraction
     // FocusBand relocation: while the track is mid-unroll the content moves
     // sideways, so the blur band sits on the right edge; once the track
     // reaches the far end (the 卷尾 colophon is fully in frame) nothing moves
@@ -57,24 +63,29 @@ export function initHandscroll() {
         scrollTrigger: {
           trigger: section,
           start: `top ${Math.round(startFrac * 100)}%`,
-          end: () => "+=" + scrollRoom(),
+          end: () => "+=" + room(),
           scrub: true,
           invalidateOnRefresh: true,
           onUpdate: setDone,
           // Scroll room for the sticky viewport = horizontal travel + viewport.
           onRefresh: () => {
-            section.style.height = dist() + vh + "px";
+            section.style.height = room() + "px";
             setDone();
           }
         }
       })
-      .to(track, { x: () => -cornerPx, ease: "sine.in", duration: cornerFrac() })
-      // 1 - cornerFrac so the timeline totals 1: the corner completes exactly
-      // at the transition, then the unroll is linear for even reading.
+      // ENTRY corner: rise + ease sideways in one arc (sine.in — zero lateral
+      // velocity at the top of the rise, accelerating into the turn).
+      .to(track, { x: () => -cornerPx, ease: "sine.in", duration: eIn() })
+      // Linear unroll for even reading.
+      .to(track, { x: () => -dist(), ease: "none", duration: lin() }, eIn())
+      // EXIT corner: ease the unroll past its end (sine.out) while the
+      // section un-pins and rises, so the 卷尾 arcs out of horizontal into
+      // the journal's vertical — the mirror of the entry corner.
       .to(
         track,
-        { x: () => -dist(), ease: "none", duration: () => 1 - cornerFrac() },
-        cornerFrac()
+        { x: () => -dist() - exitPx, ease: "sine.out", duration: eOut() },
+        eIn() + lin()
       );
     // Initial state (e.g. deep-link load mid-scroll): refresh fires on
     // creation, but set once for safety before the first paint settles.

@@ -6,4 +6,8 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   base: '/',
   plugins: [react(), tailwindcss()],
+  server: {
+    // 允许通过 Tailscale Serve 远程访问（zennode.tail25e81f.ts.net）
+    allowedHosts: ['zennode.tail25e81f.ts.net'],
+  },
 });

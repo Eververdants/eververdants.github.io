@@ -1,4 +1,4 @@
-import { journal } from "../data/journal";
+import { journal, type JournalPost } from "../data/journal";
 
 /* Fourth screen — SELECTED BLOG, the journal.
 
@@ -17,12 +17,12 @@ import { journal } from "../data/journal";
 
    Reduced motion opts out via gsap.ts; copy lives in data/journal.ts. */
 
-export default function BlogScene() {
+export default function BlogScene({ onOpen }: { onOpen: (slug: string) => void }) {
   const deck = [journal.featured, ...journal.posts];
   return (
     <section className="relative z-[1] px-[clamp(16px,4vw,48px)]" data-blog>
       <Cover />
-      <Deck deck={deck} />
+      <Deck deck={deck} onOpen={onOpen} />
       <Close />
     </section>
   );
@@ -93,16 +93,27 @@ function Cover() {
   );
 }
 
-/* ---- Act 2 — the reading deck: full-screen spreads that turn ---- */
+/* ---- Act 2 — the reading deck: full-screen spreads that turn ----
+   Each spread opens its article (App routes /selected-blog/<slug>). */
 
-function Deck({ deck }: { deck: Array<{ title: string; category: string; date: string; read: string; excerpt: string }> }) {
+function Deck({ deck, onOpen }: { deck: JournalPost[]; onOpen: (slug: string) => void }) {
   return (
     <div className="pt-[clamp(40px,8vh,120px)]">
       {deck.map((post, i) => (
         <article
           key={post.title}
-          className="relative h-screen"
+          className="group relative h-screen cursor-pointer"
           data-journal-spread
+          onClick={() => onOpen(post.slug)}
+          role="button"
+          tabIndex={0}
+          aria-label={`Read ${post.title.replace(/\n/g, " ")}`}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onOpen(post.slug);
+            }
+          }}
         >
           {/* running header: category left, folio right */}
           <div className="absolute inset-x-0 top-0 z-[2] flex items-baseline justify-between border-t border-white/10 pt-[clamp(14px,2.5vh,28px)]">
@@ -132,6 +143,12 @@ function Deck({ deck }: { deck: Array<{ title: string; category: string; date: s
                 {line}
               </span>
             ))}
+          </div>
+
+          {/* open affordance — visible on touch, warms on hover */}
+          <div className="absolute bottom-[4%] left-0 z-[1] flex items-center gap-2 text-[10px] tracking-[0.42em] text-white/30 transition-colors duration-300 group-hover:text-[#f9a633]/90">
+            <span>READ ESSAY</span>
+            <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1">↗</span>
           </div>
 
           {/* excerpt + meta — quiet, right-aligned */}

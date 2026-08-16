@@ -57,6 +57,46 @@ html::-webkit-scrollbar {
   display: none;
 }
 
+/* ---- article reader: keep the custom scrollbar, make it visible ----
+   The main site keeps its slim custom scrollbar but with a white thumb on
+   dark; on the light reading page that thumb disappears. Restyle the same
+   custom bar (dark thumb on 米白) and make the overscroll margin 米白 too.
+   :has() matches while an essay is open. */
+:has([data-article]) #scrollbar {
+  background: rgba(0, 0, 0, 0.04);
+  border-left-color: rgba(0, 0, 0, 0.08);
+  opacity: 1;
+}
+
+:has([data-article]) #scrollbar-thumb {
+  background: rgba(30, 28, 24, 0.38);
+}
+
+:has([data-article]) #scrollbar-thumb:hover {
+  background: rgba(30, 28, 24, 0.6);
+}
+
+/* Article TOC: a single teal rail indicator that slides to the active
+   entry (gsap-free — the scroll-spy sets its height + translateY, CSS
+   eases the move). */
+.toc-indicator {
+  position: absolute;
+  top: 0;
+  left: -15px;
+  width: 2px;
+  border-radius: 1px;
+  background: #0e7a86;
+  opacity: 1;
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s ease;
+}
+
+:has([data-article]) body {
+  background: #f7f5ef;
+}
+
 /* ---- resume big-type: structural utilities ----
    GSAP animates these; the classes only style. */
 
@@ -139,6 +179,127 @@ html::-webkit-scrollbar {
     min-height: 100vh;
     flex-shrink: 0;
   }
+}
+
+/* ---- article reader: light technical layout ----
+   The reading page is 米白 + gray grid, dark ink, functional — not the
+   dark cinematic editorial of the rest of the site. The markdown renderer
+   outputs plain HTML (p/blockquote/ul/strong/em/code/a/hr); preflight
+   resets it, so the reader styles it here. */
+
+.article-content {
+  font-family: var(--font-sans);
+  font-size: clamp(16px, 1.15vw, 18px);
+  line-height: 1.85;
+  color: #333;
+}
+
+.article-content > :first-child {
+  margin-top: 0;
+}
+
+.article-content p,
+.article-content ul,
+.article-content ol {
+  margin: 0 0 clamp(20px, 3.5vh, 36px);
+}
+
+.article-content h2 {
+  margin: clamp(40px, 6vh, 64px) 0 clamp(16px, 2.5vh, 24px);
+  padding-top: clamp(24px, 3.5vh, 36px);
+  border-top: 1px solid #d8d5cd;
+  font-size: clamp(20px, 1.6vw, 26px);
+  font-weight: 700;
+  line-height: 1.3;
+  color: #141414;
+}
+
+.article-content h3 {
+  margin: clamp(28px, 4.5vh, 44px) 0 clamp(12px, 2vh, 20px);
+  font-size: clamp(17px, 1.3vw, 20px);
+  font-weight: 600;
+  line-height: 1.4;
+  color: #141414;
+}
+
+.article-content strong {
+  font-weight: 600;
+  color: #111;
+}
+
+.article-content blockquote {
+  margin: 0 0 clamp(20px, 3.5vh, 36px);
+  padding-left: clamp(16px, 2vw, 24px);
+  border-left: 3px solid #c9c6bd;
+  font-style: italic;
+  color: #5a5a5a;
+}
+
+.article-content blockquote p {
+  margin: 0;
+  color: inherit;
+}
+
+.article-content ul,
+.article-content ol {
+  padding-left: clamp(20px, 2.5vw, 32px);
+}
+
+.article-content ul {
+  list-style: disc;
+}
+
+.article-content ol {
+  list-style: decimal;
+}
+
+.article-content li {
+  margin-bottom: 0.35em;
+}
+
+.article-content a {
+  color: #0e7a86;
+  text-decoration: underline;
+  text-decoration-color: rgba(14, 122, 134, 0.4);
+  text-underline-offset: 3px;
+}
+
+.article-content a:hover {
+  color: #0a5f68;
+}
+
+.article-content code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  color: #b45309;
+  background: #f0ede4;
+  padding: 0.12em 0.35em;
+  border-radius: 4px;
+  border: 1px solid #e0dcd2;
+}
+
+.article-content pre {
+  margin: 0 0 clamp(24px, 4vh, 40px);
+  padding: clamp(16px, 2.5vw, 28px);
+  background: #f2f0ea;
+  border: 1px solid #e2dfd6;
+  border-radius: 10px;
+  overflow-x: auto;
+  font-size: clamp(13px, 0.95vw, 15px);
+}
+
+.article-content pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #2f2f2f;
+}
+
+.article-content hr {
+  margin: clamp(36px, 6vh, 60px) 0;
+  border: 0;
+  height: 1px;
+  background: #d8d5cd;
 }
 
 /* Hero mount entrance is hidden pre-JS (GSAP animates it to visible the
