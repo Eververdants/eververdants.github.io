@@ -201,6 +201,28 @@ export default function ArticleScene({
         </header>
 
         {/* content + right TOC */}
+        {/* Mobile: collapsible TOC above the article (desktop keeps the
+            sticky right rail below). */}
+        {toc.length > 0 && (
+          <details className="mb-[clamp(24px,4vh,40px)] border-b border-[#ddd9cf] pb-[10px] lg:hidden">
+            <summary className="cursor-pointer select-none text-[10px] font-semibold tracking-[0.3em] text-[#9a968b]">
+              ON THIS PAGE · {toc.length}
+            </summary>
+            <nav className="mt-[10px] flex flex-col gap-[6px] border-l border-[#ddd9cf] pl-[14px]">
+              {toc.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => jump(item.id)}
+                  className={`text-left text-[13px] leading-snug transition-colors hover:text-[#141414] ${
+                    item.level === 3 ? "pl-[12px] text-[#8a867c]" : "text-[#5a564d]"
+                  }`}
+                >
+                  {item.text}
+                </button>
+              ))}
+            </nav>
+          </details>
+        )}
         <div className="mt-[clamp(36px,6vh,60px)] lg:grid lg:grid-cols-[minmax(0,1fr)_220px] lg:gap-[clamp(32px,5vw,64px)]">
           <article
             className="article-content min-w-0"

@@ -215,7 +215,10 @@ export function initFluid(
     return { fbo, tex };
   }
 
-  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  const touch = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+  /* Mobile: half resolution + quarter framerate — the fragment shader is
+     the heaviest thing on the page; at 12fps it still reads as alive. */
+  const dpr = Math.min(window.devicePixelRatio || 1, touch ? 0.75 : 1.5);
   let cw = Math.round(canvas.clientWidth * dpr);
   let ch = Math.round(canvas.clientHeight * dpr);
   canvas.width = cw;
@@ -232,7 +235,6 @@ export function initFluid(
   const targetA = makeTarget(bw, bh, flowInit);
   const targetB = makeTarget(bw, bh, flowInit);
 
-  const touch = window.matchMedia("(hover: none), (pointer: coarse)").matches;
   const uad = (navigator as { userAgentData?: { platform: string } }).userAgentData;
   const isWindows = uad
     ? uad.platform === "Windows"
@@ -250,7 +252,7 @@ export function initFluid(
   let visible = true;
   const start = performance.now();
   let last = 0;
-  const THROTTLE = 1000 / 30;
+  const THROTTLE = 1000 / (touch ? 12 : 30);
   let rafId = 0;
   let ping = false;
 
