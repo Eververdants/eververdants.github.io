@@ -33,7 +33,36 @@ function initCoverTitle() {
    This is the journal's signature motion: the rest of the site is flat
    reveals, this one is a deck that turns. */
 function initReadingDeck() {
+  /* Mobile: a 3D rotateX card's perspective footprint projects wider than
+     the viewport (overflow past the right edge), and scrub can stall
+     mid-turn when the URL bar resizes the viewport — use a flat
+     rise/fall reveal instead. Desktop keeps the 3D deck. */
+  const touch = window.matchMedia("(hover: none), (pointer: coarse)").matches;
   gsap.utils.toArray<HTMLElement>("[data-journal-spread]").forEach((spread) => {
+    if (touch) {
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: spread,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+            invalidateOnRefresh: true
+          }
+        })
+        .fromTo(
+          spread,
+          { y: 64, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.38, ease: "power2.out" },
+          0
+        )
+        .to(
+          spread,
+          { y: -64, autoAlpha: 0, duration: 0.38, ease: "power2.in" },
+          0.62
+        );
+      return;
+    }
     gsap
       .timeline({
         scrollTrigger: {
