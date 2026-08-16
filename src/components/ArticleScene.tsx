@@ -161,7 +161,7 @@ export default function ArticleScene({
     <section
       ref={root}
       data-article
-      className="relative z-[1] min-h-dvh"
+      className="relative z-[1] min-h-[100vh] min-h-dvh"
       style={{
         backgroundColor: "#f7f5ef",
         backgroundImage:

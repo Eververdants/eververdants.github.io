@@ -26,6 +26,15 @@ export function markHandscrollsDone() {
    off the vertical axis instead of snapping sideways. The unroll that
    follows is linear for even reading. */
 export function initHandscroll() {
+  /* Touch devices: the handscroll is stacked vertically in CSS (see the
+     coarse-pointer fallback in global.css) — no horizontal track to drive,
+     and sliding it would fight the vertical layout. */
+  if (window.matchMedia("(hover: none), (pointer: coarse)").matches) {
+    gsap.utils.toArray<HTMLElement>("[data-hscroll]").forEach((sec) =>
+      sec.setAttribute("data-hscroll-done", "")
+    );
+    return;
+  }
   gsap.utils.toArray<HTMLElement>("[data-hscroll]").forEach((section) => {
     const track = section.querySelector<HTMLElement>("[data-hscroll-track]");
     if (!track) return;

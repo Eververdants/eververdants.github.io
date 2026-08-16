@@ -1,7 +1,7 @@
 export default function HeroScene() {
   return (
     <section
-      className="sticky top-0 z-0 flex h-dvh items-center justify-center p-[clamp(16px,2.4vh,28px)_clamp(14px,3vw,32px)] text-center"
+      className="sticky top-0 z-0 flex h-screen h-dvh items-center justify-center p-[clamp(16px,2.4vh,28px)_clamp(14px,3vw,32px)] text-center"
       data-hero-scroll
     >
       <div

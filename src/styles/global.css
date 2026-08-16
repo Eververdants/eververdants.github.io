@@ -200,6 +200,37 @@ html::-webkit-scrollbar {
   [data-hscroll-track] > * {
     width: 100%;
     height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    flex-shrink: 0;
+  }
+}
+
+/* ---- handscroll fallback: touch devices — same vertical stack. Mobile
+   browsers (Android in particular) mishandle the sticky+overflow+transform
+   combo, letting the 3900px track escape and be drag-scrolled sideways.
+   A vertical stack has zero horizontal overflow on any engine. ---- */
+@media (hover: none), (pointer: coarse) {
+  [data-hscroll] {
+    overflow: visible;
+  }
+
+  [data-hscroll] > * {
+    position: static;
+    height: auto;
+    overflow: visible;
+  }
+
+  [data-hscroll-track] {
+    flex-direction: column;
+    width: auto;
+    height: auto;
+  }
+
+  [data-hscroll-track] > * {
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
     min-height: 100dvh;
     flex-shrink: 0;
   }

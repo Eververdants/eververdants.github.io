@@ -213,7 +213,7 @@ function FocusMarquee() {
 
 function Contact() {
   return (
-    <div className="relative flex min-h-dvh flex-col items-center justify-center pb-[clamp(120px,20vh,240px)] pt-[clamp(60px,10vh,120px)] text-center">
+    <div className="relative flex min-h-[100vh] min-h-dvh flex-col items-center justify-center pb-[clamp(120px,20vh,240px)] pt-[clamp(60px,10vh,120px)] text-center">
       <p className="text-[11px] tracking-[0.45em] text-white/30">CONTACT</p>
       <p className="mt-[clamp(24px,5vh,56px)] max-w-[660px] font-fraunces text-[clamp(20px,3vw,40px)] leading-[1.3] text-white/75">
         {resume.about}
