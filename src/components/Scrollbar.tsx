@@ -1,4 +1,14 @@
+import { useState } from "react";
+
 export default function Scrollbar() {
+  /* Mobile uses the native scrollbar; the custom overlay strip is desktop
+     chrome only (it also renders as a stray right-edge bar on touch). */
+  const [coarse] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(hover: none), (pointer: coarse)").matches
+  );
+  if (coarse) return null;
   return (
     <div
       id="scrollbar"

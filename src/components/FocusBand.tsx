@@ -27,6 +27,11 @@ const LAYERS: Array<{ radius: number; mask: string }> = [
 
 export default function FocusBand() {
   const [right, setRight] = useState(false);
+  const [coarse] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(hover: none), (pointer: coarse)").matches
+  );
 
   useEffect(() => {
     const check = () => {
@@ -49,6 +54,11 @@ export default function FocusBand() {
       window.removeEventListener("resize", check);
     };
   }, []);
+
+  /* Coarse pointers (phones/tablets): drop the band entirely — 8 stacked
+     backdrop-filter layers are a GPU sink and render as an odd blur strip
+     at the screen edge on mobile. Desktop keeps the cinematic focus band. */
+  if (coarse) return null;
 
   return (
     <div
