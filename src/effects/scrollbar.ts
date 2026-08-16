@@ -113,6 +113,15 @@ export function initScrollbar(
     update();
   };
 
+  /* General catch-all: the sub-site ↔ main-site ↔ article swaps change the
+     body height without a window resize, so no resize event fires. Watch the
+     body and re-measure on any height change — covers every transition. */
+  let bodyObserver: ResizeObserver | null = null;
+  if (typeof ResizeObserver !== "undefined" && document.body) {
+    bodyObserver = new ResizeObserver(resize);
+    bodyObserver.observe(document.body);
+  }
+
   return {
     destroy: function () {
       window.removeEventListener("scroll", update);
@@ -122,6 +131,7 @@ export function initScrollbar(
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
       if (fontsTimer !== undefined) clearTimeout(fontsTimer);
+      if (bodyObserver) bodyObserver.disconnect();
     },
     resize
   };
