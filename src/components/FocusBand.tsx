@@ -2,9 +2,12 @@
  * Fixed-position blur band:
  * normally a strip at the bottom of the viewport where blur ramps from ~0 at
  * the top edge to ~36px at the bottom edge — content leaving via the bottom.
- * While the selected-works handscroll is on screen the content moves
- * sideways instead, so the band relocates to the right edge (same ramp,
- * "to right" mirrors it so the strongest blur sits at the screen edge).
+ * While the selected-works handscroll is pinned and its track is mid-unroll
+ * the content moves sideways instead, so the band relocates to the right edge
+ * (same ramp, "to right" mirrors it so the strongest blur sits at the screen
+ * edge). Once the track reaches the far right — gsap marks the section
+ * [data-hscroll-done] — nothing moves sideways anymore, and the band returns
+ * to the bottom even though the section is still pinned.
  * 8 stacked backdrop-filter layers, each masked to its own window, so only
  * content passing the strip is blurred — everything else stays sharp.
  */
@@ -32,8 +35,11 @@ export default function FocusBand() {
       const r = sec.getBoundingClientRect();
       // Section pinned at the top → the horizontal unroll owns the screen.
       // (Switching earlier — on first entry — read as premature while the
-      // title is still rising vertically.)
-      setRight(r.top <= 0 && r.bottom > 0);
+      // title is still rising vertically.) Once the track has fully unrolled
+      // (data-hscroll-done, gsap.ts), the unroll is over and the band returns
+      // to the bottom for whatever the vertical scroll brings next.
+      const done = sec.hasAttribute("data-hscroll-done");
+      setRight(r.top <= 0 && r.bottom > 0 && !done);
     };
     check();
     window.addEventListener("scroll", check, { passive: true });
