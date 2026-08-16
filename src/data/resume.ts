@@ -51,8 +51,10 @@ export const resume: Resume = {
     "Development",
     "Design",
     "Photography",
+    "Calligraphy",
     "Gaming",
     "Digital Creation",
+    "Chinese Literature",
     "Self-Expression",
   ],
   contact: {
