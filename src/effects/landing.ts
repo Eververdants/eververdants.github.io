@@ -11,6 +11,9 @@ import { initGsap } from "./gsap";
 export interface LandingHandle {
   destroy: () => void;
   lenis: Lenis | null;
+  /* Re-measure the custom scrollbar after the document height changes without
+     a window resize (e.g. the sub-site reveals the main site). */
+  resizeScrollbar: () => void;
 }
 
 export function initLanding(): LandingHandle {
@@ -42,13 +45,18 @@ export function initLanding(): LandingHandle {
     document.getElementById("scrollbar-thumb") as HTMLElement,
     lenis
   );
-  if (barDispose) disposers.push(barDispose);
+  let resizeScrollbar = () => {};
+  if (barDispose) {
+    resizeScrollbar = barDispose.resize;
+    disposers.push(barDispose.destroy);
+  }
 
   // GSAP runs last: it needs the hero/resume DOM mounted and Lenis ready.
   disposers.push(initGsap(prefersReduced, lenis).destroy);
 
   return {
     lenis,
+    resizeScrollbar,
     destroy: function () {
       for (let i = disposers.length - 1; i >= 0; i--) {
         disposers[i]();

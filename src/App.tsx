@@ -76,6 +76,10 @@ export default function App() {
     // (the reading-deck spreads freeze at progress 0 otherwise).
     setTimeout(() => ScrollTrigger.refresh(), 80);
     setTimeout(() => ScrollTrigger.refresh(), 320);
+    // The sub-site → main-site swap changes the document height without a
+    // window resize; re-measure the custom scrollbar so its thumb fits the
+    // main site, not the short sub-site it was sized for.
+    setTimeout(() => handleRef.current?.resizeScrollbar(), 420);
   }, []);
 
   /* Open the blog sub-site (/blog) from the main site — a loading
@@ -133,6 +137,7 @@ export default function App() {
       measureRef.current();
       setTimeout(() => ScrollTrigger.refresh(), 80);
       setTimeout(() => ScrollTrigger.refresh(), 320);
+      setTimeout(() => handleRef.current?.resizeScrollbar(), 420);
       setTimeout(() => setTransitioning(false), 550);
     }, 300);
   }, []);

@@ -6,7 +6,7 @@ export function initScrollbar(
   bar: HTMLElement,
   thumb: HTMLElement,
   lenis: Lenis | null
-): (() => void) | null {
+): { destroy: () => void; resize: () => void } | null {
   if (!bar || !thumb) return null;
 
   const doc = document.documentElement;
@@ -104,13 +104,25 @@ export function initScrollbar(
   }
   bar.addEventListener("mousedown", onBarDown);
 
-  return function destroy() {
-    window.removeEventListener("scroll", update);
-    window.removeEventListener("resize", onResize);
-    thumb.removeEventListener("mousedown", onThumbDown);
-    bar.removeEventListener("mousedown", onBarDown);
-    window.removeEventListener("mousemove", onMove);
-    window.removeEventListener("mouseup", onUp);
-    if (fontsTimer !== undefined) clearTimeout(fontsTimer);
+  /* Re-measure thumb height + position. Exposed so the app can call it after
+     the document height changes without a window resize — e.g. the sub-site
+     hides/reveals the main site and the scrollbar would otherwise keep the
+     old page's thumb size. */
+  const resize = () => {
+    size();
+    update();
+  };
+
+  return {
+    destroy: function () {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", onResize);
+      thumb.removeEventListener("mousedown", onThumbDown);
+      bar.removeEventListener("mousedown", onBarDown);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      if (fontsTimer !== undefined) clearTimeout(fontsTimer);
+    },
+    resize
   };
 }
