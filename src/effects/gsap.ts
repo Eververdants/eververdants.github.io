@@ -34,25 +34,35 @@ export function initGsap(prefersReduced: boolean, lenis: Lenis | null): GsapHand
   const disposeGlue = initScrollTriggerGlue(lenis);
 
   const ctx = gsap.context(() => {
+    /* DOM listeners (outro ↗) are NOT gsap animations — ctx.revert() won't
+       clean them. Collect the per-module cleanups and hand them back so
+       revert() tears the whole context down. */
+    const undos: Array<() => void> = [];
+
     if (prefersReduced) {
       // CSS hides [data-hero-in] until JS animates it; under reduced motion
       // JS never does, so unhide here — independent of the CSS media query
       // matching (covers JS/CSS mismatch).
       gsap.set("[data-hero-in]", { autoAlpha: 1 });
       markHandscrollsDone();
-      bindOutroHome(lenis);
-      return;
+      const undo = bindOutroHome(lenis);
+      if (undo) undos.push(undo);
+    } else {
+      initUniversalReveal();
+      initHeroEntrance();
+      initHeroCover();
+      initResume();
+      initHandscroll();
+      initJournal();
+      initFilmGrain();
+      initHeroAvatar();
+      const undo = initOutro(lenis);
+      if (undo) undos.push(undo);
     }
 
-    initUniversalReveal();
-    initHeroEntrance();
-    initHeroCover();
-    initResume();
-    initHandscroll();
-    initJournal();
-    initFilmGrain();
-    initHeroAvatar();
-    initOutro(lenis);
+    return () => {
+      for (let i = undos.length - 1; i >= 0; i--) undos[i]();
+    };
   });
 
   return {

@@ -247,11 +247,20 @@ export function initFluid(
       .sort((a, b) => a.y - b.y);
   }
   measureStops();
-  if (document.fonts?.ready) document.fonts.ready.then(measureStops);
+  /* Guard every async re-measure with `disposed`: destroy() may run before
+     fonts.ready resolves or the retry timers fire, and after teardown they'd
+     only re-measure a dead closure. Timers are cleared too, so the whole
+     WebGL closure (context, buffers) can be GC'd promptly. */
+  let disposed = false;
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(() => {
+      if (!disposed) measureStops();
+    });
+  }
   window.addEventListener("resize", measureStops);
   window.addEventListener("load", measureStops);
-  window.setTimeout(measureStops, 300);
-  window.setTimeout(measureStops, 1200);
+  const retry1 = window.setTimeout(measureStops, 300);
+  const retry2 = window.setTimeout(measureStops, 1200);
 
   function frame(now: number) {
     if (now - last < THROTTLE) return;
@@ -359,10 +368,13 @@ export function initFluid(
   }
 
   return function destroy() {
+    disposed = true;
     if (rafId) cancelAnimationFrame(rafId);
     if (useMouse) window.removeEventListener("mousemove", onMouse);
     window.removeEventListener("resize", measureStops);
     window.removeEventListener("load", measureStops);
+    clearTimeout(retry1);
+    clearTimeout(retry2);
     if (io) io.disconnect();
     const lose = gl.getExtension("WEBGL_lose_context");
     if (lose) lose.loseContext();
