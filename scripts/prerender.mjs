@@ -163,6 +163,7 @@ async function renderArticle(chromePath, slug) {
 /* ---- build a static shell for one article from the built index.html template ---- */
 function buildStatic(post, articleHtml) {
   const url = `${SITE}/blog/${post.slug}/`;
+  const dateISO = post.date.replace(".", "-"); // "2026.08" -> "2026-08" (ISO year-month)
   let tpl = readFileSync(join(ROOT, "dist/index.html"), "utf8");
   tpl = tpl.replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(post.title)} — Eververdants</title>`);
   tpl = tpl.replace(/<meta name="description"[^>]*\/>/, `<meta name="description" content="${esc(post.excerpt)}" />`);
@@ -179,12 +180,22 @@ function buildStatic(post, articleHtml) {
       "@type": "BlogPosting",
       "headline": ${JSON.stringify(post.title)},
       "description": ${JSON.stringify(post.excerpt)},
-      "datePublished": ${JSON.stringify(post.date)},
-      "dateModified": ${JSON.stringify(post.date)},
+      "datePublished": ${JSON.stringify(dateISO)},
+      "dateModified": ${JSON.stringify(dateISO)},
       "url": ${JSON.stringify(url)},
       "mainEntityOfPage": ${JSON.stringify(url)},
       "inLanguage": "en",
-      "author": { "@type": "Person", "name": "Eververdants", "url": "${SITE}/" },
+      "author": {
+        "@type": "Person",
+        "name": "Eververdants",
+        "alternateName": "万山青未阑",
+        "url": "${SITE}/",
+        "sameAs": [
+          "https://github.com/Eververdants",
+          "https://space.bilibili.com/2019959464",
+          "https://www.douyin.com/user/MS4wLjABAAAA8MEFE6VVh4_nWkTLPbueZYywgSyN19xhUFkmDF-nkhlnWytZWiBZ9YWM5s3RsprJ"
+        ]
+      },
       "publisher": { "@type": "Person", "name": "Eververdants", "url": "${SITE}/" }
     }
     </script>`
@@ -202,7 +213,7 @@ function writeSitemap(posts) {
     `<url><loc>${SITE}/</loc><priority>1.0</priority></url>`,
     `<url><loc>${SITE}/selected-blog/</loc><priority>0.8</priority></url>`,
     ...posts.map(
-      (p) => `<url><loc>${SITE}/blog/${p.slug}/</loc><lastmod>${today}</lastmod><priority>0.9</priority></url>`
+      (p) => `<url><loc>${SITE}/blog/${p.slug}/</loc><lastmod>${p.date.replace(".", "-")}-01</lastmod><priority>0.9</priority></url>`
     ),
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
