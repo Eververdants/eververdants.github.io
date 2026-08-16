@@ -236,6 +236,43 @@ html::-webkit-scrollbar {
   }
 }
 
+/* ---- main site ↔ article reader loading transition ----
+   A 米白 overlay fades in, holds, and fades out while the app swaps the
+   dark cinematic site for the light reader. 米白 = the reader's background,
+   so its exit is seamless there. The bar fills as a loading cue. */
+.overlay-transition {
+  background: #f7f5ef;
+  animation: overlayCycle 1s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes overlayCycle {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.overlay-bar {
+  animation: overlayBar 0.85s ease-in-out 0.08s both;
+}
+
+@keyframes overlayBar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
 /* ---- article reader: light technical layout ----
    The reading page is 米白 + gray grid, dark ink, functional — not the
    dark cinematic editorial of the rest of the site. The markdown renderer

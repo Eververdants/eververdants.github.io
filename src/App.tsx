@@ -36,6 +36,9 @@ export default function App() {
   articleRef.current = article;
   const handleRef = useRef<LandingHandle | null>(null);
   const measureRef = useRef<() => void>(() => {});
+  // Transition overlay between the dark main site and the light article
+  // reader (opening the first essay, and closing back to the deck).
+  const [transitioning, setTransitioning] = useState(false);
 
   /* Return to the deck: unhide the screens, scroll to the blog, then
      re-measure. The unhide is flushed synchronously and the scroll happens
@@ -73,31 +76,47 @@ export default function App() {
   /* Open an essay. The first open from the deck pushes a history entry so
      Back returns to the deck; next/prev hops within an article REPLACE the
      current entry instead, so the stack never grows and the JOURNAL back
-     button always pops straight back to the deck. */
+     button always pops straight back to the deck. The first open runs a
+     loading transition (米白 overlay) to bridge the dark site → light reader
+     swap; in-article next/prev swaps instantly. */
   const openArticle = useCallback((slug: string) => {
     if (articleRef.current === slug) return;
     const alreadyInArticle = articleRef.current !== null;
-    articleRef.current = slug;
-    setArticle(slug);
     if (alreadyInArticle) {
+      articleRef.current = slug;
+      setArticle(slug);
       history.replaceState({ __article: slug }, "", `${ARTICLE}/${slug}`);
-    } else {
-      history.pushState({ __article: slug }, "", `${ARTICLE}/${slug}`);
+      const h = handleRef.current;
+      if (h?.lenis) h.lenis.scrollTo(0, { immediate: true });
+      else window.scrollTo(0, 0);
+      return;
     }
-    const h = handleRef.current;
-    if (h?.lenis) h.lenis.scrollTo(0, { immediate: true });
-    else window.scrollTo(0, 0);
+    setTransitioning(true);
+    setTimeout(() => {
+      articleRef.current = slug;
+      setArticle(slug);
+      history.pushState({ __article: slug }, "", `${ARTICLE}/${slug}`);
+      const h = handleRef.current;
+      if (h?.lenis) h.lenis.scrollTo(0, { immediate: true });
+      else window.scrollTo(0, 0);
+      setTimeout(() => setTransitioning(false), 550);
+    }, 320);
   }, []);
 
   /* Close: if the essay was opened here, pop its history entry (popstate
-     does the reset). If it was deep-linked (no entry), reset directly. */
+     does the reset). If it was deep-linked (no entry), reset directly. A
+     loading transition covers the return to the dark deck. */
   const closeArticle = useCallback(() => {
-    if (history.state && (history.state as { __article?: string }).__article) {
-      history.back();
-    } else {
-      history.replaceState(null, "", BLOG);
-      resetToBlog();
-    }
+    setTransitioning(true);
+    setTimeout(() => {
+      if (history.state && (history.state as { __article?: string }).__article) {
+        history.back();
+      } else {
+        history.replaceState(null, "", BLOG);
+        resetToBlog();
+      }
+      setTimeout(() => setTransitioning(false), 650);
+    }, 300);
   }, [resetToBlog]);
 
   useEffect(() => {
@@ -259,6 +278,19 @@ export default function App() {
       <FilmGrain className={article ? "opacity-0" : ""} />
       {!article && <FocusBand />}
       <Scrollbar />
+      {/* Loading transition: 米白 overlay fades in, holds, fades out while
+          the app swaps main site ↔ article reader. 米白 matches the reader,
+          so its disappearance is seamless there. */}
+      {transitioning && (
+        <div className="overlay-transition fixed inset-0 z-[70] flex flex-col items-center justify-center gap-4" aria-hidden>
+          <span className="text-[10px] font-semibold tracking-[0.45em] text-[#8a867c]">
+            LOADING
+          </span>
+          <span className="relative h-[2px] w-28 overflow-hidden bg-[#e2dfd6]">
+            <span className="overlay-bar absolute inset-0 origin-left bg-[#0e7a86]" />
+          </span>
+        </div>
+      )}
     </>
   );
 }
