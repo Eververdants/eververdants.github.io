@@ -236,30 +236,30 @@ html::-webkit-scrollbar {
   }
 }
 
-/* ---- main site ↔ article reader loading transition ----
-   A 米白 overlay fades in, holds, and fades out while the app swaps the
-   dark cinematic site for the light reader. 米白 = the reader's background,
-   so its exit is seamless there. The bar fills as a loading cue. */
+/* ---- main site ↔ blog sub-site loading cover ----
+   Two halves of ONE continuous loading screen:
+   - Outgoing side (React): the 米白 cover fades in and STAYS opaque until
+     the site-nav interceptor navigates — it never fades out on this page.
+   - Incoming side (static): an inline script in each index.html shell sets
+     body.nav-loading BEFORE first paint, so the new site is covered from the
+     very first frame (no flash); LoadingOverlay.tsx then fades it out. */
 .overlay-transition {
   background-color: #f7f5ef;
   background-image: linear-gradient(#e5e2d9 1px, transparent 1px),
     linear-gradient(90deg, #e5e2d9 1px, transparent 1px);
   background-size: 28px 28px;
-  animation: overlayCycle 1s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
-@keyframes overlayCycle {
-  0% {
+.overlay-cover {
+  animation: overlayCover 0.25s ease both;
+}
+
+@keyframes overlayCover {
+  from {
     opacity: 0;
   }
-  20% {
+  to {
     opacity: 1;
-  }
-  75% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
   }
 }
 
@@ -273,6 +273,36 @@ html::-webkit-scrollbar {
   }
   to {
     transform: scaleX(1);
+  }
+}
+
+/* Incoming side — the first-paint 米白 cover (set by an inline script in
+   index.html / blog/index.html before React runs). body.nav-loading keeps it
+   opaque; React adds body.nav-reveal once mounted to fade it out. */
+body.nav-loading::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background-color: #f7f5ef;
+  background-image: linear-gradient(#e5e2d9 1px, transparent 1px),
+    linear-gradient(90deg, #e5e2d9 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+body.nav-loading.nav-reveal::before {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay-cover {
+    animation-duration: 0.001s;
+  }
+
+  body.nav-loading::before {
+    transition: none;
   }
 }
 
@@ -428,3 +458,10 @@ html::-webkit-scrollbar {
     display: none;
   }
 }
+
+/* ---- main site ↔ blog sub-site loading cover ----
+   The two entries are separate SPAs, so the deck ↔ reader swap is a real
+   navigation. siteNav.ts + LoadingOverlay.tsx cover it as one continuous
+   米白 LOADING screen: the outgoing page fades the cover in and holds it
+   while it navigates; the incoming page is covered from its first paint by
+   the static body.nav-loading::before (above) and fades it out. */

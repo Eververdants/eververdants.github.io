@@ -23,7 +23,7 @@ import { initReadingDeck } from "../effects/animations/journal";
    Reduced motion opts out via gsap.ts; site copy lives in data/journal.ts,
    per-post copy in each essay's frontmatter (data/articles.ts). */
 
-export default function BlogScene({ onOpen, onOpenBlog }: { onOpen: (slug: string) => void; onOpenBlog: () => void }) {
+export default function BlogScene() {
   const rootRef = useRef<HTMLElement>(null);
   const deck = getDeck();
 
@@ -41,8 +41,8 @@ export default function BlogScene({ onOpen, onOpenBlog }: { onOpen: (slug: strin
 
   return (
     <section ref={rootRef} className="relative z-[1] px-[clamp(16px,4vw,48px)]" data-blog>
-      <Cover onOpenBlog={onOpenBlog} />
-      <Deck deck={deck} onOpen={onOpen} />
+      <Cover />
+      <Deck deck={deck} />
       <Close />
     </section>
   );
@@ -50,7 +50,7 @@ export default function BlogScene({ onOpen, onOpenBlog }: { onOpen: (slug: strin
 
 /* ---- Act 1 — cover: asymmetric editorial masthead ---- */
 
-function Cover({ onOpenBlog }: { onOpenBlog: () => void }) {
+function Cover() {
   const c = journal.cover;
   return (
     <div className="relative flex h-[120vh] items-center" data-cover>
@@ -104,13 +104,13 @@ function Cover({ onOpenBlog }: { onOpenBlog: () => void }) {
           {c.subtitle}
         </p>
         {/* to the full blog sub-site — a clear warm-accent CTA */}
-        <button
-          onClick={onOpenBlog}
+        <a
+          href="/blog/"
           className="group mt-[clamp(40px,7vh,72px)] inline-flex items-center gap-3 rounded-full border border-[#f9a633]/70 px-[clamp(18px,2.4vw,30px)] py-[clamp(10px,1.5vh,16px)] text-[11px] font-medium tracking-[0.3em] text-[#f9a633] shadow-[0_0_0_rgba(249,166,51,0)] transition-all duration-300 hover:bg-[#f9a633] hover:text-black hover:shadow-[0_8px_30px_rgba(249,166,51,0.25)]"
         >
           VISIT THE BLOG
           <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1">↗</span>
-        </button>
+        </a>
       </div>
 
       {/* corner caption — editorial margin note */}
@@ -122,26 +122,18 @@ function Cover({ onOpenBlog }: { onOpenBlog: () => void }) {
 }
 
 /* ---- Act 2 — the reading deck: full-screen spreads that turn ----
-   Each spread opens its article (App routes /selected-blog/<slug>). */
+   Each spread is a real link to its article on the /blog sub-site. */
 
-function Deck({ deck, onOpen }: { deck: JournalPost[]; onOpen: (slug: string) => void }) {
+function Deck({ deck }: { deck: JournalPost[] }) {
   return (
     <div className="pt-[clamp(40px,8vh,120px)]">
       {deck.map((post, i) => (
-        <article
+        <a
           key={post.title}
-          className="group relative h-screen h-dvh cursor-pointer"
+          href={`/blog/${post.slug}`}
+          className="group relative block h-screen h-dvh cursor-pointer"
           data-journal-spread
-          onClick={() => onOpen(post.slug)}
-          role="button"
-          tabIndex={0}
           aria-label={`Read ${post.title.replace(/\n/g, " ")}`}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onOpen(post.slug);
-            }
-          }}
         >
           {/* running header: category left, folio right */}
           <div className="absolute inset-x-0 top-0 z-[2] flex items-baseline justify-between border-t border-white/10 pt-[clamp(14px,2.5vh,28px)]">
@@ -190,7 +182,7 @@ function Deck({ deck, onOpen }: { deck: JournalPost[]; onOpen: (slug: string) =>
               {post.read}
             </p>
           </div>
-        </article>
+        </a>
       ))}
     </div>
   );

@@ -1,7 +1,7 @@
 // Prerender blog articles to static HTML so non-JS crawlers (and AI engines
 // with weak JS execution) can read full article bodies.
 //
-// - renders each /blog/<slug> against the built SPA in headless Chrome
+// - renders each /blog/<slug> against the built blog sub-site in headless Chrome
 // - extracts the rendered article block, builds a clean static shell with
 //   per-page title/description/canonical/OG + BlogPosting JSON-LD
 // - writes dist/blog/<slug>/index.html, dist/sitemap.xml, dist/robots.txt
@@ -87,8 +87,11 @@ function startServer() {
       res.writeHead(200, { "Content-Type": types[extname(file)] || "application/octet-stream" });
       res.end(readFileSync(file));
     } else {
+      // SPA fallback: /blog/* serves the blog sub-site's own entry, every
+      // other path the main site.
+      const isBlog = p.startsWith("/blog");
       res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(readFileSync(join(dist, "index.html"))); // SPA fallback
+      res.end(readFileSync(join(dist, isBlog ? "blog/index.html" : "index.html")));
     }
   }).listen(PORT, "127.0.0.1");
 }
@@ -171,11 +174,12 @@ async function renderArticle(chromePath, slug) {
   }
 }
 
-/* ---- build a static shell for one article from the built index.html template ---- */
+/* ---- build a static shell for one article from the built blog entry's
+   index.html template (the article reader lives on the blog sub-site) ---- */
 function buildStatic(post, articleHtml) {
   const url = `${SITE}/blog/${post.slug}/`;
   const dateISO = post.date.replace(/\./g, "-"); // "2026.07.04" -> "2026-07-04" (ISO date)
-  let tpl = readFileSync(join(ROOT, "dist/index.html"), "utf8");
+  let tpl = readFileSync(join(ROOT, "dist/blog/index.html"), "utf8");
   tpl = tpl.replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(post.title)} — Eververdants</title>`);
   tpl = tpl.replace(/<meta name="description"[^>]*\/>/, `<meta name="description" content="${esc(post.excerpt)}" />`);
   tpl = tpl.replace(/<link rel="canonical"[^>]*\/>/, `<link rel="canonical" href="${url}" />`);
