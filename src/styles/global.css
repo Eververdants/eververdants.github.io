@@ -241,7 +241,10 @@ html::-webkit-scrollbar {
    dark cinematic site for the light reader. 米白 = the reader's background,
    so its exit is seamless there. The bar fills as a loading cue. */
 .overlay-transition {
-  background: #f7f5ef;
+  background-color: #f7f5ef;
+  background-image: linear-gradient(#e5e2d9 1px, transparent 1px),
+    linear-gradient(90deg, #e5e2d9 1px, transparent 1px);
+  background-size: 28px 28px;
   animation: overlayCycle 1s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 

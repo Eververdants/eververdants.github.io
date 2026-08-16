@@ -25,69 +25,49 @@ function initCoverTitle() {
 }
 
 /* ---- reading deck: full-screen spreads turn in 3D ----
-   Each spread is invisible below the viewport, then rises AND stands up
-   toward the reader (rotateX -55° → 0) as it enters, holds flat while
-   centered, then falls back away (0 → 55°) and fades as it leaves — a page
-   picked off the table, read, and laid down. transformPerspective puts a
-   camera on each spread, so no ancestor perspective container is needed.
-   This is the journal's signature motion: the rest of the site is flat
-   reveals, this one is a deck that turns. */
-function initReadingDeck() {
-  /* Mobile: a 3D rotateX card's perspective footprint projects wider than
-     the viewport (overflow past the right edge), and scrub can stall
-     mid-turn when the URL bar resizes the viewport — use a flat
-     rise/fall reveal instead. Desktop keeps the 3D deck. */
+   Lives in BlogScene now (it owns the spreads and must rebuild the scroll
+   triggers when the tag filter changes the deck). Desktop keeps the 3D
+   flip; coarse pointers get a flat rise/fall reveal (a 3D card's
+   perspective footprint overflows the viewport and scrub can stall
+   mid-turn when the URL bar resizes). */
+export function initReadingDeck(spreads: HTMLElement[]) {
   const touch = window.matchMedia("(hover: none), (pointer: coarse)").matches;
-  gsap.utils.toArray<HTMLElement>("[data-journal-spread]").forEach((spread) => {
+  spreads.forEach((spread) => {
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: spread,
+        start: "top bottom",
+        end: "bottom top",
+        scrub: true,
+        invalidateOnRefresh: true
+      }
+    });
     if (touch) {
-      gsap
-        .timeline({
-          scrollTrigger: {
-            trigger: spread,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: true,
-            invalidateOnRefresh: true
-          }
-        })
-        .fromTo(
-          spread,
-          { y: 64, autoAlpha: 0 },
-          { y: 0, autoAlpha: 1, duration: 0.38, ease: "power2.out" },
-          0
-        )
-        .to(
-          spread,
-          { y: -64, autoAlpha: 0, duration: 0.38, ease: "power2.in" },
-          0.62
-        );
-      return;
-    }
-    gsap
-      .timeline({
-        scrollTrigger: {
-          trigger: spread,
-          start: "top bottom",
-          end: "bottom top",
-          scrub: true,
-          invalidateOnRefresh: true
-        }
-      })
-      .fromTo(
+      tl.fromTo(
+        spread,
+        { y: 64, autoAlpha: 0 },
+        { y: 0, autoAlpha: 1, duration: 0.38, ease: "power2.out" },
+        0
+      ).to(
+        spread,
+        { y: -64, autoAlpha: 0, duration: 0.38, ease: "power2.in" },
+        0.62
+      );
+    } else {
+      tl.fromTo(
         spread,
         { rotateX: -55, y: 130, autoAlpha: 0, transformOrigin: "50% 50%", transformPerspective: 850 },
         { rotateX: 0, y: 0, autoAlpha: 1, duration: 0.38, ease: "power2.out" },
         0
-      )
-      .to(
+      ).to(
         spread,
         { rotateX: 55, y: -130, autoAlpha: 0, duration: 0.38, ease: "power2.in" },
         0.62
       );
+    }
   });
 }
 
 export function initJournal() {
   initCoverTitle();
-  initReadingDeck();
 }

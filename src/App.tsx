@@ -3,6 +3,7 @@ import { flushSync } from 'react-dom';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Background from './components/Background';
 import BlogScene from './components/BlogScene';
+import BlogIndexScene from './components/BlogIndexScene';
 import ArticleScene from './components/ArticleScene';
 import { getArticle } from './data/articles';
 import FilmGrain from './components/FilmGrain';
@@ -19,7 +20,8 @@ import type { LandingHandle } from './effects/landing';
    open — never unmount — so gsap's triggers keep their element references
    and the scroll-cinema resumes where it was on close. */
 const BLOG = "/selected-blog";
-const ARTICLE = "/blog";
+const ARTICLE = "/blog"; // /blog = sub-site index, /blog/<slug> = an essay
+const BLOG_INDEX = "/blog";
 const getArticleSlug = (p: string) =>
   p.startsWith(ARTICLE + "/") ? decodeURIComponent(p.slice(ARTICLE.length + 1)) : null;
 
@@ -34,6 +36,12 @@ export default function App() {
   });
   const articleRef = useRef(article);
   articleRef.current = article;
+  // Blog sub-site (/blog) — a simple index with tag filtering.
+  const [blogIndex, setBlogIndex] = useState<boolean>(
+    () => location.pathname.replace(/\/+$/, "") === BLOG_INDEX
+  );
+  const blogIndexRef = useRef(blogIndex);
+  blogIndexRef.current = blogIndex;
   const handleRef = useRef<LandingHandle | null>(null);
   const measureRef = useRef<() => void>(() => {});
   // Transition overlay between the dark main site and the light article
@@ -48,7 +56,11 @@ export default function App() {
      timeline at progress 0 and the essay spreads stay invisible). */
   const resetToBlog = useCallback(() => {
     articleRef.current = null;
-    flushSync(() => setArticle(null));
+    blogIndexRef.current = false;
+    flushSync(() => {
+      setArticle(null);
+      setBlogIndex(false);
+    });
     const sec = document.querySelector<HTMLElement>("[data-blog]");
     const y = sec ? sec.getBoundingClientRect().top + window.scrollY : 0;
     const h = handleRef.current;
@@ -66,6 +78,37 @@ export default function App() {
     setTimeout(() => ScrollTrigger.refresh(), 320);
   }, []);
 
+  /* Open the blog sub-site (/blog) from the main site — a loading
+     transition covers the dark site → light index swap. */
+  const openBlogIndex = useCallback(() => {
+    if (blogIndexRef.current || articleRef.current) return;
+    setTransitioning(true);
+    setTimeout(() => {
+      blogIndexRef.current = true;
+      setBlogIndex(true);
+      history.pushState({ __blogIndex: true }, "", BLOG_INDEX);
+      const h = handleRef.current;
+      if (h?.lenis) h.lenis.scrollTo(0, { immediate: true });
+      else window.scrollTo(0, 0);
+      setTimeout(() => setTransitioning(false), 550);
+    }, 320);
+  }, []);
+
+  /* Close the sub-site: pop its history entry, or reset directly. A
+     loading transition covers the return to the dark main site. */
+  const closeBlogIndex = useCallback(() => {
+    setTransitioning(true);
+    setTimeout(() => {
+      if (history.state && (history.state as { __blogIndex?: boolean }).__blogIndex) {
+        history.back();
+      } else {
+        history.replaceState(null, "", BLOG);
+        resetToBlog();
+      }
+      setTimeout(() => setTransitioning(false), 650);
+    }, 300);
+  }, [resetToBlog]);
+
   /* Smooth-scroll a heading into view (article TOC uses this). */
   const scrollTo = useCallback((y: number) => {
     const h = handleRef.current;
@@ -82,10 +125,18 @@ export default function App() {
   const openArticle = useCallback((slug: string) => {
     if (articleRef.current === slug) return;
     const alreadyInArticle = articleRef.current !== null;
-    if (alreadyInArticle) {
+    // Opening from the sub-site (or hopping within an article) is a fast
+    // swap — the loading transition only bridges the main site's dark deck
+    // to the light reader.
+    const fromSubSite = blogIndexRef.current;
+    if (alreadyInArticle || fromSubSite) {
       articleRef.current = slug;
       setArticle(slug);
-      history.replaceState({ __article: slug }, "", `${ARTICLE}/${slug}`);
+      if (alreadyInArticle) {
+        history.replaceState({ __article: slug }, "", `${ARTICLE}/${slug}`);
+      } else {
+        history.pushState({ __article: slug }, "", `${ARTICLE}/${slug}`);
+      }
       const h = handleRef.current;
       if (h?.lenis) h.lenis.scrollTo(0, { immediate: true });
       else window.scrollTo(0, 0);
@@ -105,8 +156,18 @@ export default function App() {
 
   /* Close: if the essay was opened here, pop its history entry (popstate
      does the reset). If it was deep-linked (no entry), reset directly. A
-     loading transition covers the return to the dark deck. */
+     loading transition covers the return to the dark deck — but returning
+     to the light sub-site (essay opened from /blog) swaps instantly. */
   const closeArticle = useCallback(() => {
+    if (blogIndexRef.current) {
+      if (history.state && (history.state as { __article?: string }).__article) {
+        history.back();
+      } else {
+        history.replaceState(null, "", BLOG_INDEX);
+        resetToBlog();
+      }
+      return;
+    }
     setTransitioning(true);
     setTimeout(() => {
       if (history.state && (history.state as { __article?: string }).__article) {
@@ -133,7 +194,7 @@ export default function App() {
       { path: "/selected", sel: "main section[data-works]" },
       { path: BLOG, sel: "main section[data-blog]" },
     ];
-    const VALID = new Set(["", ...SECTIONS.map((s) => s.path)]);
+    const VALID = new Set(["", BLOG_INDEX, ...SECTIONS.map((s) => s.path)]);
 
     // Document Y of each owner, cached; layout shifts on font load / resize.
     let bounds = new Map<string, number>();
@@ -159,13 +220,14 @@ export default function App() {
     let path = window.location.pathname.replace(/\/+$/, "");
     const articleSlug = getArticleSlug(path);
     const articleValid = articleSlug ? getArticle(articleSlug) !== null : false;
-    if (!articleValid && !VALID.has(path)) {
+    const isBlogIndex = path === BLOG_INDEX;
+    if (!articleValid && !isBlogIndex && !VALID.has(path)) {
       history.replaceState(null, "", "/");
       path = "";
     }
 
     // Deep link: visiting a screen or a works act scrolls straight there.
-    const target = articleValid ? null : SECTIONS.find((s) => s.path === path);
+    const target = articleValid || isBlogIndex ? null : SECTIONS.find((s) => s.path === path);
     let timer: number | undefined;
     let ready = !target;
     const scrollToSection = () => {
@@ -212,7 +274,7 @@ export default function App() {
     const currentPath = () => window.location.pathname.replace(/\/+$/, "");
     const onScroll = () => {
       if (!ready) return;
-      if (articleRef.current) return;
+      if (articleRef.current || blogIndexRef.current) return;
       const y = window.scrollY;
       let next = "/";
       for (let i = SECTIONS.length - 1; i >= 0; i--) {
@@ -238,7 +300,16 @@ export default function App() {
           if (h?.lenis) h.lenis.scrollTo(0, { immediate: true });
           else window.scrollTo(0, 0);
         }
-      } else if (articleRef.current) {
+      } else if (p === BLOG_INDEX) {
+        // back onto the sub-site (e.g. closing an essay opened from it)
+        articleRef.current = null;
+        setArticle(null);
+        blogIndexRef.current = true;
+        setBlogIndex(true);
+        const h = handleRef.current;
+        if (h?.lenis) h.lenis.scrollTo(0, { immediate: true });
+        else window.scrollTo(0, 0);
+      } else if (articleRef.current || blogIndexRef.current) {
         resetToBlog();
       }
     };
@@ -258,16 +329,19 @@ export default function App() {
     <>
       {/* The dark fluid canvas is the cinematic backdrop for the main site;
           the light article reader should not carry it (or its scroll bar). */}
-      <Background className={article ? "hidden" : ""} />
+      <Background className={article || blogIndex ? "hidden" : ""} />
       <main className="relative">
         {/* Hidden, not unmounted: gsap's triggers hold references to these
             sections, and the works handscroll sets its own height in flow. */}
-        <div className={article ? "hidden" : undefined}>
+        <div className={article || blogIndex ? "hidden" : undefined}>
           <HeroScene />
           <ResumeScene />
           <PortfolioScene />
-          <BlogScene onOpen={openArticle} />
+          <BlogScene onOpen={openArticle} onOpenBlog={openBlogIndex} />
         </div>
+        {!article && blogIndex && (
+          <BlogIndexScene onClose={closeBlogIndex} onOpen={openArticle} />
+        )}
         {article && (
           <ArticleScene slug={article} onClose={closeArticle} onOpen={openArticle} scrollTo={scrollTo} />
         )}
@@ -275,8 +349,8 @@ export default function App() {
       {/* Film grain stays mounted (its gsap loop targets it), but fades
           away on the light article reader. Focus blur is the dark handscroll
           edge; the article reader doesn't carry it. */}
-      <FilmGrain className={article ? "opacity-0" : ""} />
-      {!article && <FocusBand />}
+      <FilmGrain className={article || blogIndex ? "opacity-0" : ""} />
+      {!article && !blogIndex && <FocusBand />}
       <Scrollbar />
       {/* Loading transition: 米白 overlay fades in, holds, fades out while
           the app swaps main site ↔ article reader. 米白 matches the reader,

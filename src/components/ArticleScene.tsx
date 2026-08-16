@@ -198,6 +198,16 @@ export default function ArticleScene({
           >
             {post.title.split("\n").join(" ")}
           </h1>
+          <div data-art-head className="mt-[clamp(18px,3vh,28px)] flex flex-wrap gap-2">
+            {post.tags.map((t) => (
+              <span
+                key={t}
+                className="rounded-full border border-[#d8d5cd] px-3 py-1 text-[10px] font-medium tracking-[0.2em] text-[#6b675d]"
+              >
+                {t.toUpperCase()}
+              </span>
+            ))}
+          </div>
         </header>
 
         {/* content + right TOC */}

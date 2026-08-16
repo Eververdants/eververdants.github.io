@@ -1,4 +1,8 @@
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { journal, type JournalPost } from "../data/journal";
+import { initReadingDeck } from "../effects/animations/journal";
 
 /* Fourth screen — SELECTED BLOG, the journal.
 
@@ -17,11 +21,25 @@ import { journal, type JournalPost } from "../data/journal";
 
    Reduced motion opts out via gsap.ts; copy lives in data/journal.ts. */
 
-export default function BlogScene({ onOpen }: { onOpen: (slug: string) => void }) {
+export default function BlogScene({ onOpen, onOpenBlog }: { onOpen: (slug: string) => void; onOpenBlog: () => void }) {
+  const rootRef = useRef<HTMLElement>(null);
   const deck = [journal.featured, ...journal.posts];
+
+  /* The reading deck's scroll animation is owned here, not the global
+     coordinator: it runs once for the curated deck (the tag-filtered full
+     blog lives on the /blog sub-site). */
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const spreads = gsap.utils.toArray<HTMLElement>("[data-journal-spread]");
+      if (spreads.length) initReadingDeck(spreads);
+    }, rootRef);
+    ScrollTrigger.refresh();
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section className="relative z-[1] px-[clamp(16px,4vw,48px)]" data-blog>
-      <Cover />
+    <section ref={rootRef} className="relative z-[1] px-[clamp(16px,4vw,48px)]" data-blog>
+      <Cover onOpenBlog={onOpenBlog} />
       <Deck deck={deck} onOpen={onOpen} />
       <Close />
     </section>
@@ -30,7 +48,7 @@ export default function BlogScene({ onOpen }: { onOpen: (slug: string) => void }
 
 /* ---- Act 1 — cover: asymmetric editorial masthead ---- */
 
-function Cover() {
+function Cover({ onOpenBlog }: { onOpenBlog: () => void }) {
   const c = journal.cover;
   return (
     <div className="relative flex h-[120vh] items-center" data-cover>
@@ -83,6 +101,14 @@ function Cover() {
         <p className="mt-[clamp(24px,4vh,48px)] font-fraunces text-[clamp(15px,1.8vw,24px)] tracking-[0.06em] text-white/55">
           {c.subtitle}
         </p>
+        {/* to the full blog sub-site — a clear warm-accent CTA */}
+        <button
+          onClick={onOpenBlog}
+          className="group mt-[clamp(40px,7vh,72px)] inline-flex items-center gap-3 rounded-full border border-[#f9a633]/70 px-[clamp(18px,2.4vw,30px)] py-[clamp(10px,1.5vh,16px)] text-[11px] font-medium tracking-[0.3em] text-[#f9a633] shadow-[0_0_0_rgba(249,166,51,0)] transition-all duration-300 hover:bg-[#f9a633] hover:text-black hover:shadow-[0_8px_30px_rgba(249,166,51,0.25)]"
+        >
+          VISIT THE BLOG
+          <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1">↗</span>
+        </button>
       </div>
 
       {/* corner caption — editorial margin note */}

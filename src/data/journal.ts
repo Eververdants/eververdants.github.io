@@ -17,6 +17,8 @@ export interface JournalPost {
   read: string;
   // One-line teaser shown on the blog deck.
   excerpt: string;
+  // Tags for the blog's filter system.
+  tags: string[];
 }
 
 export interface Journal {
@@ -51,6 +53,7 @@ export const journal: Journal = {
     read: "7 MIN",
     excerpt:
       "On Contradiction, On Protracted War, and A Single Spark Can Start a Prairie Fire — three essays, three periods, and the strategic framework they build for overturning an unequal contest.",
+    tags: ["Mao Zedong", "Strategy", "Reading Notes"],
   },
   posts: [
     {
@@ -61,6 +64,7 @@ export const journal: Journal = {
       read: "5 MIN",
       excerpt:
         "Two methodologies from Mao Zedong's 1941 essay 'Reform Our Study' — seek truth from facts, and aim the arrow at the target — and how they cut through modern confusion.",
+      tags: ["Mao Zedong", "Methodology", "Reading Notes"],
     },
     {
       slug: "little-prince-and-the-baobabs",
@@ -70,6 +74,7 @@ export const journal: Journal = {
       read: "6 MIN",
       excerpt:
         "Grown-ups love figures — but how do you measure a flower, a star, a sheep? From chapter four to seven, one line runs through: the sickness, the cause, the loneliness, and the keeping.",
+      tags: ["Literature", "Reading Notes"],
     },
   ],
   close: {
