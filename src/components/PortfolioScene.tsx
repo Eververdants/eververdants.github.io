@@ -15,7 +15,7 @@ export default function PortfolioScene() {
       {/* Sticky viewport: holds the track while the section's JS-set height
           scrolls past. Sticky (not gsap pin) keeps the section in normal
           flow, so the horizontal scrub's measurements stay stable. */}
-      <div className="sticky top-0 h-screen overflow-hidden">
+      <div className="sticky top-0 h-screen overflow-hidden [contain:paint]">
         <div className="flex h-screen w-max" data-hscroll-track>
         <TitlePanel />
         <ChapterPanel num="01" label="GITHUB PROJECTS" accent="text-[#10aec2]/80" />
