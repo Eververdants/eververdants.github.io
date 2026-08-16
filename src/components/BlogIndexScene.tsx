@@ -11,10 +11,16 @@ import { initBlogIndex } from "../effects/animations/blogIndex";
 
 export default function BlogIndexScene({
   onClose,
-  onOpen
+  onOpen,
+  fromMain,
+  onGoHome
 }: {
   onClose: () => void;
   onOpen: (slug: string) => void;
+  // Arrived from the main site (back stack exists) — top-left back button.
+  // Deep-linked instead — a MAIN SITE button in the hero points home.
+  fromMain: boolean;
+  onGoHome: () => void;
 }) {
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const deck = getDeck();
@@ -47,14 +53,18 @@ export default function BlogIndexScene({
         data-blog-hero
         className="relative flex h-screen h-dvh flex-col items-center justify-center px-[clamp(16px,4vw,40px)] text-center"
       >
-        {/* top bar: back to the main site */}
-        <button
-          onClick={onClose}
-          className="group absolute left-[clamp(16px,4vw,40px)] top-[clamp(24px,4vh,48px)] inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.2em] text-[#5a564d] transition-colors hover:text-[#141414]"
-        >
-          <span aria-hidden className="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
-          JOURNAL
-        </button>
+        {/* top bar: back to the main site (only when arrived from it — a
+            deep-linked visit has no back stack, so the hero carries a MAIN
+            SITE button instead) */}
+        {fromMain && (
+          <button
+            onClick={onClose}
+            className="group absolute left-[clamp(16px,4vw,40px)] top-[clamp(24px,4vh,48px)] inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.2em] text-[#5a564d] transition-colors hover:text-[#141414]"
+          >
+            <span aria-hidden className="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
+            JOURNAL
+          </button>
+        )}
 
         <p data-blog-in className="text-[11px] font-semibold tracking-[0.4em] text-[#9a968b]">
           EVERVERDANTS
@@ -71,6 +81,18 @@ export default function BlogIndexScene({
         >
           {journal.cover.subtitle}
         </p>
+
+        {/* deep-linked visit: no back stack, so point to the main site */}
+        {!fromMain && (
+          <button
+            onClick={onGoHome}
+            data-blog-in
+            className="group mt-[clamp(40px,7vh,60px)] inline-flex items-center gap-2.5 rounded-full border border-[#c9c6bd] px-[clamp(18px,2.4vw,28px)] py-[clamp(9px,1.4vh,14px)] text-[11px] font-medium tracking-[0.28em] text-[#5a564d] transition-colors hover:border-[#0e7a86] hover:text-[#0e7a86]"
+          >
+            VISIT THE MAIN SITE
+            <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1">↗</span>
+          </button>
+        )}
 
         {/* scroll hint — fades out as the hero leaves the first viewport */}
         <div

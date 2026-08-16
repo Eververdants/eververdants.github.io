@@ -109,6 +109,34 @@ export default function App() {
     }, 300);
   }, [resetToBlog]);
 
+  /* Jump to the main site root. Used by the hero's MAIN SITE button when the
+     sub-site was deep-linked (no back stack to pop) — lands on the hero
+     instead of the journal deck. */
+  const goHome = useCallback(() => {
+    if (!blogIndexRef.current) return;
+    setTransitioning(true);
+    setTimeout(() => {
+      articleRef.current = null;
+      blogIndexRef.current = false;
+      flushSync(() => {
+        setArticle(null);
+        setBlogIndex(false);
+      });
+      history.replaceState(null, "", "/");
+      const h = handleRef.current;
+      if (h?.lenis) {
+        h.lenis.resize();
+        h.lenis.scrollTo(0, { immediate: true });
+      } else {
+        window.scrollTo(0, 0);
+      }
+      measureRef.current();
+      setTimeout(() => ScrollTrigger.refresh(), 80);
+      setTimeout(() => ScrollTrigger.refresh(), 320);
+      setTimeout(() => setTransitioning(false), 550);
+    }, 300);
+  }, []);
+
   /* Smooth-scroll a heading into view (article TOC uses this). */
   const scrollTo = useCallback((y: number) => {
     const h = handleRef.current;
@@ -340,7 +368,12 @@ export default function App() {
           <BlogScene onOpen={openArticle} onOpenBlog={openBlogIndex} />
         </div>
         {!article && blogIndex && (
-          <BlogIndexScene onClose={closeBlogIndex} onOpen={openArticle} />
+          <BlogIndexScene
+            onClose={closeBlogIndex}
+            onOpen={openArticle}
+            fromMain={!!((history.state as { __blogIndex?: boolean } | null)?.__blogIndex)}
+            onGoHome={goHome}
+          />
         )}
         {article && (
           <ArticleScene slug={article} onClose={closeArticle} onOpen={openArticle} scrollTo={scrollTo} />
