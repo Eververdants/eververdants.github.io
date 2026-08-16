@@ -25,22 +25,6 @@ const BLOG_INDEX = "/blog";
 const getArticleSlug = (p: string) =>
   p.startsWith(ARTICLE + "/") ? decodeURIComponent(p.slice(ARTICLE.length + 1)) : null;
 
-/* The sub-site hides the main site (display:none), so the works' lazy images
-   never load — and Chrome won't re-evaluate them once the main site comes
-   back, leaving SELECTED WORKS blank after a deep-link → main-site jump.
-   Re-assert src on the unloaded shots so they fetch. */
-function forceUnloadedLazyImages() {
-  document.querySelectorAll<HTMLImageElement>("main img[loading='lazy']").forEach((img) => {
-    if (!img.complete || img.naturalWidth === 0) {
-      // Eager first, else the re-set src would just be deferred as lazy again.
-      img.loading = "eager";
-      const src = img.getAttribute("src");
-      img.src = ""; // clear first — assigning the same src back is a no-op
-      if (src) img.src = src;
-    }
-  });
-}
-
 export default function App() {
   // Initial article read straight from the URL so a deep link to an essay
   // never flashes the deck first. Only known slugs open an article — an
@@ -77,7 +61,6 @@ export default function App() {
       setArticle(null);
       setBlogIndex(false);
     });
-    forceUnloadedLazyImages();
     const sec = document.querySelector<HTMLElement>("[data-blog]");
     const y = sec ? sec.getBoundingClientRect().top + window.scrollY : 0;
     const h = handleRef.current;
@@ -139,7 +122,6 @@ export default function App() {
         setArticle(null);
         setBlogIndex(false);
       });
-      forceUnloadedLazyImages();
       history.replaceState(null, "", "/");
       const h = handleRef.current;
       if (h?.lenis) {
