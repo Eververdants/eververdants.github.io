@@ -1,6 +1,9 @@
 /* Portfolio content for the third screen (SELECTED WORKS — the finale).
    Keep copy here, layout in PortfolioScene.tsx, so editing text never
-   touches markup. */
+   touches markup.
+
+   License: the photographs (works.photos, files under public/assets) are
+   All Rights Reserved (see LICENSE-PHOTOS.md). Code is MIT (see LICENSE). */
 
 export interface Project {
   name: string;

@@ -1,7 +1,10 @@
 /* Journal content for the fourth screen (SELECTED BLOG — the journal).
    Keep copy here, layout in BlogScene.tsx, so editing text never touches
    markup. \n in a title is an explicit editorial break for the giant
-   display line. */
+   display line.
+
+   License: the articles below are CC BY-NC-SA 4.0 (see LICENSE-BLOG.md).
+   Code around them is MIT (see LICENSE). */
 
 export interface JournalPost {
   // \n = explicit editorial line break for the giant display line.
