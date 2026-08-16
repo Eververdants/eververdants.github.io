@@ -412,3 +412,19 @@ html::-webkit-scrollbar {
     display: none;
   }
 }
+
+/* Blog sub-site hero: same pre-JS anti-flash trick for the mount entrance,
+   and the scroll hint hides entirely under reduced motion. */
+[data-blog-in] {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-blog-in] {
+    opacity: 1;
+  }
+
+  [data-blog-hint] {
+    display: none;
+  }
+}

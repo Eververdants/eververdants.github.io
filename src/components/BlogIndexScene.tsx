@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { journal } from "../data/journal";
 import { getDeck } from "../data/articles";
+import { initBlogIndex } from "../effects/animations/blogIndex";
 
-/* Blog sub-site — a simple index at /blog where the full list of essays can
-   be browsed and filtered by tag. Deliberately functional (light page, list
-   rows, tag chips) against the main site's cinematic selected-blog. The
+/* Blog sub-site — the full essay list at /blog, browsable and filterable by
+   tag. Opens with a full-screen hero on the milk-white grid (centered BLOG
+   masthead with a mount entrance), then scrolls into the functional list.
+   Deliberately light against the main site's cinematic selected-blog. The
    curated deck on the main site links here via VISIT THE BLOG. */
 
 export default function BlogIndexScene({
@@ -18,11 +20,21 @@ export default function BlogIndexScene({
   const deck = getDeck();
   const allTags = Array.from(new Set(deck.flatMap((p) => p.tags)));
   const shown = activeTag ? deck.filter((p) => p.tags.includes(activeTag)) : deck;
+  const rootRef = useRef<HTMLElement>(null);
+
+  /* The hero's entrance + scroll-hint exit are owned here, not the global
+     coordinator: this scene mounts after App init, so initGsap already ran
+     for the main site. Scoped to this section, reverted on unmount. */
+  useEffect(() => {
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (rootRef.current) return initBlogIndex(rootRef.current, prefersReduced);
+  }, []);
 
   return (
     <section
+      ref={rootRef}
       data-article
-      className="relative z-[1] min-h-screen"
+      className="relative z-[1]"
       style={{
         backgroundColor: "#f7f5ef",
         backgroundImage:
@@ -30,29 +42,55 @@ export default function BlogIndexScene({
         backgroundSize: "28px 28px"
       }}
     >
-      <div className="mx-auto max-w-[860px] px-[clamp(16px,4vw,40px)] pb-[clamp(80px,14vh,160px)] pt-[clamp(24px,4vh,48px)]">
+      {/* ---- hero: full-screen, centered, milk-white grid ---- */}
+      <div
+        data-blog-hero
+        className="relative flex h-screen h-dvh flex-col items-center justify-center px-[clamp(16px,4vw,40px)] text-center"
+      >
         {/* top bar: back to the main site */}
         <button
           onClick={onClose}
-          className="group inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.2em] text-[#5a564d] transition-colors hover:text-[#141414]"
+          className="group absolute left-[clamp(16px,4vw,40px)] top-[clamp(24px,4vh,48px)] inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.2em] text-[#5a564d] transition-colors hover:text-[#141414]"
         >
           <span aria-hidden className="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
           JOURNAL
         </button>
 
-        {/* header */}
-        <header className="mt-[clamp(48px,8vh,88px)]">
-          <p className="text-[11px] font-semibold tracking-[0.4em] text-[#9a968b]">ALL ESSAYS</p>
-          <h1 className="mt-[clamp(16px,3vh,32px)] font-sans text-[clamp(32px,4.5vw,60px)] font-bold leading-[1.05] tracking-[-0.02em] text-[#141414]">
-            BLOG
-          </h1>
-          <p className="mt-[clamp(20px,3.5vh,36px)] max-w-[52ch] text-[clamp(14px,1.3vw,16px)] leading-[1.8] text-[#5a564d]">
-            {journal.cover.subtitle}
-          </p>
-        </header>
+        <p data-blog-in className="text-[11px] font-semibold tracking-[0.4em] text-[#9a968b]">
+          EVERVERDANTS
+        </p>
+        <h1
+          data-blog-in
+          className="mt-[clamp(16px,3vh,28px)] font-sans text-[clamp(48px,7vw,80px)] font-bold leading-[1.05] tracking-[-0.02em] text-[#141414]"
+        >
+          BLOG
+        </h1>
+        <p
+          data-blog-in
+          className="mt-[clamp(20px,3.5vh,32px)] text-[clamp(14px,1.3vw,16px)] leading-[1.8] text-[#5a564d]"
+        >
+          {journal.cover.subtitle}
+        </p>
 
+        {/* scroll hint — fades out as the hero leaves the first viewport */}
+        <div
+          data-blog-hint
+          className="absolute bottom-[clamp(22px,4.5vh,40px)] left-1/2 flex -translate-x-1/2 flex-col items-center gap-3"
+          aria-hidden="true"
+        >
+          <span className="text-[10px] tracking-[0.42em] indent-[0.42em] text-[#8a867c]">
+            SCROLL
+          </span>
+          <span className="relative h-[46px] w-px overflow-hidden bg-[#ddd9cf]">
+            <span className="absolute left-0 top-0 h-0 w-full animate-scroll-fill bg-[#0e7a86]" />
+          </span>
+        </div>
+      </div>
+
+      {/* ---- below the fold: filter + list + footer ---- */}
+      <div className="mx-auto max-w-[860px] px-[clamp(16px,4vw,40px)] pb-[clamp(80px,14vh,160px)]">
         {/* tag filter */}
-        <div className="mt-[clamp(36px,6vh,60px)] flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setActiveTag(null)}
             className={`rounded-full border px-4 py-1.5 text-[10px] font-medium tracking-[0.2em] transition-colors ${
