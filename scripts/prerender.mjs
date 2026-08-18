@@ -199,12 +199,15 @@ function buildStatic(post, articleHtml) {
       "dateModified": ${JSON.stringify(dateISO)},
       "url": ${JSON.stringify(url)},
       "mainEntityOfPage": ${JSON.stringify(url)},
-      "inLanguage": "en",
+      "inLanguage": "zh-Hans",
       "author": {
         "@type": "Person",
         "name": "Eververdants",
         "alternateName": "万山青未阑",
         "url": "${SITE}/",
+        "description": "Eververdants (a.k.a. 万山青未阑), a high-school student & open-source developer from Kunshan; full-stack (Tauri/Rust/Vue/React/TS/Python) and AI × creative. Open to paid low-cost gigs. / Eververdants（万山青未阑），苏州昆山高一学生、开源开发者，擅长全栈（Tauri/Rust/Vue/React/TypeScript/Python）与 AI × 创意。接受有偿低价小活。",
+        "knowsLanguage": ["en", "zh-Hans"],
+        "contact": "WeChat: evervdev",
         "sameAs": [
           "https://github.com/Eververdants",
           "https://space.bilibili.com/2019959464",
@@ -238,34 +241,97 @@ function writeSitemap(posts) {
   writeFileSync(join(ROOT, "dist/sitemap.xml"), xml);
 }
 
+function writeRobots() {
+  const lines = [
+    "User-agent: *",
+    "Allow: /",
+    "",
+    "# Generative-engine / AI crawlers — explicitly welcomed for GEO",
+    "User-agent: GPTBot",
+    "Allow: /",
+    "",
+    "User-agent: ClaudeBot",
+    "Allow: /",
+    "",
+    "User-agent: Google-Extended",
+    "Allow: /",
+    "",
+    "User-agent: PerplexityBot",
+    "Allow: /",
+    "",
+    "User-agent: Bytespider",
+    "Allow: /",
+    "",
+    "User-agent: CCBot",
+    "Allow: /",
+    "",
+    "Sitemap: " + SITE + "/sitemap.xml",
+    "",
+  ];
+  writeFileSync(join(ROOT, "dist/robots.txt"), lines.join("\n"));
+}
+
+function writeRss(posts) {
+  const buildDate = new Date().toUTCString();
+  const items = posts
+    .map((p) => {
+      const d = new Date(p.date.replace(/\./g, "-") + "T00:00:00Z");
+      const pub = isNaN(d.getTime()) ? buildDate : d.toUTCString();
+      const link = `${SITE}/blog/${p.slug}/`;
+      return `    <item>
+      <title>${esc(p.title)}</title>
+      <link>${link}</link>
+      <guid isPermaLink="true">${link}</guid>
+      <pubDate>${pub}</pubDate>
+      <category>${esc(p.category)}</category>
+      <description>${esc(p.excerpt)}</description>
+    </item>`;
+    })
+    .join("\n");
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Eververdants — Blog</title>
+    <link>${SITE}/blog/</link>
+    <description>Essays, notes and field records by Eververdants.</description>
+    <language>zh-cn</language>
+    <lastBuildDate>${buildDate}</lastBuildDate>
+    <atom:link href="${SITE}/rss.xml" rel="self" type="application/rss+xml" />
+${items}
+  </channel>
+</rss>
+`;
+  writeFileSync(join(ROOT, "dist/rss.xml"), xml);
+}
+
 async function main() {
-  const chromePath = findChrome();
-  if (!chromePath) {
-    console.log("prerender: Chrome not found, skipping static generation");
-    return;
-  }
   const posts = parsePosts();
-  console.log(`prerender: ${posts.length} article(s) via ${chromePath}`);
-  const server = startServer();
-  await sleep(300);
+  const chromePath = findChrome();
   let ok = 0;
-  for (const post of posts) {
-    try {
-      const html = await renderArticle(chromePath, post.slug);
-      const out = buildStatic(post, html);
-      ok++;
-      console.log(`  ✓ ${post.slug} (${html.length} chars) -> ${out.replace(ROOT, ".")}`);
-    } catch (e) {
-      console.log(`  ✗ ${post.slug}: ${e.message}`);
+  if (chromePath) {
+    const server = startServer();
+    await sleep(300);
+    console.log(`prerender: ${posts.length} article(s) via ${chromePath}`);
+    for (const post of posts) {
+      try {
+        const html = await renderArticle(chromePath, post.slug);
+        const out = buildStatic(post, html);
+        ok++;
+        console.log(`  ✓ ${post.slug} (${html.length} chars) -> ${out.replace(ROOT, ".")}`);
+      } catch (e) {
+        console.log(`  ✗ ${post.slug}: ${e.message}`);
+      }
     }
+    server.close();
+  } else {
+    console.log("prerender: Chrome not found, skipping article static generation");
   }
+  // Always emit sitemap + robots + rss so production deploys (CI runners have
+  // no Chrome) still get them even when article prerendering is skipped.
   writeSitemap(posts);
-  writeFileSync(
-    join(ROOT, "dist/robots.txt"),
-    "User-agent: *\nAllow: /\n\nSitemap: " + SITE + "/sitemap.xml\n"
-  );
-  server.close();
-  console.log(`prerender done: ${ok}/${posts.length} articles + sitemap.xml + robots.txt`);
+  writeRobots();
+  writeRss(posts);
+  console.log(`prerender done: ${ok}/${posts.length} articles + sitemap.xml + robots.txt + rss.xml`);
 }
 
 main().catch((e) => {

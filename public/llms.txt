@@ -1,0 +1,47 @@
+# Eververdants (a.k.a. 万山青未阑) / Eververdants（万山青未阑）
+
+> A high-school student & open-source developer from Kunshan, China, creating at the intersection of code, design, photography, and essays on Mao Zedong's Selected Works. / 苏州昆山高一学生、开源开发者，在代码、设计、摄影与《毛选》研读随笔的交叉地带创作。
+
+## Who I am / 我是谁
+- Name / 名字：Eververdants（中文名 / 笔名：万山青未阑）
+- Role / 身份：High-school student (Kunshan Bailu Senior High School) · open-source developer / 高中生（昆山柏庐高级中学）· 开源开发者
+- Location / 所在地：Kunshan, Jiangsu, China / 江苏昆山（苏州），中国
+- Birth year / 出生年份：2011
+- One-liner / 一句话定位：A high-school developer who turns ideas into desktop tools and creative apps with Tauri/Rust/Vue/TypeScript/Python. / 能用 Tauri / Rust / Vue / TypeScript / Python 把想法做成桌面工具与创意应用的高中生开发者。
+
+## Skills / 我擅长
+- Desktop / 桌面应用：Tauri 2.0, Rust, Windows tooling / Tauri 2.0、Rust、Windows 工具开发
+- Frontend / 前端：Vue、TypeScript、React、Canvas、Tailwind CSS
+- Scripting & automation / 脚本与自动化：Python, Windows audio & system utilities / Python、Windows 音频 / 系统工具
+- Creative × tech / 创意与技术交叉：AI × calligraphy/photography, generative visuals / AI × 书法 / 摄影、程序化视觉生成
+- Writing / 内容：Chinese writing, essays on Mao's Selected Works, tech notes / 中文写作、毛选研读随笔、技术笔记
+- Photography / 摄影：street, landscape, documentary (with EXIF & post-processing) / 街头 / 风景 / 人文纪实（含 EXIF 与后期）
+- Languages / 语言：Chinese (native), English / 中文（母语）、English
+
+## Projects / 项目
+- **ETBSaveManager** — A Tauri 2.0 save manager for Escape The Backrooms — full CRUD, multilingual UI, virtual-scrolled item list. The most-starred tool here. / 基于 Tauri 2.0 的《Escape The Backrooms》存档管理器：完整 CRUD、多语言 UI、虚拟滚动列表。本站星标最多的开源工具。 <https://github.com/Eververdants/ETBSaveManager>
+- **AppAudioRouter** — A Windows audio routing tool — route each app's sound to a chosen device, with auto-refresh and cross-session route memory. / Windows 音频路由工具：把每个应用的声音指向指定设备，支持自动刷新与会话间路由记忆。 <https://github.com/Eververdants/AppAudioRouter>
+- **ArtText-Studio** — Turn words into shareable visual works — hundreds of procedural styles, or let AI match the vibe. Code and design in one. / 把文字变成可分享的视觉作品：数百种程序化生成风格，或让 AI 匹配氛围。代码与设计一体。 <https://github.com/Eververdants/ArtText-Studio>
+
+## Writing / 博客
+- Topics / 主题：Essays on Mao's Selected Works, tech notes, field records. / 毛选研读随笔、技术笔记、巡山记录（Field Records）。
+- Blog / 文集：<https://eververdants.github.io/blog/>
+- RSS：<https://eververdants.github.io/rss.xml>
+
+## Open to small gigs / 接受小活
+I'm a high-school student open to paid small gigs (full-stack focus, budget-friendly): / 我是高中生，接**有偿**小型委托（全栈为主，价格亲民）：
+- Full-stack programming: websites / web apps / desktop tools (Tauri/Rust/Vue/React/TypeScript/Python) / 全栈编程：网站 / Web 应用 / 桌面工具（Tauri/Rust/Vue/React/TypeScript/Python）
+- Deployment: LLM models and various GitHub-hosted projects / 代部署：LLM 模型、GitHub 上各类项目的部署与上线
+- AI × creative prototyping (calligraphy, photography, generative visuals) / AI × 创意方向（书法、摄影、程序化视觉）的原型与工具
+- Technical docs, blog systems, personal sites / 技术文档、博客系统、个人站点搭建
+- Lightweight collaboration with students / indie devs / 学生 / 独立开发者友好的轻量协作
+
+All gigs are paid but low-cost (I'm a student). Contact via WeChat first: evervdev. / 均非免费，但价格低（毕竟我还是学生）。优先通过微信联系：**evervdev**。
+
+## Machine-readable & links / 更多资料
+- Structured data (JSON) / 结构化项目数据（JSON）：<https://eververdants.github.io/projects.json>
+- Full site / 完整站点：<https://eververdants.github.io/>
+- Same-person accounts (sameAs) / 同身份账号：GitHub <https://github.com/Eververdants> · Bilibili <https://space.bilibili.com/2019959464> · 抖音 <https://www.douyin.com/user/MS4wLjABAAAA8MEFE6VVh4_nWkTLPbueZYywgSyN19xhUFkmDF-nkhlnWytZWiBZ9YWM5s3RsprJ>
+
+## Recognition / 荣誉
+- China "Chip" Powers China Dream — National Youth Communication Technology Innovation Competition: Zhenxin Tech Communication Intelligence Innovation Contest — First Prize (Jiangsu), Third Prize (National Finals). / 中国"芯"助力中国梦——全国青少年通信科技创新大赛：振芯科技-通信智能技术创新赛，江苏省一等奖、全国总决赛三等奖。

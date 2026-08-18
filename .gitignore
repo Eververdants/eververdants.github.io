@@ -9,4 +9,7 @@ dist/
 .DS_Store
 Thumbs.db
 
+# 临时生成产物（OG 卡的本地渲染中间文件，非站点源）
+.oggen/
+
 .workbuddy

@@ -131,11 +131,17 @@ function Awards() {
       </div>
 
       <div className="relative z-[2] mt-[clamp(80px,16vh,200px)] pb-[clamp(180px,28vh,380px)]">
-        {/* act 1 — title card: contest name, three giant lines (2/2/2).
-            Min is 28px not 38px so "Communication Technology" holds its
-            line down to ~390px; below that the long lines wrap into a
-            dense wall, which is exactly the stuffiness this redesign
-            removes. Optical sizing keeps desktop narrow and clean. */}
+        {/* act 1 — title card. Hierarchy, not a wall of text:
+           campaign (national umbrella) → thin rule + tracked kicker,
+           then the competition name as the giant hero, then the track
+           as a muted subtitle. Min clamp 25px keeps "Communication
+           Technology" on one line down to ~390px before it wraps. */}
+        {award.campaign && (
+          <p className="mb-[clamp(22px,4vh,44px)] flex items-center gap-[clamp(12px,2vw,20px)] text-[clamp(11px,1.4vw,15px)] tracking-[0.34em] uppercase text-white/45">
+            <span className="inline-block h-px w-[clamp(28px,5vw,72px)] bg-white/30" />
+            {award.campaign}
+          </p>
+        )}
         <div className="line-mask">
           {award.contest.split("\n").map((line) => (
             <span
@@ -209,26 +215,97 @@ function FocusMarquee() {
   );
 }
 
-/* ---- Act 4 — CONTACT: giant gradient handle as the close ---- */
+/* ---- Act 4 — CONTACT: cinematic close. Sticky "02" + CONTACT curtain
+   (mirrors Awards' "01"), content scrolls over it: a giant closing line,
+   a one-line caption, then a contact ledger — labeled rows with hairline
+   rules and per-row curtain wipes, WeChat flagged PREFERRED in the site
+   accent. Ends on a quiet copyright line. ---- */
 
 function Contact() {
   return (
-    <div className="relative flex min-h-[100vh] min-h-dvh flex-col items-center justify-center pb-[clamp(120px,20vh,240px)] pt-[clamp(60px,10vh,120px)] text-center">
-      <p className="text-[11px] tracking-[0.45em] text-white/30">CONTACT</p>
-      <p className="mt-[clamp(24px,5vh,56px)] max-w-[660px] font-fraunces text-[clamp(20px,3vw,40px)] leading-[1.3] text-white/75">
-        {resume.about}
-      </p>
-      <a
-        href={resume.contact.href}
-        target="_blank"
-        rel="noreferrer"
-        className="text-grad mt-[clamp(40px,8vh,96px)] font-fraunces font-medium leading-none tracking-[-0.02em] transition-opacity hover:opacity-75 text-[clamp(44px,9vw,132px)]"
-      >
-        @{resume.contact.handle}
-      </a>
-      <p className="mt-[clamp(22px,4vh,44px)] text-[13px] text-[#8e8e8e]">
-        {resume.contact.label} <span aria-hidden>↗</span>
-      </p>
+    <div className="relative pt-[clamp(120px,20vh,240px)]" data-act>
+      {/* Sticky chapter curtain — parallels Awards' "01" + AWARDS kicker. */}
+      <div className="sticky top-[10vh] z-[1]">
+        <h3 className="sr-only">Contact</h3>
+        <p
+          className={`${giant} no-rv font-light italic text-[clamp(90px,20vw,320px)]`}
+          data-wipe
+        >
+          02
+        </p>
+        <p className="no-rv mt-1 text-[11px] tracking-[0.42em] text-white/30">
+          CONTACT
+        </p>
+      </div>
+
+      <div className="relative z-[2] mt-[clamp(80px,16vh,200px)] pb-[clamp(120px,20vh,260px)]">
+        {/* Closing line — giant Fraunces, line-mask reveal. */}
+        <div className="line-mask">
+          {["LET'S", "TALK"].map((line) => (
+            <span
+              key={line}
+              className="block font-fraunces font-medium leading-[0.95] tracking-[-0.02em] text-white text-[clamp(56px,13vw,184px)]"
+            >
+              {line}
+            </span>
+          ))}
+        </div>
+
+        {/* One-line caption, not a paragraph wall. */}
+        <p className="mt-[clamp(28px,5vh,56px)] max-w-[560px] text-[clamp(14px,1.6vw,18px)] leading-[1.6] tracking-[0.01em] text-[#8e8e8e]">
+          Open to freelance — full-stack builds &amp; LLM / GitHub deployments,
+          low-cost student rate.
+        </p>
+
+        {/* Contact ledger: labeled rows, hairline rules, curtain wipes. */}
+        <ul className="mt-[clamp(56px,11vh,130px)]">
+          {resume.contact.wechat && (
+            <li
+              className="no-rv border-t border-white/10 py-[clamp(34px,6.5vh,68px)]"
+              data-row-wipe
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-x-[clamp(16px,3vw,40px)] gap-y-3">
+                <span className="flex items-center gap-[clamp(10px,1.6vw,18px)] text-[11px] tracking-[0.34em] text-white/30">
+                  WECHAT
+                  <span className="rounded-full border border-[#10AEC2]/45 px-2 py-[3px] text-[10px] tracking-[0.2em] text-[#10AEC2]">
+                    PREFERRED
+                  </span>
+                </span>
+                <span className="text-grad font-fraunces font-medium leading-none tracking-[-0.02em] text-[clamp(30px,5.6vw,76px)]">
+                  {resume.contact.wechat}
+                </span>
+              </div>
+            </li>
+          )}
+
+          <li
+            className="no-rv border-t border-white/10 py-[clamp(34px,6.5vh,68px)]"
+            data-row-wipe
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-x-[clamp(16px,3vw,40px)] gap-y-3">
+              <span className="text-[11px] tracking-[0.34em] text-white/30">
+                GITHUB
+              </span>
+              <a
+                href={resume.contact.href}
+                target="_blank"
+                rel="noreferrer"
+                className="group inline-flex items-baseline gap-[clamp(8px,1.2vw,14px)] font-fraunces font-medium leading-none tracking-[-0.01em] text-white/80 transition-opacity hover:opacity-70 text-[clamp(30px,5.6vw,76px)]"
+              >
+                <span>@{resume.contact.handle}</span>
+                <span aria-hidden className="text-white/40 text-[0.5em]">↗</span>
+              </a>
+            </div>
+          </li>
+
+          <li className="border-t border-white/10" aria-hidden />
+        </ul>
+
+        {/* Quiet close. */}
+        <p className="no-rv mt-[clamp(44px,8vh,88px)] text-[11px] tracking-[0.32em] text-white/20">
+          © EVERVERDANTS · {new Date().getFullYear()}
+        </p>
+      </div>
     </div>
   );
 }

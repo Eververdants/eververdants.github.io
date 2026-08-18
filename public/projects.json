@@ -1,0 +1,95 @@
+{
+  "person": {
+    "name": "Eververdants",
+    "alternateName": "万山青未阑",
+    "@type": "Person",
+    "role": "High-school student · Open-source developer",
+    "roleZh": "高中生 · 开源开发者",
+    "location": "Kunshan, Jiangsu, China",
+    "locationZh": "江苏昆山（苏州），中国",
+    "birthYear": 2011,
+    "school": "Kunshan Bailu Senior High School",
+    "schoolZh": "昆山市柏庐高级中学",
+    "url": "https://eververdants.github.io/",
+    "description": "Eververdants (a.k.a. 万山青未阑), a high-school student & open-source developer from Kunshan, Jiangsu. Full-stack (Tauri/Rust/Vue/React/TypeScript/Python), AI × calligraphy/photography, essays on Mao's Selected Works. Open to paid low-cost gigs (full-stack, LLM & GitHub-project deployment). / Eververdants（万山青未阑），苏州昆山高一学生、开源开发者。擅长全栈（Tauri/Rust/Vue/React/TypeScript/Python）、AI × 书法摄影、毛选研读随笔。接受有偿低价小活（全栈 / 代部署 LLM 与 GitHub 项目）。",
+    "sameAs": [
+      "https://github.com/Eververdants",
+      "https://space.bilibili.com/2019959464",
+      "https://www.douyin.com/user/MS4wLjABAAAA8MEFE6VVh4_nWkTLPbueZYywgSyN19xhUFkmDF-nkhlnWytZWiBZ9YWM5s3RsprJ"
+    ],
+    "skills": [
+      "Tauri",
+      "Rust",
+      "Vue",
+      "TypeScript",
+      "React",
+      "Python",
+      "Windows tooling",
+      "Canvas",
+      "Tailwind CSS",
+      "AI × creative",
+      "Photography",
+      "Chinese calligraphy",
+      "Chinese writing"
+    ],
+    "languages": ["en", "zh-Hans"],
+    "awards": [
+      {
+        "contest": "China \"Chip\" Powers China Dream — National Youth Communication Technology Innovation Competition (中国“芯”助力中国梦——全国青少年通信科技创新大赛)",
+        "event": "Zhenxin Tech · Communication Intelligence Innovation Contest (振芯科技-通信智能技术创新赛)",
+        "tier": "First Prize",
+        "tierZh": "一等奖",
+        "scope": "Jiangsu Provincial",
+        "scopeZh": "江苏省"
+      },
+      {
+        "contest": "China \"Chip\" Powers China Dream — National Youth Communication Technology Innovation Competition (中国“芯”助力中国梦——全国青少年通信科技创新大赛)",
+        "event": "Zhenxin Tech · Communication Intelligence Innovation Contest (振芯科技-通信智能技术创新赛)",
+        "tier": "Third Prize",
+        "tierZh": "三等奖",
+        "scope": "National Finals",
+        "scopeZh": "全国总决赛"
+      }
+    ],
+    "openToGigs": true,
+    "gigInterests": [
+      "Full-stack programming — websites / web apps / desktop tools (Tauri, Rust, Vue, React, TypeScript, Python). 全栈编程：网站 / Web 应用 / 桌面工具（Tauri/Rust/Vue/React/TypeScript/Python）",
+      "Deployment — LLM models and various GitHub-hosted projects. 代部署：LLM 模型、GitHub 上各类项目的部署与上线。",
+      "AI × creative tooling (calligraphy, photography, generative visuals). AI × 创意方向（书法、摄影、程序化视觉）的原型与工具。",
+      "Technical docs, blog systems, personal sites. 技术文档、博客系统、个人站点搭建。",
+      "Lightweight collaboration with students / indie devs. 学生 / 独立开发者友好的轻量协作。"
+    ],
+    "paid": "All gigs are paid but low-cost (student rates). 均非免费，但价格低（学生价）。",
+    "contact": "WeChat: evervdev",
+    "contactZh": "微信：evervdev",
+    "contactGitHub": "https://github.com/Eververdants"
+  },
+  "projects": [
+    {
+      "name": "ETBSaveManager",
+      "description": "A Tauri 2.0 save manager for Escape The Backrooms — full CRUD, multilingual UI, virtual-scrolled item list. The most-starred tool here. / 基于 Tauri 2.0 的《Escape The Backrooms》存档管理器：完整 CRUD、多语言 UI、虚拟滚动列表，本站星标最多的开源工具",
+      "tags": ["Vue", "Tauri", "TypeScript"],
+      "url": "https://github.com/Eververdants/ETBSaveManager"
+    },
+    {
+      "name": "AppAudioRouter",
+      "description": "A Windows audio routing tool — point each application's sound at the device you want, with automatic refresh and route memory across sessions. / Windows 音频路由工具：把每个应用的声音指向指定设备，支持自动刷新与会话间路由记忆。",
+      "tags": ["Python", "Windows", "Audio"],
+      "url": "https://github.com/Eververdants/AppAudioRouter"
+    },
+    {
+      "name": "ArtText-Studio",
+      "description": "Turn words into shareable visual masterpieces — hundreds of procedurally generated styles, or let AI match the vibe. Code and design in one tool. / 把文字变成可分享的视觉作品：数百种程序化生成风格，或让 AI 匹配氛围，代码与设计一体。",
+      "tags": ["TypeScript", "Canvas", "Creative"],
+      "url": "https://github.com/Eververdants/ArtText-Studio"
+    }
+  ],
+  "blog": {
+    "url": "https://eververdants.github.io/blog/",
+    "rss": "https://eververdants.github.io/rss.xml",
+    "topics": [
+      "Mao Zedong's Selected Works essays / 毛选研读随笔",
+      "Technical notes / 技术笔记"
+    ]
+  }
+}
