@@ -17,19 +17,21 @@ export interface LandingHandle {
 }
 
 export function initLanding(): LandingHandle {
-  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const prefersReduced = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
   const disposers: Array<() => void> = [];
 
   const fluidDispose = initFluid(
     document.getElementById("bg-fluid") as HTMLCanvasElement,
     FLUID_PARAMS,
-    prefersReduced
+    prefersReduced,
   );
   if (fluidDispose) disposers.push(fluidDispose);
 
   const dotsDispose = initDots(
     document.getElementById("bg-dots") as HTMLCanvasElement,
-    prefersReduced
+    prefersReduced,
   );
   if (dotsDispose) disposers.push(dotsDispose);
 
@@ -43,7 +45,7 @@ export function initLanding(): LandingHandle {
   const barDispose = initScrollbar(
     document.getElementById("scrollbar") as HTMLElement,
     document.getElementById("scrollbar-thumb") as HTMLElement,
-    lenis
+    lenis,
   );
   let resizeScrollbar = () => {};
   if (barDispose) {
@@ -61,6 +63,6 @@ export function initLanding(): LandingHandle {
       for (let i = disposers.length - 1; i >= 0; i--) {
         disposers[i]();
       }
-    }
+    },
   };
 }

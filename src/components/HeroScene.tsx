@@ -10,7 +10,7 @@ export default function HeroScene() {
           // Inline: Lightning CSS dedups -webkit-backdrop-filter to one alias,
           // and Chrome needs the standard property for the blur to render.
           backdropFilter: "blur(26px) saturate(1.25)",
-          WebkitBackdropFilter: "blur(26px) saturate(1.25)"
+          WebkitBackdropFilter: "blur(26px) saturate(1.25)",
         }}
         aria-hidden="true"
         data-hero-glass

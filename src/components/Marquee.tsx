@@ -8,7 +8,7 @@ export default function Marquee({
   words,
   className,
   dataMarquee,
-  dataMarqueeReverse
+  dataMarqueeReverse,
 }: {
   words: string[];
   className?: string;
@@ -22,7 +22,10 @@ export default function Marquee({
           <span className="whitespace-nowrap px-[0.5em] font-fraunces leading-none">
             {word}
           </span>
-          <span aria-hidden className="text-[0.5em] leading-none text-[#10aec2]">
+          <span
+            aria-hidden
+            className="text-[0.5em] leading-none text-[#10aec2]"
+          >
             ●
           </span>
         </Fragment>

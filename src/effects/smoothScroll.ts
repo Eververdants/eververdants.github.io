@@ -7,14 +7,17 @@ export interface SmoothScrollHandle {
   destroy: () => void;
 }
 
-export function initSmoothScroll(prefersReduced: boolean): SmoothScrollHandle | null {
+export function initSmoothScroll(
+  prefersReduced: boolean,
+): SmoothScrollHandle | null {
   if (prefersReduced) return null;
-  if (window.matchMedia("(hover: none), (pointer: coarse)").matches) return null;
+  if (window.matchMedia("(hover: none), (pointer: coarse)").matches)
+    return null;
 
   const lenis = new Lenis({
     lerp: 0.1,
     wheelMultiplier: 1,
-    smoothWheel: true
+    smoothWheel: true,
   });
 
   let rafId = 0;
@@ -29,6 +32,6 @@ export function initSmoothScroll(prefersReduced: boolean): SmoothScrollHandle | 
     destroy: function () {
       if (rafId) cancelAnimationFrame(rafId);
       lenis.destroy();
-    }
+    },
   };
 }

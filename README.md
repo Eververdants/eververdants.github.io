@@ -32,8 +32,8 @@ git push origin main
 
 本仓库为多许可证，不同内容类型适用不同许可：
 
-| 内容 | 位置 | 许可 |
-|------|------|------|
-| 代码（组件、效果、工具） | `src/` | [MIT](LICENSE) |
-| 摄影作品 | `public/assets/`（SELECTED WORKS 屏） | [All Rights Reserved](LICENSE-PHOTOS.md) |
-| 博客文章 | `src/data/journal.ts`（SELECTED BLOG 屏） | [CC BY-NC-SA 4.0](LICENSE-BLOG.md) |
+| 内容                     | 位置                                      | 许可                                     |
+| ------------------------ | ----------------------------------------- | ---------------------------------------- |
+| 代码（组件、效果、工具） | `src/`                                    | [MIT](LICENSE)                           |
+| 摄影作品                 | `public/assets/`（SELECTED WORKS 屏）     | [All Rights Reserved](LICENSE-PHOTOS.md) |
+| 博客文章                 | `src/data/journal.ts`（SELECTED BLOG 屏） | [CC BY-NC-SA 4.0](LICENSE-BLOG.md)       |

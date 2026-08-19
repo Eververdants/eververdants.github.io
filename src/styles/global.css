@@ -1,5 +1,86 @@
 @import "tailwindcss";
 
+/* ---- blog sub-site theme tokens ----
+   The blog's design language (米白 + warm gray grid + teal accent) as CSS
+   variables so the light/dark toggle is a single attribute flip. :root
+   carries the canonical light values (identical to the original hardcoded
+   palette); [data-theme="dark"] is the warm-dark inversion, set by
+   BlogPrefsProvider (and by an inline script in blog/index.html before
+   first paint to avoid a light flash). Components reference var(--x)
+   through Tailwind arbitrary values like text-[var(--ink)]. */
+:root,
+[data-theme="light"] {
+  /* surfaces */
+  --bg: #f7f5ef;
+  --grid: #e5e2d9;
+  --field: #f4f2ea;
+  --chip: #efece4;
+  --pre-bg: #f2f0ea;
+  --code-bg: #f0ede4;
+  --code-border: #e0dcd2;
+  /* ink — headline → body → muted → faint ladder */
+  --ink: #141414;
+  --ink-2: #2a2824;
+  --body: #333333;
+  --muted: #5a564d;
+  --muted-2: #6b675d;
+  --faint: #8a867c;
+  --fainter: #9a968b;
+  --faintest: #aaa59a;
+  /* borders */
+  --border: #ddd9cf;
+  --border-strong: #c9c6bd;
+  --border-soft: #d8d5cd;
+  --border-faint: #e2dfd6;
+  /* accent */
+  --accent: #0e7a86;
+  --accent-hover: #0a5f68;
+  /* reading progress */
+  --progress-track: rgba(0, 0, 0, 0.05);
+  --progress-fill: #000000;
+  /* custom scrollbar (article mode) */
+  --scrollbar-track: rgba(0, 0, 0, 0.04);
+  --scrollbar-border: rgba(0, 0, 0, 0.08);
+  --scrollbar-thumb: rgba(30, 28, 24, 0.38);
+  --scrollbar-thumb-hover: rgba(30, 28, 24, 0.6);
+}
+
+[data-theme="dark"] {
+  /* surfaces — warm dark ink, the inverse of the 米白 grid */
+  --bg: #161512;
+  --grid: #26241d;
+  --field: #1c1b17;
+  --chip: #201e19;
+  --pre-bg: #1a1915;
+  --code-bg: #1f1d18;
+  --code-border: #2b2922;
+  /* ink */
+  --ink: #eae7de;
+  --ink-2: #d8d4c8;
+  --body: #c3beb1;
+  --muted: #a39d8f;
+  --muted-2: #8f897b;
+  --faint: #837d70;
+  --fainter: #6e685c;
+  --faintest: #5c574d;
+  /* borders */
+  --border: #2b2922;
+  --border-strong: #3a372e;
+  --border-soft: #312e27;
+  --border-faint: #26241d;
+  /* accent — lifted for contrast on dark */
+  --accent: #3fb4c0;
+  --accent-hover: #5cc6d1;
+  /* reading progress */
+  --progress-track: rgba(255, 255, 255, 0.08);
+  --progress-fill: #eae7de;
+  /* custom scrollbar (article mode) */
+  --scrollbar-track: rgba(255, 255, 255, 0.04);
+  --scrollbar-border: rgba(255, 255, 255, 0.08);
+  --scrollbar-thumb: rgba(235, 232, 223, 0.35);
+  --scrollbar-thumb-hover: rgba(235, 232, 223, 0.6);
+}
+
 /* Self-hosted fonts (Google Fonts is unreachable from CN mobile networks).
    Inter + Fraunces are variable fonts: one file covers all weights. */
 @font-face {
@@ -87,17 +168,17 @@ html::-webkit-scrollbar {
    custom bar (dark thumb on 米白) and make the overscroll margin 米白 too.
    :has() matches while an essay is open. */
 :has([data-article]) #scrollbar {
-  background: rgba(0, 0, 0, 0.04);
-  border-left-color: rgba(0, 0, 0, 0.08);
+  background: var(--scrollbar-track);
+  border-left-color: var(--scrollbar-border);
   opacity: 1;
 }
 
 :has([data-article]) #scrollbar-thumb {
-  background: rgba(30, 28, 24, 0.38);
+  background: var(--scrollbar-thumb);
 }
 
 :has([data-article]) #scrollbar-thumb:hover {
-  background: rgba(30, 28, 24, 0.6);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Article TOC: a single teal rail indicator that slides to the active
@@ -109,7 +190,7 @@ html::-webkit-scrollbar {
   left: -15px;
   width: 2px;
   border-radius: 1px;
-  background: #0e7a86;
+  background: var(--accent);
   opacity: 1;
   transition:
     transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
@@ -118,7 +199,7 @@ html::-webkit-scrollbar {
 }
 
 :has([data-article]) body {
-  background: #f7f5ef;
+  background: var(--bg);
 }
 
 /* ---- resume big-type: structural utilities ----
@@ -168,8 +249,20 @@ html::-webkit-scrollbar {
 
 /* Marquee band: mask fades the edges; track is the GSAP-xPercent loop. */
 .marquee-mask {
-  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 12%,
+    #000 88%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 12%,
+    #000 88%,
+    transparent
+  );
 }
 
 .marquee-track {
@@ -244,9 +337,10 @@ html::-webkit-scrollbar {
      body.nav-loading BEFORE first paint, so the new site is covered from the
      very first frame (no flash); LoadingOverlay.tsx then fades it out. */
 .overlay-transition {
-  background-color: #f7f5ef;
-  background-image: linear-gradient(#e5e2d9 1px, transparent 1px),
-    linear-gradient(90deg, #e5e2d9 1px, transparent 1px);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
@@ -284,9 +378,10 @@ body.nav-loading::before {
   position: fixed;
   inset: 0;
   z-index: 70;
-  background-color: #f7f5ef;
-  background-image: linear-gradient(#e5e2d9 1px, transparent 1px),
-    linear-gradient(90deg, #e5e2d9 1px, transparent 1px);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
   background-size: 28px 28px;
   opacity: 1;
   transition: opacity 0.5s ease;
@@ -316,7 +411,7 @@ body.nav-loading.nav-reveal::before {
   font-family: var(--font-sans);
   font-size: clamp(16px, 1.15vw, 18px);
   line-height: 1.85;
-  color: #333;
+  color: var(--body);
 }
 
 .article-content > :first-child {
@@ -332,11 +427,11 @@ body.nav-loading.nav-reveal::before {
 .article-content h2 {
   margin: clamp(40px, 6vh, 64px) 0 clamp(16px, 2.5vh, 24px);
   padding-top: clamp(24px, 3.5vh, 36px);
-  border-top: 1px solid #d8d5cd;
+  border-top: 1px solid var(--border-soft);
   font-size: clamp(20px, 1.6vw, 26px);
   font-weight: 700;
   line-height: 1.3;
-  color: #141414;
+  color: var(--ink);
 }
 
 .article-content h3 {
@@ -344,20 +439,20 @@ body.nav-loading.nav-reveal::before {
   font-size: clamp(17px, 1.3vw, 20px);
   font-weight: 600;
   line-height: 1.4;
-  color: #141414;
+  color: var(--ink);
 }
 
 .article-content strong {
   font-weight: 600;
-  color: #111;
+  color: var(--ink);
 }
 
 .article-content blockquote {
   margin: 0 0 clamp(20px, 3.5vh, 36px);
   padding-left: clamp(16px, 2vw, 24px);
-  border-left: 3px solid #c9c6bd;
+  border-left: 3px solid var(--border-strong);
   font-style: italic;
-  color: #5a5a5a;
+  color: var(--muted);
 }
 
 .article-content blockquote p {
@@ -383,31 +478,31 @@ body.nav-loading.nav-reveal::before {
 }
 
 .article-content a {
-  color: #0e7a86;
+  color: var(--accent);
   text-decoration: underline;
-  text-decoration-color: rgba(14, 122, 134, 0.4);
+  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
   text-underline-offset: 3px;
 }
 
 .article-content a:hover {
-  color: #0a5f68;
+  color: var(--accent-hover);
 }
 
 .article-content code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.85em;
   color: #b45309;
-  background: #f0ede4;
+  background: var(--code-bg);
   padding: 0.12em 0.35em;
   border-radius: 4px;
-  border: 1px solid #e0dcd2;
+  border: 1px solid var(--code-border);
 }
 
 .article-content pre {
   margin: 0 0 clamp(24px, 4vh, 40px);
   padding: clamp(16px, 2.5vw, 28px);
-  background: #f2f0ea;
-  border: 1px solid #e2dfd6;
+  background: var(--pre-bg);
+  border: 1px solid var(--border-faint);
   border-radius: 10px;
   overflow-x: auto;
   font-size: clamp(13px, 0.95vw, 15px);
@@ -417,14 +512,14 @@ body.nav-loading.nav-reveal::before {
   background: none;
   border: none;
   padding: 0;
-  color: #2f2f2f;
+  color: var(--body);
 }
 
 .article-content hr {
   margin: clamp(36px, 6vh, 60px) 0;
   border: 0;
   height: 1px;
-  background: #d8d5cd;
+  background: var(--border-soft);
 }
 
 /* Hero mount entrance is hidden pre-JS (GSAP animates it to visible the

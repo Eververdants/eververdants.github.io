@@ -7,11 +7,11 @@ excerpt: Grown-ups love figures — but how do you measure a flower, a star, a s
 tags: [Literature, Reading Notes]
 ---
 
-Grown-ups love figures. — It is the sharpest cut in *The Little Prince*.
+Grown-ups love figures. — It is the sharpest cut in _The Little Prince_.
 
 Figures make us feel we have the world in our hands: age, weight, income, rank, follower count. But the Little Prince would ask: a flower, a star, a sheep — what figure do you measure them by?
 
-This is a reading note on *The Little Prince*, from chapter four to chapter seven, and through it all I see one line running: **how the grown-ups lose the world — and how we might keep our own.**
+This is a reading note on _The Little Prince_, from chapter four to chapter seven, and through it all I see one line running: **how the grown-ups lose the world — and how we might keep our own.**
 
 ## The Sickness: How the Grown-Ups Lose the World
 

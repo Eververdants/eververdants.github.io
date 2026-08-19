@@ -31,9 +31,9 @@ export function initHandscroll() {
      coarse-pointer fallback in global.css) — no horizontal track to drive,
      and sliding it would fight the vertical layout. */
   if (window.matchMedia("(hover: none), (pointer: coarse)").matches) {
-    gsap.utils.toArray<HTMLElement>("[data-hscroll]").forEach((sec) =>
-      sec.setAttribute("data-hscroll-done", "")
-    );
+    gsap.utils
+      .toArray<HTMLElement>("[data-hscroll]")
+      .forEach((sec) => sec.setAttribute("data-hscroll-done", ""));
     return;
   }
   gsap.utils.toArray<HTMLElement>("[data-hscroll]").forEach((section) => {
@@ -50,10 +50,10 @@ export function initHandscroll() {
     const cornerScroll = () => window.innerHeight * startFrac; // entry arc's vertical travel
     const exitScroll = () => window.innerHeight - cornerScroll(); // exit arc's vertical travel
     const cornerPx = () => Math.round(cornerScroll()); // entry arc radius (circular)
-    const exitPx = () => Math.round(exitScroll());     // exit arc radius
-    const room = () => dist() + window.innerHeight;    // scroll room = section height
-    const eIn = () => cornerScroll() / room();         // entry corner fraction
-    const eOut = () => exitScroll() / room();          // exit corner fraction
+    const exitPx = () => Math.round(exitScroll()); // exit arc radius
+    const room = () => dist() + window.innerHeight; // scroll room = section height
+    const eIn = () => cornerScroll() / room(); // entry corner fraction
+    const eOut = () => exitScroll() / room(); // exit corner fraction
 
     /* Map scroll progress 0..1 to the track's x. The two corners round the
        trajectory with sine easings (entry accelerates in, exit decelerates
@@ -70,7 +70,11 @@ export function initHandscroll() {
       } else if (p < linEnd) {
         x = -(c + d * ((p - linStart) / (linEnd - linStart)));
       } else {
-        x = -(c + d + ex * Math.sin((Math.PI / 2) * ((p - linEnd) / (1 - linEnd))));
+        x = -(
+          c +
+          d +
+          ex * Math.sin((Math.PI / 2) * ((p - linEnd) / (1 - linEnd)))
+        );
       }
       gsap.set(track, { x });
       // FocusBand relocation: while the track is mid-unroll the content moves
@@ -91,7 +95,7 @@ export function initHandscroll() {
       onRefresh: (self) => {
         section.style.height = room() + "px";
         setX(self.progress);
-      }
+      },
     });
     // Initial state (e.g. deep-link load mid-scroll): refresh fires on
     // creation, but set once for safety before the first paint settles.

@@ -12,7 +12,10 @@ const REVEAL_SELECTOR =
   "main :where(h1,h2,h3,p,li,img):not(.hero-content *):not(.no-rv):not([data-works] *):not([data-outro] *)";
 
 export function initUniversalReveal() {
-  gsap.set(REVEAL_SELECTOR, { autoAlpha: 0, y: () => window.innerHeight * 0.05 });
+  gsap.set(REVEAL_SELECTOR, {
+    autoAlpha: 0,
+    y: () => window.innerHeight * 0.05,
+  });
   ScrollTrigger.batch(REVEAL_SELECTOR, {
     // Fire just as the element peeks in from below the viewport (105% is a
     // hair off-screen), so the rise reads as entry — not mid-screen. A
@@ -20,6 +23,12 @@ export function initUniversalReveal() {
     start: "top 105%",
     once: true,
     onEnter: (batch) =>
-      gsap.to(batch, { autoAlpha: 1, y: 0, duration: 0.6, ease: "power2.out", overwrite: true })
+      gsap.to(batch, {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.6,
+        ease: "power2.out",
+        overwrite: true,
+      }),
   });
 }

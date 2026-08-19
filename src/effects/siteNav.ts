@@ -19,11 +19,14 @@ export function initSiteNavIntercept(): () => void {
     const a = el?.closest?.("a");
     const href = a?.getAttribute("href");
     if (!a || !href) return;
-    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
+      return;
     if (a.target && a.target !== "_self") return;
 
     const fromBlog = location.pathname.replace(/\/+$/, "").startsWith("/blog");
-    const cross = fromBlog ? href === "/" || href === "" : href.startsWith("/blog");
+    const cross = fromBlog
+      ? href === "/" || href === ""
+      : href.startsWith("/blog");
     if (!cross) return;
 
     e.preventDefault();

@@ -5,13 +5,15 @@ import type Lenis from "lenis";
 export function initScrollbar(
   bar: HTMLElement,
   thumb: HTMLElement,
-  lenis: Lenis | null
+  lenis: Lenis | null,
 ): { destroy: () => void; resize: () => void } | null {
   if (!bar || !thumb) return null;
 
   const doc = document.documentElement;
   let hidden = false;
-  const go = lenis ? (y: number) => lenis.scrollTo(y) : (y: number) => window.scrollTo(0, y);
+  const go = lenis
+    ? (y: number) => lenis.scrollTo(y)
+    : (y: number) => window.scrollTo(0, y);
 
   function size() {
     const sh = doc.scrollHeight - window.innerHeight;
@@ -25,7 +27,8 @@ export function initScrollbar(
       hidden = false;
     }
     const track = bar.clientHeight;
-    thumb.style.height = Math.max(24, (window.innerHeight / doc.scrollHeight) * track) + "px";
+    thumb.style.height =
+      Math.max(24, (window.innerHeight / doc.scrollHeight) * track) + "px";
   }
 
   function update() {
@@ -97,7 +100,8 @@ export function initScrollbar(
     const track = bar.clientHeight;
     const max = track - thumb.offsetHeight;
     const sh = doc.scrollHeight - window.innerHeight;
-    const top = e.clientY - bar.getBoundingClientRect().top - thumb.offsetHeight / 2;
+    const top =
+      e.clientY - bar.getBoundingClientRect().top - thumb.offsetHeight / 2;
     const clamped = Math.max(0, Math.min(max, top));
     thumb.style.top = clamped + "px";
     if (max > 0) go(sh * (clamped / max));
@@ -133,6 +137,6 @@ export function initScrollbar(
       if (fontsTimer !== undefined) clearTimeout(fontsTimer);
       if (bodyObserver) bodyObserver.disconnect();
     },
-    resize
+    resize,
   };
 }

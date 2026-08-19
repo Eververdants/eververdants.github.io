@@ -40,7 +40,11 @@ export default function BlogScene() {
   }, []);
 
   return (
-    <section ref={rootRef} className="relative z-[1] px-[clamp(16px,4vw,48px)]" data-blog>
+    <section
+      ref={rootRef}
+      className="relative z-[1] px-[clamp(16px,4vw,48px)]"
+      data-blog
+    >
       <Cover />
       <Deck deck={deck} />
       <Close />
@@ -64,7 +68,9 @@ function Cover() {
       </span>
 
       <div className="relative z-[1]">
-        <p className="text-[11px] tracking-[0.45em] text-white/35">{c.overline}</p>
+        <p className="text-[11px] tracking-[0.45em] text-white/35">
+          {c.overline}
+        </p>
         {/* JOURNAL as SVG text filled with a gradient. background-clip:text
             paints only the element's box, so Fraunces italic ink that
             overhangs the box renders transparent (a shaved letter) — that
@@ -81,7 +87,13 @@ function Cover() {
             data-cover-title
           >
             <defs>
-              <linearGradient id="journal-grad" x1="0%" y1="0%" x2="100%" y2="70%">
+              <linearGradient
+                id="journal-grad"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="70%"
+              >
                 <stop offset="0%" stopColor="#ffffff" />
                 <stop offset="55%" stopColor="#ffd9a8" />
                 <stop offset="100%" stopColor="#f9a633" />
@@ -109,7 +121,12 @@ function Cover() {
           className="group mt-[clamp(40px,7vh,72px)] inline-flex items-center gap-3 rounded-full border border-[#f9a633]/70 px-[clamp(18px,2.4vw,30px)] py-[clamp(10px,1.5vh,16px)] text-[11px] font-medium tracking-[0.3em] text-[#f9a633] shadow-[0_0_0_rgba(249,166,51,0)] transition-all duration-300 hover:bg-[#f9a633] hover:text-black hover:shadow-[0_8px_30px_rgba(249,166,51,0.25)]"
         >
           VISIT THE BLOG
-          <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1">↗</span>
+          <span
+            aria-hidden
+            className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+          >
+            ↗
+          </span>
         </a>
       </div>
 
@@ -168,7 +185,12 @@ function Deck({ deck }: { deck: JournalPost[] }) {
           {/* open affordance — visible on touch, warms on hover */}
           <div className="absolute bottom-[4%] left-0 z-[1] flex items-center gap-2 text-[10px] tracking-[0.42em] text-white/30 transition-colors duration-300 group-hover:text-[#f9a633]/90">
             <span>READ ESSAY</span>
-            <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1">↗</span>
+            <span
+              aria-hidden
+              className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+            >
+              ↗
+            </span>
           </div>
 
           {/* excerpt + meta — quiet, right-aligned */}
@@ -178,7 +200,9 @@ function Deck({ deck }: { deck: JournalPost[] }) {
             </p>
             <p className="no-rv mt-[clamp(16px,3vh,36px)] text-[11px] tracking-[0.3em] text-[#6f6f6f]">
               {post.date}
-              <span aria-hidden className="mx-[0.7em] text-white/20">·</span>
+              <span aria-hidden className="mx-[0.7em] text-white/20">
+                ·
+              </span>
               {post.read}
             </p>
           </div>

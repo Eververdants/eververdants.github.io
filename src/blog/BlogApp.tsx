@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type Lenis from "lenis";
 import ArticleScene from "../components/ArticleScene";
+import BlogControls from "../components/BlogControls";
 import BlogIndexScene from "../components/BlogIndexScene";
 import LoadingOverlay from "../components/LoadingOverlay";
 import Scrollbar from "../components/Scrollbar";
@@ -9,11 +10,14 @@ import { initScrollbar } from "../effects/scrollbar";
 import { initScrollTriggerGlue } from "../effects/scrollTriggerGlue";
 import { initSiteNavIntercept } from "../effects/siteNav";
 import { initSmoothScroll } from "../effects/smoothScroll";
+import { BlogPrefsProvider, useBlogPrefs } from "./prefs";
 
 const BLOG = "/blog";
 
 const getSlug = (p: string) =>
-  p.startsWith(BLOG + "/") ? decodeURIComponent(p.slice(BLOG.length + 1)) : null;
+  p.startsWith(BLOG + "/")
+    ? decodeURIComponent(p.slice(BLOG.length + 1))
+    : null;
 
 /* The blog sub-site's own SPA: /blog = the light index, /blog/<slug> = an
    essay reader. Independent of the main site — a full page-load lands here,
@@ -31,7 +35,9 @@ export default function BlogApp() {
   /* The main site's initLanding targets deck effects only, so the blog wires
      its own smooth scroll + custom scrollbar + ScrollTrigger glue. */
   useEffect(() => {
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     const smooth = initSmoothScroll(prefersReduced);
     const lenis = smooth?.lenis ?? null;
     lenisRef.current = lenis;
@@ -61,7 +67,7 @@ export default function BlogApp() {
       history.pushState({ __blogArticle: slug }, "", `${BLOG}/${slug}`);
       scrollTop();
     },
-    [scrollTop]
+    [scrollTop],
   );
 
   /* prev/next inside an article REPLACE the entry — the stack never grows,
@@ -72,7 +78,7 @@ export default function BlogApp() {
       history.replaceState({ __blogArticle: slug }, "", `${BLOG}/${slug}`);
       scrollTop();
     },
-    [scrollTop]
+    [scrollTop],
   );
 
   /* Close the essay back to the /blog index. */
@@ -97,7 +103,7 @@ export default function BlogApp() {
   const valid = article !== null && getArticle(article) !== null;
 
   return (
-    <>
+    <BlogPrefsProvider>
       {valid ? (
         <ArticleScene
           slug={article!}
@@ -112,8 +118,9 @@ export default function BlogApp() {
       ) : (
         <BlogIndexScene onOpen={openArticle} />
       )}
+      <BlogControls />
       <Scrollbar />
       <LoadingOverlay />
-    </>
+    </BlogPrefsProvider>
   );
 }

@@ -11,10 +11,11 @@ interface Dot {
 
 export function initDots(
   canvas: HTMLCanvasElement,
-  prefersReduced: boolean
+  prefersReduced: boolean,
 ): (() => void) | null {
   if (!canvas) return null;
-  if (window.matchMedia("(hover: none), (pointer: coarse)").matches) return null;
+  if (window.matchMedia("(hover: none), (pointer: coarse)").matches)
+    return null;
 
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;

@@ -15,13 +15,13 @@ Today, let's return to the historical scene of more than eighty years ago and re
 
 ## I. On Contradiction — August 1937
 
-To understand it, we have to go back to that historical juncture. The Red Army had just completed the Long March; the bloody lesson of the failed Fifth Encirclement Campaign was still vivid. Looking back in pain: why had we kept taking such heavy losses? The core reason was that the leadership of the day was too infatuated with dogma — treating Comintern directives as holy writ, measuring Chinese cloth with a foreign yardstick, completely divorced from China's reality. So *On Contradiction* was born to purge, at the philosophical root, this way of thinking that ignored the country's actual conditions — to answer the question: how, exactly, do we see reality?
+To understand it, we have to go back to that historical juncture. The Red Army had just completed the Long March; the bloody lesson of the failed Fifth Encirclement Campaign was still vivid. Looking back in pain: why had we kept taking such heavy losses? The core reason was that the leadership of the day was too infatuated with dogma — treating Comintern directives as holy writ, measuring Chinese cloth with a foreign yardstick, completely divorced from China's reality. So _On Contradiction_ was born to purge, at the philosophical root, this way of thinking that ignored the country's actual conditions — to answer the question: how, exactly, do we see reality?
 
 And how do we see it? The book offers a razor-sharp point of entry: **distinguish internal causes from external causes.**
 
 There is a famous line in the book: "Materialist dialectics holds that external causes are the condition of change and internal causes are the basis of change, and that external causes become operative through internal causes. An egg changes into a chicken through suitable temperature, but no temperature can change a stone into a chicken, because the bases of the two are different."
 
-Where is the cutting power in this? When the dogmatists of the day lost battles, they blamed the enemy's strength and the harsh conditions — all external causes. But *On Contradiction* tells you: the external environment and the power of your opponent are just the "temperature"; your own organizational structure, core capabilities, and the support of the people are the "basis." Treating external causes as the root of failure is where strategic misjudgment begins. The first lesson of *On Contradiction*: strip away external interference and fix your gaze on the **principal contradiction** inside the thing itself.
+Where is the cutting power in this? When the dogmatists of the day lost battles, they blamed the enemy's strength and the harsh conditions — all external causes. But _On Contradiction_ tells you: the external environment and the power of your opponent are just the "temperature"; your own organizational structure, core capabilities, and the support of the people are the "basis." Treating external causes as the root of failure is where strategic misjudgment begins. The first lesson of _On Contradiction_: strip away external interference and fix your gaze on the **principal contradiction** inside the thing itself.
 
 ## II. On Protracted War — May 1938
 
@@ -31,7 +31,7 @@ It provides the roadmap for the transformation of power.
 
 Ten months into the War of Resistance, vast territories had fallen, and the "theory of national subjugation" and the "theory of quick victory" were locked in furious debate. Mao didn't pick a side on feeling. He broke down the four basic contradictions between China and Japan and deduced a conclusion: China would not perish, but neither could it win quickly.
 
-The core methodology of *On Protracted War* is a **dimensional breakdown of "power" combined with an extension of the time horizon.**
+The core methodology of _On Protracted War_ is a **dimensional breakdown of "power" combined with an extension of the time horizon.**
 
 He divided power into static factors — weapons, economy — and dynamic factors: organizational capacity, popular will. Static factors dominate in the short term, but dynamic factors transform over time.
 
@@ -57,9 +57,9 @@ The methodology behind these three metaphors: the core of trend judgment is not 
 
 We've gone through the three books by the logic of the problems. Now let's rearrange them in chronological order, and a clearer line of intellectual evolution appears:
 
-- *A Single Spark* (1930): amid the confusion of the revolution's low tide, parting the clouds to see the big trend;
-- *On Contradiction* (1937): after bitter lessons, uprooting the disease of dogmatism from the height of philosophy;
-- *On Protracted War* (1938): at the life-or-death moment of the weak facing the strong, deducing the strategic path to win from weakness.
+- _A Single Spark_ (1930): amid the confusion of the revolution's low tide, parting the clouds to see the big trend;
+- _On Contradiction_ (1937): after bitter lessons, uprooting the disease of dogmatism from the height of philosophy;
+- _On Protracted War_ (1938): at the life-or-death moment of the weak facing the strong, deducing the strategic path to win from weakness.
 
 You'll notice this was never "theory first," conjured up in a study. It was a weapon of thought hammered out step by step from the brutal practice of countless sacrifices — from practice, and back to practice. That itself is the most vivid illustration of "practice, knowledge, more practice, and more knowledge."
 

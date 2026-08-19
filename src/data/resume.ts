@@ -25,7 +25,8 @@ export interface Resume {
 }
 
 export const resume: Resume = {
-  about: "High-school student building at the intersection of code, design, photography, and essays on Mao Zedong's Selected Works. Reach me on WeChat: evervdev.",
+  about:
+    "High-school student building at the intersection of code, design, photography, and essays on Mao Zedong's Selected Works. Reach me on WeChat: evervdev.",
   birthYear: 2011,
   education: {
     role: "Student",
@@ -37,7 +38,7 @@ export const resume: Resume = {
     {
       // campaign = national umbrella name (small kicker); contest = the
       // competition name that owns the giant hero lines; event = the track.
-      campaign: "China \"Chip\" Powers China Dream",
+      campaign: 'China "Chip" Powers China Dream',
       contest:
         "National Youth\nCommunication Technology\nInnovation Competition",
       event: "Zhenxin Tech · Communication Intelligence Innovation Contest",

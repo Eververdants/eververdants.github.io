@@ -58,3 +58,24 @@ export const journal: Journal = {
     line: "The mountains stay green, so do the words.",
   },
 };
+
+/* Chinese cover/close copy for the /blog sub-site's language toggle. The
+   main site's cinematic BlogScene keeps the English journal above; the
+   light blog sub-site reads whichever matches its active lang. */
+export const journalZh: Journal = {
+  cover: {
+    overline: "精选博客 — 第六卷",
+    issue: "VI",
+    subtitle: "随笔 · 札记 · 田野手记",
+    caption: "田野札记 · 二〇二四 — 二〇二六",
+  },
+  order: [
+    "stone-and-egg-three-classics",
+    "get-the-direction-right-first",
+    "little-prince-and-the-baobabs",
+  ],
+  close: {
+    year: 2026,
+    line: "青山依旧在，文字也是。",
+  },
+};

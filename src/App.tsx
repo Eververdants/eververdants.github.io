@@ -1,17 +1,17 @@
-import { useEffect, useRef } from 'react';
-import Background from './components/Background';
-import BlogScene from './components/BlogScene';
-import FilmGrain from './components/FilmGrain';
-import FocusBand from './components/FocusBand';
-import HeroScene from './components/HeroScene';
-import LoadingOverlay from './components/LoadingOverlay';
-import OutroScene from './components/OutroScene';
-import PortfolioScene from './components/PortfolioScene';
-import ResumeScene from './components/ResumeScene';
-import Scrollbar from './components/Scrollbar';
-import { initLanding } from './effects/landing';
-import { initSiteNavIntercept } from './effects/siteNav';
-import type { LandingHandle } from './effects/landing';
+import { useEffect, useRef } from "react";
+import Background from "./components/Background";
+import BlogScene from "./components/BlogScene";
+import FilmGrain from "./components/FilmGrain";
+import FocusBand from "./components/FocusBand";
+import HeroScene from "./components/HeroScene";
+import LoadingOverlay from "./components/LoadingOverlay";
+import OutroScene from "./components/OutroScene";
+import PortfolioScene from "./components/PortfolioScene";
+import ResumeScene from "./components/ResumeScene";
+import Scrollbar from "./components/Scrollbar";
+import { initLanding } from "./effects/landing";
+import { initSiteNavIntercept } from "./effects/siteNav";
+import type { LandingHandle } from "./effects/landing";
 
 export default function App() {
   const handleRef = useRef<LandingHandle | null>(null);
@@ -44,9 +44,9 @@ export default function App() {
           const el = document.querySelector<HTMLElement>(s.sel);
           return [
             s.path,
-            el ? el.getBoundingClientRect().top + window.scrollY : Infinity
+            el ? el.getBoundingClientRect().top + window.scrollY : Infinity,
           ];
-        })
+        }),
       );
     };
     measureRef.current = measure;
@@ -89,7 +89,8 @@ export default function App() {
       // the handscroll height. Retry once fonts are ready so a deep link that
       // fired against a half-measured page still lands correctly.
       const retry = () => window.setTimeout(scrollToSection, 0);
-      if (document.fonts?.ready) document.fonts.ready.then(retry).catch(() => {});
+      if (document.fonts?.ready)
+        document.fonts.ready.then(retry).catch(() => {});
       retryOnLoad = retry;
       window.addEventListener("load", retry);
     }

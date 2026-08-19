@@ -33,7 +33,10 @@ export default function ResumeScene() {
 
 function Masthead() {
   return (
-    <div className="relative flex h-[120vh] items-center justify-center text-center" data-masthead>
+    <div
+      className="relative flex h-[120vh] items-center justify-center text-center"
+      data-masthead
+    >
       <span
         aria-hidden
         className="text-stroke-faint absolute left-1/2 top-[6%] -translate-x-1/2 font-fraunces italic leading-none text-[clamp(120px,26vw,360px)]"
@@ -293,7 +296,9 @@ function Contact() {
                 className="group inline-flex items-baseline gap-[clamp(8px,1.2vw,14px)] font-fraunces font-medium leading-none tracking-[-0.01em] text-white/80 transition-opacity hover:opacity-70 text-[clamp(30px,5.6vw,76px)]"
               >
                 <span>@{resume.contact.handle}</span>
-                <span aria-hidden className="text-white/40 text-[0.5em]">↗</span>
+                <span aria-hidden className="text-white/40 text-[0.5em]">
+                  ↗
+                </span>
               </a>
             </div>
           </li>

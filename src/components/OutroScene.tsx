@@ -11,7 +11,11 @@ export default function OutroScene() {
     <section className="relative h-screen overflow-hidden" data-outro>
       {/* Clean-black layer: fades in over the ambient fluid so the end of the
           site is quiet. Sits above the fixed background (later in the DOM). */}
-      <div className="absolute inset-0 bg-[#050505]" data-outro-black aria-hidden="true" />
+      <div
+        className="absolute inset-0 bg-[#050505]"
+        data-outro-black
+        aria-hidden="true"
+      />
 
       <div className="relative z-10 grid h-full place-items-center px-[clamp(16px,3vw,32px)] text-center">
         {/* Stage 1 — the richest moment: three Fraunces italic lines. */}

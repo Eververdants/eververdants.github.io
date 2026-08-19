@@ -3,7 +3,11 @@
    per-screen atmosphere ramp (atmospheres.ts) replaces the single
    cyan→orange scroll mix. */
 
-import { ATMOSPHERE_STOPS, sampleAtmosphere, type Atmosphere } from "./atmospheres";
+import {
+  ATMOSPHERE_STOPS,
+  sampleAtmosphere,
+  type Atmosphere,
+} from "./atmospheres";
 
 interface FluidParams {
   mouseRadius: number;
@@ -54,7 +58,7 @@ export const FLUID_PARAMS: FluidParams = {
   grain: 0.005,
   lightFollow: 0.63,
   bloomThreshold: 0.61,
-  bloomRange: 0.18
+  bloomRange: 0.18,
 };
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -62,7 +66,7 @@ function hexToRgb(hex: string): [number, number, number] {
   return [
     parseInt(h.slice(0, 2), 16) / 255,
     parseInt(h.slice(2, 4), 16) / 255,
-    parseInt(h.slice(4, 6), 16) / 255
+    parseInt(h.slice(4, 6), 16) / 255,
   ];
 }
 
@@ -78,7 +82,7 @@ const FLUID_FS =
 export function initFluid(
   canvas: HTMLCanvasElement,
   params: FluidParams,
-  prefersReduced: boolean
+  prefersReduced: boolean,
 ): (() => void) | null {
   if (!canvas) return null;
   let gl: WebGL2RenderingContext;
@@ -86,7 +90,7 @@ export function initFluid(
     gl = canvas.getContext("webgl2", {
       alpha: true,
       premultipliedAlpha: false,
-      powerPreference: "low-power"
+      powerPreference: "low-power",
     })!;
   } catch (e) {
     return null;
@@ -129,7 +133,7 @@ export function initFluid(
     velocity: gl.getUniformLocation(decayProg, "u_velocity"),
     brushRadius: gl.getUniformLocation(decayProg, "u_brushRadius"),
     brushStrength: gl.getUniformLocation(decayProg, "u_brushStrength"),
-    decay: gl.getUniformLocation(decayProg, "u_decay")
+    decay: gl.getUniformLocation(decayProg, "u_decay"),
   };
   const flu = {
     time: gl.getUniformLocation(fluidProg, "u_time"),
@@ -155,12 +159,16 @@ export function initFluid(
     c2: gl.getUniformLocation(fluidProg, "u_c2"),
     c3: gl.getUniformLocation(fluidProg, "u_c3"),
     c4: gl.getUniformLocation(fluidProg, "u_c4"),
-    c5: gl.getUniformLocation(fluidProg, "u_c5")
+    c5: gl.getUniformLocation(fluidProg, "u_c5"),
   };
 
   const buf = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+    gl.STATIC_DRAW,
+  );
 
   function bindAttr(prog: WebGLProgram) {
     const loc = gl!.getAttribLocation(prog, "a_position");
@@ -172,14 +180,30 @@ export function initFluid(
   function makeTarget(w: number, h: number, data: Uint8Array | null) {
     const tex = gl!.createTexture();
     gl!.bindTexture(gl!.TEXTURE_2D, tex);
-    gl!.texImage2D(gl!.TEXTURE_2D, 0, gl!.RGBA, w, h, 0, gl!.RGBA, gl!.UNSIGNED_BYTE, data);
+    gl!.texImage2D(
+      gl!.TEXTURE_2D,
+      0,
+      gl!.RGBA,
+      w,
+      h,
+      0,
+      gl!.RGBA,
+      gl!.UNSIGNED_BYTE,
+      data,
+    );
     gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_MIN_FILTER, gl!.LINEAR);
     gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_MAG_FILTER, gl!.LINEAR);
     gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_WRAP_S, gl!.CLAMP_TO_EDGE);
     gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_WRAP_T, gl!.CLAMP_TO_EDGE);
     const fbo = gl!.createFramebuffer();
     gl!.bindFramebuffer(gl!.FRAMEBUFFER, fbo);
-    gl!.framebufferTexture2D(gl!.FRAMEBUFFER, gl!.COLOR_ATTACHMENT0, gl!.TEXTURE_2D, tex, 0);
+    gl!.framebufferTexture2D(
+      gl!.FRAMEBUFFER,
+      gl!.COLOR_ATTACHMENT0,
+      gl!.TEXTURE_2D,
+      tex,
+      0,
+    );
     gl!.bindFramebuffer(gl!.FRAMEBUFFER, null);
     return { fbo, tex };
   }
@@ -204,13 +228,23 @@ export function initFluid(
   const targetA = makeTarget(bw, bh, flowInit);
   const targetB = makeTarget(bw, bh, flowInit);
 
-  const uad = (navigator as { userAgentData?: { platform: string } }).userAgentData;
+  const uad = (navigator as { userAgentData?: { platform: string } })
+    .userAgentData;
   const isWindows = uad
     ? uad.platform === "Windows"
     : navigator.userAgent.indexOf("Windows") !== -1;
   const useMouse = !touch && !isWindows;
 
-  const mouse = { x: 0.5, y: 0.5, sx: 0.5, sy: 0.5, vx: 0, vy: 0, svx: 0, svy: 0 };
+  const mouse = {
+    x: 0.5,
+    y: 0.5,
+    sx: 0.5,
+    sy: 0.5,
+    vx: 0,
+    vy: 0,
+    svx: 0,
+    svy: 0,
+  };
   function onMouse(e: MouseEvent) {
     const r = canvas.getBoundingClientRect();
     mouse.x = (e.clientX - r.left) / r.width;
@@ -278,8 +312,10 @@ export function initFluid(
 
     mouse.sx += (mouse.x - mouse.sx) * params.mouseSmoothing;
     mouse.sy += (mouse.y - mouse.sy) * params.mouseSmoothing;
-    mouse.svx += ((mouse.x - mouse.sx) * 0.5 - mouse.svx) * params.mouseVelocity;
-    mouse.svy += ((mouse.y - mouse.sy) * 0.5 - mouse.svy) * params.mouseVelocity;
+    mouse.svx +=
+      ((mouse.x - mouse.sx) * 0.5 - mouse.svx) * params.mouseVelocity;
+    mouse.svy +=
+      ((mouse.y - mouse.sy) * 0.5 - mouse.svy) * params.mouseVelocity;
 
     const src = ping ? targetA : targetB;
     const dst = ping ? targetB : targetA;
@@ -306,7 +342,10 @@ export function initFluid(
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, dst.tex);
     gl.uniform1i(flu.flowmap, 0);
-    gl.uniform1f(flu.time, (performance.now() - start) * 0.001 * (params.speed / 100));
+    gl.uniform1f(
+      flu.time,
+      (performance.now() - start) * 0.001 * (params.speed / 100),
+    );
     gl.uniform2f(flu.resolution, cw, ch);
     gl.uniform1f(flu.scale, params.scale);
     gl.uniform2f(flu.offset, params.offsetX / 100, params.offsetY / 100);
@@ -322,7 +361,8 @@ export function initFluid(
 
     const lx =
       atm.lightX +
-      (mouse.sx - atm.lightX) * (useMouse && params.lightFollow ? params.lightFollow : 0);
+      (mouse.sx - atm.lightX) *
+        (useMouse && params.lightFollow ? params.lightFollow : 0);
     gl.uniform2f(flu.lightPos, lx, atm.lightY);
     gl.uniform1f(flu.lightCore, touch ? 0 : atm.lightCore);
     gl.uniform1f(flu.lightHalo, touch ? 0 : atm.lightHalo);
@@ -357,7 +397,7 @@ export function initFluid(
     function (entries) {
       visible = entries[0].isIntersecting;
     },
-    { threshold: 0 }
+    { threshold: 0 },
   );
   io.observe(canvas);
 

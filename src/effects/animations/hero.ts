@@ -13,8 +13,8 @@ export function initHeroEntrance() {
       filter: "blur(0px)",
       duration: 0.8,
       stagger: 0.12,
-      ease: "power3.out"
-    }
+      ease: "power3.out",
+    },
   );
 }
 
@@ -29,13 +29,13 @@ export function initHeroCover() {
         start: "top top",
         end: "bottom top",
         scrub: true,
-        invalidateOnRefresh: true
-      }
+        invalidateOnRefresh: true,
+      },
     })
     .to(
       "[data-hero-fade]",
       { y: () => -window.innerHeight * 0.16, opacity: 0, ease: "none" },
-      0
+      0,
     )
     .to("[data-hero-glass]", { opacity: 1, ease: "none" }, 0)
     // Scroll hint lives in the sticky hero, so it must leave with the same
@@ -46,7 +46,7 @@ export function initHeroCover() {
       "[data-hero-hint]",
       { opacity: 1, y: 0 },
       { opacity: 0, y: () => -window.innerHeight * 0.16, ease: "none" },
-      0
+      0,
     );
 }
 
@@ -57,6 +57,6 @@ export function initHeroAvatar() {
     duration: 9,
     ease: "sine.inOut",
     yoyo: true,
-    repeat: -1
+    repeat: -1,
   });
 }

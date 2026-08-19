@@ -8,7 +8,14 @@
 //
 // Safety: never fails the build. Missing Chrome / render failure => warn and
 // skip (the SPA itself still works for real browsers).
-import { readFileSync, readdirSync, writeFileSync, mkdirSync, existsSync, rmSync } from "node:fs";
+import {
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+  mkdirSync,
+  existsSync,
+  rmSync,
+} from "node:fs";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 import { join, resolve, extname } from "node:path";
@@ -33,13 +40,21 @@ const isWin = process.platform === "win32";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const esc = (s) =>
-  String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 
-/* ---- parse essay frontmatter (src/blog/*.md) for post metadata ---- */
+/* ---- parse essay frontmatter (src/blog/*.md) for post metadata ----
+   Only the canonical English files (xxx.md) — the Chinese translations
+   (xxx.zh.md) share the same slugs and would double-generate. */
 function parsePosts() {
   const dir = join(ROOT, "src/blog");
   const posts = new Map();
-  for (const file of readdirSync(dir).filter((f) => f.endsWith(".md"))) {
+  for (const file of readdirSync(dir).filter(
+    (f) => f.endsWith(".md") && !f.endsWith(".zh.md"),
+  )) {
     const src = readFileSync(join(dir, file), "utf8");
     const fm = src.match(/^---\n([\s\S]*?)\n---/);
     if (!fm) continue;
@@ -79,19 +94,31 @@ function startServer() {
     }
     if (existsSync(file)) {
       const types = {
-        ".html": "text/html", ".js": "text/javascript", ".css": "text/css",
-        ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp",
-        ".svg": "image/svg+xml", ".woff2": "font/woff2", ".json": "application/json",
-        ".txt": "text/plain", ".xml": "application/xml", ".webmanifest": "application/manifest+json",
+        ".html": "text/html",
+        ".js": "text/javascript",
+        ".css": "text/css",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".webp": "image/webp",
+        ".svg": "image/svg+xml",
+        ".woff2": "font/woff2",
+        ".json": "application/json",
+        ".txt": "text/plain",
+        ".xml": "application/xml",
+        ".webmanifest": "application/manifest+json",
       };
-      res.writeHead(200, { "Content-Type": types[extname(file)] || "application/octet-stream" });
+      res.writeHead(200, {
+        "Content-Type": types[extname(file)] || "application/octet-stream",
+      });
       res.end(readFileSync(file));
     } else {
       // SPA fallback: /blog/* serves the blog sub-site's own entry, every
       // other path the main site.
       const isBlog = p.startsWith("/blog");
       res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(readFileSync(join(dist, isBlog ? "blog/index.html" : "index.html")));
+      res.end(
+        readFileSync(join(dist, isBlog ? "blog/index.html" : "index.html")),
+      );
     }
   }).listen(PORT, "127.0.0.1");
 }
@@ -113,7 +140,7 @@ async function renderArticle(chromePath, slug) {
       ...(isWin ? [] : ["--no-sandbox", "--disable-dev-shm-usage"]),
       "about:blank",
     ],
-    { stdio: "ignore" }
+    { stdio: "ignore" },
   );
   try {
     let target = null;
@@ -149,7 +176,9 @@ async function renderArticle(chromePath, slug) {
       });
 
     await send("Page.enable");
-    await send("Page.navigate", { url: `http://127.0.0.1:${PORT}/blog/${slug}/` });
+    await send("Page.navigate", {
+      url: `http://127.0.0.1:${PORT}/blog/${slug}/`,
+    });
 
     let html = "";
     for (let i = 0; i < 30; i++) {
@@ -180,13 +209,34 @@ function buildStatic(post, articleHtml) {
   const url = `${SITE}/blog/${post.slug}/`;
   const dateISO = post.date.replace(/\./g, "-"); // "2026.07.04" -> "2026-07-04" (ISO date)
   let tpl = readFileSync(join(ROOT, "dist/blog/index.html"), "utf8");
-  tpl = tpl.replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(post.title)} — Eververdants</title>`);
-  tpl = tpl.replace(/<meta name="description"[^>]*\/>/, `<meta name="description" content="${esc(post.excerpt)}" />`);
-  tpl = tpl.replace(/<link rel="canonical"[^>]*\/>/, `<link rel="canonical" href="${url}" />`);
-  tpl = tpl.replace(/<meta property="og:type" content="website" \/>/, `<meta property="og:type" content="article" />`);
-  tpl = tpl.replace(/<meta property="og:title"[^>]*\/>/, `<meta property="og:title" content="${esc(post.title)}" />`);
-  tpl = tpl.replace(/<meta property="og:description"[^>]*\/>/, `<meta property="og:description" content="${esc(post.excerpt)}" />`);
-  tpl = tpl.replace(/<meta property="og:url"[^>]*\/>/, `<meta property="og:url" content="${url}" />`);
+  tpl = tpl.replace(
+    /<title>[\s\S]*?<\/title>/,
+    `<title>${esc(post.title)} — Eververdants</title>`,
+  );
+  tpl = tpl.replace(
+    /<meta name="description"[^>]*\/>/,
+    `<meta name="description" content="${esc(post.excerpt)}" />`,
+  );
+  tpl = tpl.replace(
+    /<link rel="canonical"[^>]*\/>/,
+    `<link rel="canonical" href="${url}" />`,
+  );
+  tpl = tpl.replace(
+    /<meta property="og:type" content="website" \/>/,
+    `<meta property="og:type" content="article" />`,
+  );
+  tpl = tpl.replace(
+    /<meta property="og:title"[^>]*\/>/,
+    `<meta property="og:title" content="${esc(post.title)}" />`,
+  );
+  tpl = tpl.replace(
+    /<meta property="og:description"[^>]*\/>/,
+    `<meta property="og:description" content="${esc(post.excerpt)}" />`,
+  );
+  tpl = tpl.replace(
+    /<meta property="og:url"[^>]*\/>/,
+    `<meta property="og:url" content="${url}" />`,
+  );
   tpl = tpl.replace(
     /<script type="application\/ld\+json">[\s\S]*?<\/script>/,
     `<script type="application/ld+json">
@@ -216,9 +266,12 @@ function buildStatic(post, articleHtml) {
       },
       "publisher": { "@type": "Person", "name": "Eververdants", "url": "${SITE}/" }
     }
-    </script>`
+    </script>`,
   );
-  tpl = tpl.replace(/<div id="root"><\/div>/, `<div id="root">${articleHtml}</div>`);
+  tpl = tpl.replace(
+    /<div id="root"><\/div>/,
+    `<div id="root">${articleHtml}</div>`,
+  );
   const out = join(ROOT, "dist/blog", post.slug, "index.html");
   mkdirSync(join(ROOT, "dist/blog", post.slug), { recursive: true });
   writeFileSync(out, tpl);
@@ -232,7 +285,8 @@ function writeSitemap(posts) {
     `<url><loc>${SITE}/selected-blog/</loc><priority>0.8</priority></url>`,
     `<url><loc>${SITE}/blog/</loc><priority>0.7</priority></url>`,
     ...posts.map(
-      (p) => `<url><loc>${SITE}/blog/${p.slug}/</loc><lastmod>${p.date.replace(/\./g, "-")}</lastmod><priority>0.9</priority></url>`
+      (p) =>
+        `<url><loc>${SITE}/blog/${p.slug}/</loc><lastmod>${p.date.replace(/\./g, "-")}</lastmod><priority>0.9</priority></url>`,
     ),
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
@@ -317,21 +371,27 @@ async function main() {
         const html = await renderArticle(chromePath, post.slug);
         const out = buildStatic(post, html);
         ok++;
-        console.log(`  ✓ ${post.slug} (${html.length} chars) -> ${out.replace(ROOT, ".")}`);
+        console.log(
+          `  ✓ ${post.slug} (${html.length} chars) -> ${out.replace(ROOT, ".")}`,
+        );
       } catch (e) {
         console.log(`  ✗ ${post.slug}: ${e.message}`);
       }
     }
     server.close();
   } else {
-    console.log("prerender: Chrome not found, skipping article static generation");
+    console.log(
+      "prerender: Chrome not found, skipping article static generation",
+    );
   }
   // Always emit sitemap + robots + rss so production deploys (CI runners have
   // no Chrome) still get them even when article prerendering is skipped.
   writeSitemap(posts);
   writeRobots();
   writeRss(posts);
-  console.log(`prerender done: ${ok}/${posts.length} articles + sitemap.xml + robots.txt + rss.xml`);
+  console.log(
+    `prerender done: ${ok}/${posts.length} articles + sitemap.xml + robots.txt + rss.xml`,
+  );
 }
 
 main().catch((e) => {

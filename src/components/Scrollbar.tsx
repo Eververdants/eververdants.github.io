@@ -6,7 +6,7 @@ export default function Scrollbar() {
   const [coarse] = useState(
     () =>
       typeof window !== "undefined" &&
-      window.matchMedia("(hover: none), (pointer: coarse)").matches
+      window.matchMedia("(hover: none), (pointer: coarse)").matches,
   );
   if (coarse) return null;
   return (

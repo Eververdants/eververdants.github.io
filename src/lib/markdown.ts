@@ -17,7 +17,7 @@ function inline(text: string): string {
   return text
     .replace(
       /\[([^\]]+)\]\(([^)\s]+)\)/g,
-      '<a href="$2" target="_blank" rel="noreferrer">$1</a>'
+      '<a href="$2" target="_blank" rel="noreferrer">$1</a>',
     )
     .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")

@@ -5,16 +5,30 @@
    from the body — never hand-written. */
 
 import type { JournalPost } from "./journal";
-import { journal } from "./journal";
+import { journal, journalZh } from "./journal";
 import { renderMarkdown } from "../lib/markdown";
+import type { Lang } from "../blog/prefs";
 import directionRightFirst from "../blog/get-the-direction-right-first.md?raw";
 import stoneAndEgg from "../blog/stone-and-egg-three-classics.md?raw";
 import littlePrince from "../blog/little-prince-and-the-baobabs.md?raw";
+import directionRightFirstZh from "../blog/get-the-direction-right-first.zh.md?raw";
+import stoneAndEggZh from "../blog/stone-and-egg-three-classics.zh.md?raw";
+import littlePrinceZh from "../blog/little-prince-and-the-baobabs.zh.md?raw";
 
-const RAW: Record<string, string> = {
-  "get-the-direction-right-first": directionRightFirst,
-  "stone-and-egg-three-classics": stoneAndEgg,
-  "little-prince-and-the-baobabs": littlePrince,
+/* Each essay exists twice: the canonical English file (xxx.md) and a
+   Chinese translation (xxx.zh.md). The blog's language toggle swaps the
+   whole deck between the two. */
+const RAW: Record<Lang, Record<string, string>> = {
+  en: {
+    "get-the-direction-right-first": directionRightFirst,
+    "stone-and-egg-three-classics": stoneAndEgg,
+    "little-prince-and-the-baobabs": littlePrince,
+  },
+  zh: {
+    "get-the-direction-right-first": directionRightFirstZh,
+    "stone-and-egg-three-classics": stoneAndEggZh,
+    "little-prince-and-the-baobabs": littlePrinceZh,
+  },
 };
 
 /* ---- frontmatter: a deliberate strict subset of YAML — only what the
@@ -71,48 +85,59 @@ function parseFrontmatter(raw: string): { meta: Frontmatter; body: string } {
 }
 
 /* Reading time — CJK characters count as ~300/minute, English words as
-   ~200/minute; rounded, with a 1-minute floor. Computed, never stored. */
-function computeRead(body: string): string {
+   ~200/minute; rounded, with a 1-minute floor. Computed, never stored. The
+   unit string follows the deck's language. */
+function computeRead(body: string, lang: Lang): string {
   const cjk = (body.match(/[㐀-鿿]/g) || []).length;
   const eng = (body.match(/[A-Za-z0-9]+/g) || []).length;
   const minutes = Math.max(1, Math.round(cjk / 300 + eng / 200));
-  return `${minutes} MIN`;
+  return lang === "zh" ? `${minutes} 分钟` : `${minutes} MIN`;
 }
 
-function parsePost(raw: string): JournalPost {
+function parsePost(raw: string, lang: Lang): JournalPost {
   const { meta, body } = parseFrontmatter(raw);
-  const str = (k: string) => (typeof meta[k] === "string" ? (meta[k] as string) : "");
+  const str = (k: string) =>
+    typeof meta[k] === "string" ? (meta[k] as string) : "";
   return {
     slug: str("slug"),
     title: str("title"),
     category: str("category"),
     date: str("date"),
-    read: computeRead(body),
+    read: computeRead(body, lang),
     excerpt: str("excerpt"),
     tags: Array.isArray(meta.tags) ? (meta.tags as string[]) : [],
   };
 }
 
-const PARSED: Map<string, JournalPost> = new Map(
-  Object.keys(RAW).map((slug) => [slug, parsePost(RAW[slug])])
-);
+/* Per-language parsed posts, keyed by slug. A post missing from one
+   language simply won't appear there. */
+const PARSED: Record<Lang, Map<string, JournalPost>> = {
+  en: new Map(
+    Object.keys(RAW.en).map((slug) => [slug, parsePost(RAW.en[slug], "en")]),
+  ),
+  zh: new Map(
+    Object.keys(RAW.zh).map((slug) => [slug, parsePost(RAW.zh[slug], "zh")]),
+  ),
+};
 
 export interface Article {
   post: JournalPost;
   html: string;
 }
 
-/* The deck in editorial order — journal.order lists the curated slugs, the
-   featured essay first. Posts with no frontmatter are skipped. */
-export function getDeck(): JournalPost[] {
-  return journal.order
-    .map((slug) => PARSED.get(slug))
+/* The deck in editorial order — the language's order list drives it; the
+   featured essay first. Posts with no frontmatter are skipped. Defaults to
+   English so the main site's BlogScene call sites keep working unchanged. */
+export function getDeck(lang: Lang = "en"): JournalPost[] {
+  const order = (lang === "zh" ? journalZh : journal).order;
+  return order
+    .map((slug) => PARSED[lang].get(slug))
     .filter((p): p is JournalPost => p !== undefined);
 }
 
-export function getArticle(slug: string): Article | null {
-  const post = PARSED.get(slug);
-  const raw = RAW[slug];
+export function getArticle(slug: string, lang: Lang = "en"): Article | null {
+  const post = PARSED[lang].get(slug);
+  const raw = RAW[lang][slug];
   if (!post || !raw) return null;
   return { post, html: renderMarkdown(parseFrontmatter(raw).body) };
 }
@@ -133,17 +158,22 @@ function stripMarkdown(md: string): string {
     .toLowerCase();
 }
 
-/* Search the full deck. Every whitespace-separated term must hit somewhere
-   (AND); hits in the title rank first, then excerpt/tags, then the body, so
-   a title match always outranks a body-only one. Date breaks ties newest
-   first. An empty query returns [] — callers gate on that themselves. */
-export function searchPosts(query: string): JournalPost[] {
+/* Search the deck of the given language. Every whitespace-separated term
+   must hit somewhere (AND); hits in the title rank first, then
+   excerpt/tags, then the body, so a title match always outranks a
+   body-only one. Date breaks ties newest first. An empty query returns []
+   — callers gate on that themselves. */
+export function searchPosts(query: string, lang: Lang = "en"): JournalPost[] {
   const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
   if (terms.length === 0) return [];
-  const scored = getDeck().map((post) => {
+  const scored = getDeck(lang).map((post) => {
     const title = post.title.replace(/\n/g, " ").toLowerCase();
-    const meta = [post.excerpt, post.category, ...post.tags].join(" ").toLowerCase();
-    const body = RAW[post.slug] ? stripMarkdown(RAW[post.slug]) : "";
+    const meta = [post.excerpt, post.category, ...post.tags]
+      .join(" ")
+      .toLowerCase();
+    const body = RAW[lang][post.slug]
+      ? stripMarkdown(RAW[lang][post.slug])
+      : "";
     let titleHits = 0;
     let metaHits = 0;
     let bodyHits = 0;

@@ -18,7 +18,11 @@
 import gsap from "gsap";
 import type Lenis from "lenis";
 import { initUniversalReveal } from "./animations/reveal";
-import { initHeroAvatar, initHeroCover, initHeroEntrance } from "./animations/hero";
+import {
+  initHeroAvatar,
+  initHeroCover,
+  initHeroEntrance,
+} from "./animations/hero";
 import { initResume } from "./animations/resume";
 import { initHandscroll, markHandscrollsDone } from "./animations/portfolio";
 import { initJournal } from "./animations/journal";
@@ -30,7 +34,10 @@ export interface GsapHandle {
   destroy: () => void;
 }
 
-export function initGsap(prefersReduced: boolean, lenis: Lenis | null): GsapHandle {
+export function initGsap(
+  prefersReduced: boolean,
+  lenis: Lenis | null,
+): GsapHandle {
   const disposeGlue = initScrollTriggerGlue(lenis);
 
   const ctx = gsap.context(() => {
@@ -69,6 +76,6 @@ export function initGsap(prefersReduced: boolean, lenis: Lenis | null): GsapHand
     destroy: function () {
       disposeGlue();
       ctx.revert();
-    }
+    },
   };
 }

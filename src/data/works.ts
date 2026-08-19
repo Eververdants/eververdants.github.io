@@ -39,7 +39,8 @@ export const works: Works = {
   masthead: { year: 2026 },
   photography: {
     lede: "Frames from the road — the ordinary made still. Each photograph is a held breath.",
-    notice: "Every original carries a blind watermark — please do not repost or reuse.",
+    notice:
+      "Every original carries a blind watermark — please do not repost or reuse.",
   },
   projects: [
     {

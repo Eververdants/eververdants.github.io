@@ -39,9 +39,9 @@ export function initOutro(lenis: Lenis | null) {
       scrub: true,
       pin: true,
       anticipatePin: 1,
-      invalidateOnRefresh: true
+      invalidateOnRefresh: true,
     },
-    defaults: { ease: "power2.inOut" }
+    defaults: { ease: "power2.inOut" },
   });
 
   /* Stage 1 — the three lines rise in one by one, then leave with a parallax
@@ -50,8 +50,14 @@ export function initOutro(lenis: Lenis | null) {
     tl.fromTo(
       line,
       { autoAlpha: 0, y: 70, filter: "blur(12px)" },
-      { autoAlpha: 1, y: 0, filter: "blur(0px)", duration: 0.35, ease: "power3.out" },
-      i * 0.05
+      {
+        autoAlpha: 1,
+        y: 0,
+        filter: "blur(0px)",
+        duration: 0.35,
+        ease: "power3.out",
+      },
+      i * 0.05,
     );
   });
   lines.forEach((line, i) => {
@@ -60,8 +66,14 @@ export function initOutro(lenis: Lenis | null) {
     tl.fromTo(
       line,
       { autoAlpha: 1, y: 0, filter: "blur(0px)" },
-      { autoAlpha: 0, y: -40 - i * 18, filter: "blur(8px)", duration: 0.3, ease: "power2.in" },
-      0.22
+      {
+        autoAlpha: 0,
+        y: -40 - i * 18,
+        filter: "blur(8px)",
+        duration: 0.3,
+        ease: "power2.in",
+      },
+      0.22,
     );
   });
 
@@ -69,23 +81,34 @@ export function initOutro(lenis: Lenis | null) {
   tl.to(black, { autoAlpha: 1, duration: 0.34, ease: "power1.inOut" }, 0.26);
 
   /* Stage 2 — a very small name, then gone. */
-  tl.fromTo(nameEl, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.16, ease: "power2.out" }, 0.36).fromTo(
+  tl.fromTo(
     nameEl,
-    { autoAlpha: 1 },
-    { autoAlpha: 0, duration: 0.09 },
-    0.54
-  );
+    { autoAlpha: 0 },
+    { autoAlpha: 1, duration: 0.16, ease: "power2.out" },
+    0.36,
+  ).fromTo(nameEl, { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.09 }, 0.54);
 
   /* Stage 3 — the sentence settles in slowly, unblurring. */
   tl.fromTo(
     endEl,
     { autoAlpha: 0, y: 14, filter: "blur(10px)" },
-    { autoAlpha: 1, y: 0, filter: "blur(0px)", duration: 0.26, ease: "power2.out" },
-    0.58
+    {
+      autoAlpha: 1,
+      y: 0,
+      filter: "blur(0px)",
+      duration: 0.26,
+      ease: "power2.out",
+    },
+    0.58,
   );
 
   /* The faint ↗ arrives last and stays. */
-  tl.fromTo(homeEl, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.1, ease: "power2.out" }, 0.84);
+  tl.fromTo(
+    homeEl,
+    { autoAlpha: 0 },
+    { autoAlpha: 1, duration: 0.1, ease: "power2.out" },
+    0.84,
+  );
 
   /* ↗ → home, in two bezier phases. Phase 1 accelerates up the page (slower,
      faster, fastest — the middle rushes by) to just below the hero. There a
@@ -105,8 +128,12 @@ export function initOutro(lenis: Lenis | null) {
       easing: easeInBezier,
       lock: true,
       onComplete: () => {
-        lenis.scrollTo(0, { duration: 1.05, easing: easeOutBezier, lock: true });
-      }
+        lenis.scrollTo(0, {
+          duration: 1.05,
+          easing: easeOutBezier,
+          lock: true,
+        });
+      },
     });
   };
   homeEl.addEventListener("click", homeClick);

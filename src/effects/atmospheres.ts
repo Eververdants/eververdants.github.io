@@ -42,8 +42,8 @@ export const ATMOSPHERE_STOPS: AtmosphereStop[] = [
       lightHalo: 0.2,
       glowIntensity: 0.06,
       bloomStrength: 0.4,
-      vignette: 0.38
-    }
+      vignette: 0.38,
+    },
   },
   {
     sel: "[data-masthead]",
@@ -58,8 +58,8 @@ export const ATMOSPHERE_STOPS: AtmosphereStop[] = [
       lightHalo: 0.16,
       glowIntensity: 0.05,
       bloomStrength: 0.32,
-      vignette: 0.4
-    }
+      vignette: 0.4,
+    },
   },
   {
     sel: "[data-works]",
@@ -73,8 +73,8 @@ export const ATMOSPHERE_STOPS: AtmosphereStop[] = [
       lightHalo: 0.14,
       glowIntensity: 0.05,
       bloomStrength: 0.28,
-      vignette: 0.42
-    }
+      vignette: 0.42,
+    },
   },
   {
     sel: "[data-blog]",
@@ -89,8 +89,8 @@ export const ATMOSPHERE_STOPS: AtmosphereStop[] = [
       lightHalo: 0.17,
       glowIntensity: 0.055,
       bloomStrength: 0.34,
-      vignette: 0.4
-    }
+      vignette: 0.4,
+    },
   },
   {
     sel: "[data-outro]",
@@ -105,9 +105,9 @@ export const ATMOSPHERE_STOPS: AtmosphereStop[] = [
       lightHalo: 0.04,
       glowIntensity: 0.02,
       bloomStrength: 0.08,
-      vignette: 0.55
-    }
-  }
+      vignette: 0.55,
+    },
+  },
 ];
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -115,16 +115,20 @@ function hexToRgb(hex: string): [number, number, number] {
   return [
     parseInt(h.slice(0, 2), 16) / 255,
     parseInt(h.slice(2, 4), 16) / 255,
-    parseInt(h.slice(4, 6), 16) / 255
+    parseInt(h.slice(4, 6), 16) / 255,
   ];
 }
 
 function mixRgb(
   a: [number, number, number],
   b: [number, number, number],
-  t: number
+  t: number,
 ): [number, number, number] {
-  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+  return [
+    a[0] + (b[0] - a[0]) * t,
+    a[1] + (b[1] - a[1]) * t,
+    a[2] + (b[2] - a[2]) * t,
+  ];
 }
 
 function rgbToHex([r, g, b]: [number, number, number]): string {
@@ -146,9 +150,11 @@ function smoothstep(t: number): number {
 
 function lerpAtmosphere(a: Atmosphere, b: Atmosphere, t: number): Atmosphere {
   return {
-    colors: a.colors.map((c, i) => lerpHex(c, b.colors[i] ?? b.colors[b.colors.length - 1], t)),
+    colors: a.colors.map((c, i) =>
+      lerpHex(c, b.colors[i] ?? b.colors[b.colors.length - 1], t),
+    ),
     glowColors: a.glowColors.map((c, i) =>
-      lerpHex(c, b.glowColors[i] ?? b.glowColors[b.glowColors.length - 1], t)
+      lerpHex(c, b.glowColors[i] ?? b.glowColors[b.glowColors.length - 1], t),
     ),
     lightX: a.lightX + (b.lightX - a.lightX) * t,
     lightY: a.lightY + (b.lightY - a.lightY) * t,
@@ -156,7 +162,7 @@ function lerpAtmosphere(a: Atmosphere, b: Atmosphere, t: number): Atmosphere {
     lightHalo: a.lightHalo + (b.lightHalo - a.lightHalo) * t,
     glowIntensity: a.glowIntensity + (b.glowIntensity - a.glowIntensity) * t,
     bloomStrength: a.bloomStrength + (b.bloomStrength - a.bloomStrength) * t,
-    vignette: a.vignette + (b.vignette - a.vignette) * t
+    vignette: a.vignette + (b.vignette - a.vignette) * t,
   };
 }
 
@@ -164,7 +170,7 @@ function lerpAtmosphere(a: Atmosphere, b: Atmosphere, t: number): Atmosphere {
    measured, Y-sorted keyframe list from fluid.ts. */
 export function sampleAtmosphere(
   stops: { y: number; atmosphere: Atmosphere }[],
-  y: number
+  y: number,
 ): Atmosphere {
   if (!stops.length) return ATMOSPHERE_STOPS[0].atmosphere;
   if (y <= stops[0].y) return stops[0].atmosphere;

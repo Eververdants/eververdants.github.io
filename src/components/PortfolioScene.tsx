@@ -17,22 +17,26 @@ export default function PortfolioScene() {
           flow, so the horizontal scrub's measurements stay stable. */}
       <div className="sticky top-0 h-dvh overflow-hidden [contain:paint]">
         <div className="flex h-dvh w-max" data-hscroll-track>
-        <TitlePanel />
-        <ChapterPanel num="01" label="GITHUB PROJECTS" accent="text-[#10aec2]/80" />
-        {works.projects.map((p, i) => (
-          <ProjectPanel key={p.name} project={p} index={i} />
-        ))}
-        <ChapterPanel
-          num="02"
-          label="PHOTOGRAPHY"
-          accent="text-[#f9a633]/80"
-          warm
-          notice={works.photography.notice}
-        />
-        {works.photos.map((ph, i) => (
-          <PhotoPanel key={ph.title} photo={ph} index={i} />
-        ))}
-        <EndPanel />
+          <TitlePanel />
+          <ChapterPanel
+            num="01"
+            label="GITHUB PROJECTS"
+            accent="text-[#10aec2]/80"
+          />
+          {works.projects.map((p, i) => (
+            <ProjectPanel key={p.name} project={p} index={i} />
+          ))}
+          <ChapterPanel
+            num="02"
+            label="PHOTOGRAPHY"
+            accent="text-[#f9a633]/80"
+            warm
+            notice={works.photography.notice}
+          />
+          {works.photos.map((ph, i) => (
+            <PhotoPanel key={ph.title} photo={ph} index={i} />
+          ))}
+          <EndPanel />
         </div>
       </div>
     </section>
@@ -71,7 +75,7 @@ function ChapterPanel({
   label,
   accent,
   warm,
-  notice
+  notice,
 }: {
   num: string;
   label: string;
@@ -82,7 +86,9 @@ function ChapterPanel({
   return (
     <div className="relative flex h-dvh w-screen flex-shrink-0 items-center justify-center text-center">
       <div className="relative">
-        <p className={`font-fraunces font-light tracking-[0.26em] text-[clamp(16px,2.4vw,32px)] ${accent}`}>
+        <p
+          className={`font-fraunces font-light tracking-[0.26em] text-[clamp(16px,2.4vw,32px)] ${accent}`}
+        >
           {label}
         </p>
         {/* Italic glyphs overhang their box; for gradient text the fill is
@@ -112,7 +118,7 @@ function Mount({
   alt,
   ratio,
   fallback,
-  natural
+  natural,
 }: {
   src?: string;
   alt: string;
@@ -138,15 +144,25 @@ function Mount({
     <div
       className={`${ratio} flex w-full flex-col items-center justify-center gap-3 rounded-[clamp(14px,1.6vw,24px)] bg-[#161618] text-[#6f6f6f]`}
     >
-      <span className="text-[clamp(15px,1.7vw,20px)] tracking-[0.3em]">{fallback}</span>
-      <span className="text-[9px] tracking-[0.34em] opacity-70">IMAGE PENDING</span>
+      <span className="text-[clamp(15px,1.7vw,20px)] tracking-[0.3em]">
+        {fallback}
+      </span>
+      <span className="text-[9px] tracking-[0.34em] opacity-70">
+        IMAGE PENDING
+      </span>
     </div>
   );
 }
 
 /* ---- Project panels: mounted screenshot + giant name ---- */
 
-function ProjectPanel({ project, index }: { project: (typeof works.projects)[number]; index: number }) {
+function ProjectPanel({
+  project,
+  index,
+}: {
+  project: (typeof works.projects)[number];
+  index: number;
+}) {
   return (
     <div className="relative flex h-dvh w-screen flex-shrink-0 items-center px-[clamp(24px,6vw,100px)]">
       <span
@@ -156,10 +172,17 @@ function ProjectPanel({ project, index }: { project: (typeof works.projects)[num
         {String(index + 1).padStart(2, "0")}
       </span>
       <figure className="relative w-[min(52vw,720px)] shrink-0">
-        <Mount src={project.image} alt={project.name} ratio="aspect-[4/3]" fallback="SCREENSHOT" />
+        <Mount
+          src={project.image}
+          alt={project.name}
+          ratio="aspect-[4/3]"
+          fallback="SCREENSHOT"
+        />
       </figure>
       <div className="ml-[clamp(32px,5vw,96px)] max-w-[min(36vw,540px)]">
-        <p className="text-[11px] tracking-[0.36em] text-[#10aec2]/70">GITHUB PROJECT</p>
+        <p className="text-[11px] tracking-[0.36em] text-[#10aec2]/70">
+          GITHUB PROJECT
+        </p>
         <h4 className="mt-[clamp(16px,2.5vh,28px)] font-fraunces font-medium leading-[0.9] tracking-[-0.01em] text-white text-[clamp(30px,5.6vw,88px)]">
           {project.name}
         </h4>
@@ -176,7 +199,13 @@ function ProjectPanel({ project, index }: { project: (typeof works.projects)[num
 
 /* ---- Photo panels: portrait mount, warm accents ---- */
 
-function PhotoPanel({ photo, index }: { photo: (typeof works.photos)[number]; index: number }) {
+function PhotoPanel({
+  photo,
+  index,
+}: {
+  photo: (typeof works.photos)[number];
+  index: number;
+}) {
   return (
     <div className="relative flex h-dvh w-screen flex-shrink-0 items-center px-[clamp(24px,6vw,100px)]">
       <span
@@ -186,10 +215,18 @@ function PhotoPanel({ photo, index }: { photo: (typeof works.photos)[number]; in
         {String(index + 1).padStart(2, "0")}
       </span>
       <figure className="relative flex shrink-0 items-center justify-center">
-        <Mount src={photo.image} alt={photo.title} ratio="aspect-[3/4]" fallback="PHOTO" natural />
+        <Mount
+          src={photo.image}
+          alt={photo.title}
+          ratio="aspect-[3/4]"
+          fallback="PHOTO"
+          natural
+        />
       </figure>
       <div className="ml-[clamp(32px,5vw,96px)] max-w-[min(36vw,540px)]">
-        <p className="text-[11px] tracking-[0.36em] text-[#f9a633]/70">PHOTOGRAPHY</p>
+        <p className="text-[11px] tracking-[0.36em] text-[#f9a633]/70">
+          PHOTOGRAPHY
+        </p>
         <h4 className="mt-[clamp(16px,2.5vh,28px)] font-fraunces font-light italic leading-[0.95] tracking-[-0.01em] text-white text-[clamp(30px,5.6vw,88px)]">
           {photo.title}
         </h4>

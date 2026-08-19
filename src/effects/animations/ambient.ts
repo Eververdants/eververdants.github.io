@@ -7,6 +7,6 @@ export function initFilmGrain() {
     backgroundPosition: "300px 300px",
     duration: 1.2,
     ease: "none",
-    repeat: -1
+    repeat: -1,
   });
 }

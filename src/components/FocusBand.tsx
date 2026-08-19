@@ -11,18 +11,36 @@
  * 8 stacked backdrop-filter layers, each masked to its own window, so only
  * content passing the strip is blurred — everything else stays sharp.
  */
-import { useEffect, useState } from 'react';
-import type { CSSProperties } from 'react';
+import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 
 const LAYERS: Array<{ radius: number; mask: string }> = [
-  { radius: 0.5, mask: "transparent 0%, #000 12.5%, #000 25%, transparent 37.5%" },
-  { radius: 0.5625, mask: "transparent 12.5%, #000 25%, #000 37.5%, transparent 50%" },
-  { radius: 1.125, mask: "transparent 25%, #000 37.5%, #000 50%, transparent 62.5%" },
-  { radius: 2.25, mask: "transparent 37.5%, #000 50%, #000 62.5%, transparent 75%" },
-  { radius: 4.5, mask: "transparent 50%, #000 62.5%, #000 75%, transparent 87.5%" },
-  { radius: 9, mask: "transparent 62.5%, #000 75%, #000 87.5%, transparent 100%" },
+  {
+    radius: 0.5,
+    mask: "transparent 0%, #000 12.5%, #000 25%, transparent 37.5%",
+  },
+  {
+    radius: 0.5625,
+    mask: "transparent 12.5%, #000 25%, #000 37.5%, transparent 50%",
+  },
+  {
+    radius: 1.125,
+    mask: "transparent 25%, #000 37.5%, #000 50%, transparent 62.5%",
+  },
+  {
+    radius: 2.25,
+    mask: "transparent 37.5%, #000 50%, #000 62.5%, transparent 75%",
+  },
+  {
+    radius: 4.5,
+    mask: "transparent 50%, #000 62.5%, #000 75%, transparent 87.5%",
+  },
+  {
+    radius: 9,
+    mask: "transparent 62.5%, #000 75%, #000 87.5%, transparent 100%",
+  },
   { radius: 18, mask: "transparent 75%, #000 87.5%, #000 100%" },
-  { radius: 36, mask: "transparent 87.5%, #000 100%" }
+  { radius: 36, mask: "transparent 87.5%, #000 100%" },
 ];
 
 export default function FocusBand() {
@@ -31,7 +49,7 @@ export default function FocusBand() {
   const [coarse] = useState(
     () =>
       typeof window !== "undefined" &&
-      window.matchMedia("(hover: none), (pointer: coarse)").matches
+      window.matchMedia("(hover: none), (pointer: coarse)").matches,
   );
 
   useEffect(() => {
@@ -70,7 +88,9 @@ export default function FocusBand() {
   return (
     <div
       className={`pointer-events-none fixed z-[2] ${
-        right ? "right-0 top-0 bottom-0 w-[22vw]" : "bottom-0 left-0 right-0 h-[22vh]"
+        right
+          ? "right-0 top-0 bottom-0 w-[22vw]"
+          : "bottom-0 left-0 right-0 h-[22vh]"
       }`}
       aria-hidden="true"
     >
@@ -83,7 +103,7 @@ export default function FocusBand() {
           backdropFilter: `blur(${layer.radius}px)`,
           WebkitBackdropFilter: `blur(${layer.radius}px)`,
           maskImage: mask,
-          WebkitMaskImage: mask
+          WebkitMaskImage: mask,
         };
         return <div key={i} style={style} />;
       })}

@@ -39,11 +39,11 @@ export default function LoadingOverlay() {
       className="overlay-transition overlay-cover fixed inset-0 z-[70] flex flex-col items-center justify-center gap-4"
       aria-hidden
     >
-      <span className="text-[10px] font-semibold tracking-[0.45em] text-[#8a867c]">
+      <span className="text-[10px] font-semibold tracking-[0.45em] text-[var(--faint)]">
         LOADING
       </span>
-      <span className="relative h-[2px] w-28 overflow-hidden bg-[#e2dfd6]">
-        <span className="overlay-bar absolute inset-0 origin-left bg-[#0e7a86]" />
+      <span className="relative h-[2px] w-28 overflow-hidden bg-[var(--border-faint)]">
+        <span className="overlay-bar absolute inset-0 origin-left bg-[var(--accent)]" />
       </span>
     </div>
   );

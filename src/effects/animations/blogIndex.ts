@@ -15,7 +15,10 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export function initBlogIndex(root: HTMLElement, prefersReduced: boolean): () => void {
+export function initBlogIndex(
+  root: HTMLElement,
+  prefersReduced: boolean,
+): () => void {
   const ctx = gsap.context(() => {
     if (prefersReduced) {
       // CSS hides [data-blog-in] until JS animates it; under reduced motion
@@ -37,8 +40,9 @@ export function initBlogIndex(root: HTMLElement, prefersReduced: boolean): () =>
         duration: 0.8,
         stagger: 0.12,
         ease: "power3.out",
-        onComplete: () => gsap.set("[data-blog-in]", { clearProps: "transform,filter" })
-      }
+        onComplete: () =>
+          gsap.set("[data-blog-in]", { clearProps: "transform,filter" }),
+      },
     );
 
     // scroll hint fades out over the hero's first viewport of scroll
@@ -52,9 +56,9 @@ export function initBlogIndex(root: HTMLElement, prefersReduced: boolean): () =>
           trigger: "[data-blog-hero]",
           start: "top top",
           end: "bottom top",
-          scrub: true
-        }
-      }
+          scrub: true,
+        },
+      },
     );
   }, root);
 

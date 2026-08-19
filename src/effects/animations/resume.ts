@@ -16,7 +16,7 @@ import gsap from "gsap";
 function initMastheads() {
   gsap.utils.toArray<HTMLElement>("[data-masthead]").forEach((mast) => {
     const letters = Array.from(
-      mast.querySelectorAll<HTMLElement>("[data-mast-letter]")
+      mast.querySelectorAll<HTMLElement>("[data-mast-letter]"),
     );
     if (!letters.length) return;
     gsap
@@ -25,8 +25,8 @@ function initMastheads() {
           trigger: mast,
           start: "top bottom",
           end: "bottom top",
-          scrub: true
-        }
+          scrub: true,
+        },
       })
       .fromTo(
         letters,
@@ -37,9 +37,9 @@ function initMastheads() {
           filter: "blur(0px)",
           duration: 0.3,
           stagger: 0.06,
-          ease: "none"
+          ease: "none",
         },
-        0
+        0,
       )
       .to({}, { duration: 0.4 })
       .to(
@@ -51,9 +51,9 @@ function initMastheads() {
           x: (i: number) => (i - (letters.length - 1) / 2) * 50,
           duration: 0.3,
           stagger: { each: 0.05, from: "start" },
-          ease: "none"
+          ease: "none",
         },
-        0.7
+        0.7,
       );
   });
 }
@@ -74,9 +74,9 @@ function initParallax() {
           start: "top bottom",
           end: "bottom top",
           scrub: true,
-          invalidateOnRefresh: true
-        }
-      }
+          invalidateOnRefresh: true,
+        },
+      },
     );
   });
 }
@@ -92,7 +92,7 @@ function initWipes() {
       clipPath: "inset(0 100% 0 0)",
       duration: 0.7,
       ease: "power3.inOut",
-      scrollTrigger: { trigger, start: "top 105%", once: true }
+      scrollTrigger: { trigger, start: "top 105%", once: true },
     });
   });
 }
@@ -102,7 +102,9 @@ function initWipes() {
    the slide per line index. Also reveals the journal's closing line. */
 function initLineMasks() {
   gsap.utils.toArray<HTMLElement>(".line-mask").forEach((mask) => {
-    const lines = Array.from(mask.querySelectorAll<HTMLElement>(":scope > span"));
+    const lines = Array.from(
+      mask.querySelectorAll<HTMLElement>(":scope > span"),
+    );
     lines.forEach((span, i) => {
       gsap.fromTo(
         span,
@@ -114,8 +116,8 @@ function initLineMasks() {
           duration: 0.7,
           ease: "power2.out",
           delay: i * 0.06,
-          scrollTrigger: { trigger: mask, start: "top 105%", once: true }
-        }
+          scrollTrigger: { trigger: mask, start: "top 105%", once: true },
+        },
       );
     });
   });
@@ -138,8 +140,8 @@ function initChapterRecede() {
         trigger: act,
         start: "top top",
         end: "+=70%",
-        scrub: true
-      }
+        scrub: true,
+      },
     });
   });
 }
@@ -155,7 +157,7 @@ function initAwardRows() {
       duration: 0.65,
       ease: "power3.inOut",
       delay: i * 0.12,
-      scrollTrigger: { trigger: row, start: "top 105%", once: true }
+      scrollTrigger: { trigger: row, start: "top 105%", once: true },
     });
   });
 }
@@ -170,29 +172,36 @@ function initMarqueeLoops() {
     gsap.fromTo(
       track,
       { xPercent: reverse ? -50 : 0 },
-      { xPercent: reverse ? 0 : -50, repeat: -1, ease: "none", duration: slow ? 52 : 28 }
+      {
+        xPercent: reverse ? 0 : -50,
+        repeat: -1,
+        ease: "none",
+        duration: slow ? 52 : 28,
+      },
     );
   });
 }
 
 /* ---- marquee bands: scroll-scrubbed skew swing ---- */
 function initMarqueeSkew() {
-  gsap.utils.toArray<HTMLElement>("[data-marquee-parallax]").forEach((band, i) => {
-    gsap.fromTo(
-      band,
-      { skewX: i % 2 ? -3 : 3 },
-      {
-        skewX: i % 2 ? 3 : -3,
-        ease: "none",
-        scrollTrigger: {
-          trigger: band,
-          start: "top bottom",
-          end: "bottom top",
-          scrub: true
-        }
-      }
-    );
-  });
+  gsap.utils
+    .toArray<HTMLElement>("[data-marquee-parallax]")
+    .forEach((band, i) => {
+      gsap.fromTo(
+        band,
+        { skewX: i % 2 ? -3 : 3 },
+        {
+          skewX: i % 2 ? 3 : -3,
+          ease: "none",
+          scrollTrigger: {
+            trigger: band,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+          },
+        },
+      );
+    });
 }
 
 export function initResume() {

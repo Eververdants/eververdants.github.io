@@ -18,8 +18,12 @@ function initCoverTitle() {
         filter: "blur(0px)",
         duration: 0.8,
         ease: "power3.out",
-        scrollTrigger: { trigger: el.closest("[data-cover]"), start: "top 60%", once: true }
-      }
+        scrollTrigger: {
+          trigger: el.closest("[data-cover]"),
+          start: "top 60%",
+          once: true,
+        },
+      },
     );
   });
 }
@@ -39,30 +43,42 @@ export function initReadingDeck(spreads: HTMLElement[]) {
         start: "top bottom",
         end: "bottom top",
         scrub: true,
-        invalidateOnRefresh: true
-      }
+        invalidateOnRefresh: true,
+      },
     });
     if (touch) {
       tl.fromTo(
         spread,
         { y: 64, autoAlpha: 0 },
         { y: 0, autoAlpha: 1, duration: 0.38, ease: "power2.out" },
-        0
+        0,
       ).to(
         spread,
         { y: -64, autoAlpha: 0, duration: 0.38, ease: "power2.in" },
-        0.62
+        0.62,
       );
     } else {
       tl.fromTo(
         spread,
-        { rotateX: -55, y: 130, autoAlpha: 0, transformOrigin: "50% 50%", transformPerspective: 850 },
+        {
+          rotateX: -55,
+          y: 130,
+          autoAlpha: 0,
+          transformOrigin: "50% 50%",
+          transformPerspective: 850,
+        },
         { rotateX: 0, y: 0, autoAlpha: 1, duration: 0.38, ease: "power2.out" },
-        0
+        0,
       ).to(
         spread,
-        { rotateX: 55, y: -130, autoAlpha: 0, duration: 0.38, ease: "power2.in" },
-        0.62
+        {
+          rotateX: 55,
+          y: -130,
+          autoAlpha: 0,
+          duration: 0.38,
+          ease: "power2.in",
+        },
+        0.62,
       );
     }
   });
