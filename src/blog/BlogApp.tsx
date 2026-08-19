@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type Lenis from "lenis";
 import ArticleScene from "./components/ArticleScene";
+import BackToTop from "./components/BackToTop";
 import BlogControls from "./components/BlogControls";
 import BlogIndexScene from "./components/BlogIndexScene";
 import LoadingOverlay from "../components/LoadingOverlay";
@@ -60,6 +61,13 @@ export default function BlogApp() {
     else window.scrollTo(0, 0);
   }, []);
 
+  /* Smooth scroll to any offset (TOC jumps, back-to-top) via lenis. */
+  const scrollToY = useCallback((y: number) => {
+    const lenis = lenisRef.current;
+    if (lenis) lenis.scrollTo(y);
+    else window.scrollTo(0, y);
+  }, []);
+
   /* Index → article pushes an entry so Back returns to the index. */
   const openArticle = useCallback(
     (slug: string) => {
@@ -109,16 +117,13 @@ export default function BlogApp() {
           slug={article!}
           onClose={closeArticle}
           onOpen={openArticleReplace}
-          scrollTo={(y) => {
-            const lenis = lenisRef.current;
-            if (lenis) lenis.scrollTo(y);
-            else window.scrollTo(0, y);
-          }}
+          scrollTo={scrollToY}
         />
       ) : (
         <BlogIndexScene onOpen={openArticle} />
       )}
       <BlogControls />
+      <BackToTop scrollTo={scrollToY} />
       <Scrollbar />
       <LoadingOverlay />
     </BlogPrefsProvider>

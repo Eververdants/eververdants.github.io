@@ -21,8 +21,20 @@ export interface JournalPost {
   read: string;
   // One-line teaser shown on the blog deck.
   excerpt: string;
-  // Tags for the blog's filter system.
+  // Language-independent tag ids — English frontmatter tags are the
+  // canonical ids; Chinese translations map their localized labels onto
+  // them positionally (see articles.ts). Filtering, deep links and
+  // related-reading all key on these, never on the UI language.
   tags: string[];
+  // Localized display labels for the tags (same order as tags). English
+  // files repeat the ids; Chinese files carry the translated names.
+  tagLabels: string[];
+  // Optional byline — defaults to the site name when absent.
+  author?: string;
+  // Language-independent section key, resolved at parse time from the
+  // frontmatter category (localized per file). Grouping, recommendation and
+  // glyph lookup read this — never the reader's current UI language.
+  sectionId: string | null;
 }
 
 /* Blog sections — the editorial columns the content site is filed under.

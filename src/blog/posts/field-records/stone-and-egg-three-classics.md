@@ -1,72 +1,82 @@
 ---
 slug: stone-and-egg-three-classics
-title: "The Stone Is Hard,\nthe Egg Is Light"
+title: "Stone is Hard\nEgg is Light"
 category: FIELD RECORDS
 date: 2026.07.04
-excerpt: On Contradiction, On Protracted War, and A Single Spark Can Start a Prairie Fire — three essays, three periods, and the strategic framework they build for overturning an unequal contest.
+excerpt: On Contradiction, On Protracted War, and A Single Spark Can Start a Prairie Fire—three works, three periods, and the strategic frameworks they built to reverse asymmetrical contests.
 tags: [Mao Zedong, Strategy, Reading Notes]
 ---
 
-Common sense tells us: when an egg strikes a stone, the egg breaks.
+Common sense tells us: when an egg strikes a stone, it is always the egg that breaks.
 
-Yet across the real arc of history, we keep seeing the same paradox: a latecomer with an absolute disadvantage in troops, equipment, and resources ends up overturning a giant. That reversal of the balance of power was never luck — it was the product of cold, rigorous strategic reasoning.
+Yet throughout history, we have repeatedly witnessed a paradox: a latecomer, absolutely inferior in troops, equipment, and resources, ultimately manages to overturn a colossus.
 
-Today, let's return to the historical scene of more than eighty years ago and reopen three classic essays Mao Zedong wrote in three different periods. Let's watch how, in an extreme situation where the enemy was strong and we were weak — where hope was barely visible — he took the problem apart step by step and turned the tide.
+Such reversals of power are never the result of luck, but of ruthlessly rigorous strategic reasoning.
+
+Today, let us return to the historical scene of over eighty years ago and reopen three classics written by Mao Zedong across three distinct periods. Let us see how, under those extreme circumstances where the enemy was strong and we were weak—when hope seemed all but extinguished—he dissected the problem step by step and turned the tide.
 
 ## I. On Contradiction — August 1937
 
-To understand it, we have to go back to that historical juncture. The Red Army had just completed the Long March; the bloody lesson of the failed Fifth Encirclement Campaign was still vivid. Looking back in pain: why had we kept taking such heavy losses? The core reason was that the leadership of the day was too infatuated with dogma — treating Comintern directives as holy writ, measuring Chinese cloth with a foreign yardstick, completely divorced from China's reality. So _On Contradiction_ was born to purge, at the philosophical root, this way of thinking that ignored the country's actual conditions — to answer the question: how, exactly, do we see reality?
+To understand this work, we must first return to that historical juncture. The Red Army had just completed the Long March, and the bloody lessons of the failed Fifth Counter-Campaign against "Encirclement and Suppression" were still fresh in memory. Reflecting on the pain, why had we suffered such heavy losses time and again? The root cause lay in the decision-makers' blind faith in dogma, treating directives from the Comintern as sacred edicts and using foreign yardsticks to measure Chinese cloth—completely detached from China's realities.
 
-And how do we see it? The book offers a razor-sharp point of entry: **distinguish internal causes from external causes.**
+Thus, On Contradiction was born to thoroughly purge this erroneous thinking that ignored national conditions at its philosophical roots, addressing the question: "How exactly should we perceive reality?"
 
-There is a famous line in the book: "Materialist dialectics holds that external causes are the condition of change and internal causes are the basis of change, and that external causes become operative through internal causes. An egg changes into a chicken through suitable temperature, but no temperature can change a stone into a chicken, because the bases of the two are different."
+So how do we perceive it? On Contradiction offers an incisive entry point: **distinguishing between internal and external causes**.
 
-Where is the cutting power in this? When the dogmatists of the day lost battles, they blamed the enemy's strength and the harsh conditions — all external causes. But _On Contradiction_ tells you: the external environment and the power of your opponent are just the "temperature"; your own organizational structure, core capabilities, and the support of the people are the "basis." Treating external causes as the root of failure is where strategic misjudgment begins. The first lesson of _On Contradiction_: strip away external interference and fix your gaze on the **principal contradiction** inside the thing itself.
+The book contains this original passage:
+
+> "Materialist dialectics holds that external causes are the condition of change and internal causes are the basis of change; external causes operate through internal causes. An egg becomes a chick with appropriate temperature, but temperature cannot turn a stone into a chick, because their bases are fundamentally different."
+
+Where lies the cutting edge of this statement? Back then, when dogmatists lost battles, they always blamed the enemy for being too strong or conditions for being too poor—all external causes. But On Contradiction tells you: the external environment and the opponent's strength are merely the "temperature"; your own organizational structure, core capabilities, and popular support constitute the "basis." Treating external factors as the fundamental reason for defeat is the beginning of strategic miscalculation. The first lesson On Contradiction teaches us is to strip away external distractions and fix our gaze unwaveringly on the "**principal contradiction**" within things themselves.
 
 ## II. On Protracted War — May 1938
 
-Once you see the essence clearly, how do you fight? That brings us to the second book.
+Having grasped the essence, how then do we fight? This brings us to the second book: On Protracted War, written in May 1938. It provides a roadmap for the transformation of power.
 
-It provides the roadmap for the transformation of power.
+By then, the War of Resistance had been fought for ten months, vast territories had fallen, and debates between the theories of "national subjugation" and "quick victory" raged fiercely. Mao did not take sides based on intuition; instead, he dissected four fundamental contradictions between China and Japan, deducing one conclusion: **China will not perish, nor can it win quickly**.
 
-Ten months into the War of Resistance, vast territories had fallen, and the "theory of national subjugation" and the "theory of quick victory" were locked in furious debate. Mao didn't pick a side on feeling. He broke down the four basic contradictions between China and Japan and deduced a conclusion: China would not perish, but neither could it win quickly.
+The core methodology of On Protracted War is the **dimensional reduction of "power"** and the **extension of the timeline**.
 
-The core methodology of _On Protracted War_ is a **dimensional breakdown of "power" combined with an extension of the time horizon.**
+He divided power into **static factors** (weapons, economy) and **dynamic factors** (organizational capacity, popular will). Static factors may dominate in the short term, but dynamic factors transform over time.
 
-He divided power into static factors — weapons, economy — and dynamic factors: organizational capacity, popular will. Static factors dominate in the short term, but dynamic factors transform over time.
+More crucially, he designed a three-stage pathway: **"strategic defense, strategic stalemate, and strategic counter-offensive."**
 
-More critically, he designed a three-stage path: **strategic defense, strategic stalemate, strategic counteroffensive.**
-
-And here sits a huge misconception: many people think protracted war means "hanging on" — passively avoiding battle. Wrong. What Mao stressed was the unity of "strategic protraction" and "campaign-level quick decisions." Stay patient at the macro-strategic level, but at the micro-tactical level you must strike actively — using "offensives within defense, quick decisions within the protracted" to keep creating local advantages. This is how you tear open an overall turning point from within a passive position.
+Here lies a massive cognitive misconception: many assume protracted war means merely "enduring," a passive avoidance of battle. Wrong! What Mao emphasized was the **unity of "protracted strategy" and "quick decision in campaigns."** Maintain patience at the macro-strategic level, but at the micro-tactical level, seize the initiative relentlessly. Through **"offense within defense, quick decision within protraction,"** continuously create local advantages. This is how to tear open a turning point in the overall situation from within a passive position.
 
 ## III. A Single Spark Can Start a Prairie Fire — January 1930
 
-With the method and the path in place, one final, most lethal question remains: when the balance of power is extremely lopsided and everyone around you has sunk into despair, what makes you believe in your own judgment?
+With methods and pathways established, one final, most critical question remains: when the disparity in power is extreme and despair engulfs everyone, what gives you the conviction to trust your own judgment?
 
-It provides trend confirmation in a desperate situation.
+This is the third book: A Single Spark Can Start a Prairie Fire, dated January 1930. It provides trend confirmation amidst desperation.
 
-The Great Revolution had failed; the revolution was at an extreme low. Confusion was widespread inside the Red Army: "How much longer can the red flag keep flying?" In a cramped room in Gutian, Fujian, Mao wrote this eight-thousand-character letter.
+At that time, the Great Revolution had failed, the revolution was at its lowest ebb, and confusion pervaded the Red Army: "How long can the red flag be flown?" In a cramped room in Gutian, Fujian, Mao penned this eight-thousand-character letter.
 
-Faced with everyone's doubts about the word "soon" in "the high tide of revolution is coming soon," he gave an extremely sober answer: "Marxists are not fortune-tellers. As to the future course and development, we should only, and can only, state the general direction; we should not, and cannot, mechanically fix the date."
+Addressing doubts about the word "soon" in the phrase "the high tide of revolution is coming soon," he gave an extraordinarily clear answer:
 
-He didn't shout empty slogans. Based on his deduction of the structural contradictions of Chinese society, he offered three historical metaphors of piercing insight. This, he said, was by no means something empty and out of reach: "It is a ship at sea whose masthead is already visible from the shore; it is a morning sun about to burst forth, its radiant rays already visible in the east from a mountaintop; it is a baby, almost full-term, already stirring in its mother's womb."
+> "A Marxist is not a fortune teller. Regarding future developments and changes, one should and can only indicate the general direction; one should not and cannot mechanically fix specific dates."
 
-The methodology behind these three metaphors: the core of trend judgment is not to predict the exact moment like a fortune-teller, but to **confirm the inevitability of the general direction**. As long as the underlying structural logic holds, short-term fluctuations and setbacks are only ripples in the current of history.
+Rather than shouting hollow slogans, he offered three historically penetrating metaphors grounded in his analysis of the structural contradictions of Chinese society.
 
-## Three Books, One Line of Thought
+He wrote that this is by no means something visible yet unattainable:
 
-We've gone through the three books by the logic of the problems. Now let's rearrange them in chronological order, and a clearer line of intellectual evolution appears:
+> "It is like a ship whose masthead can already be seen from the shore gazing out to sea; it is like the morning sun whose radiant rays can already be seen bursting forth from atop a high mountain looking eastward; it is like a baby stirring in its mother's womb, nearly ready to be born."
 
-- _A Single Spark_ (1930): amid the confusion of the revolution's low tide, parting the clouds to see the big trend;
-- _On Contradiction_ (1937): after bitter lessons, uprooting the disease of dogmatism from the height of philosophy;
-- _On Protracted War_ (1938): at the life-or-death moment of the weak facing the strong, deducing the strategic path to win from weakness.
+The methodology behind these three metaphors is this: the core of trend judgment lies not in predicting precise timing like a fortune teller, but in **confirming the inevitability of the general direction**. As long as the underlying structural logic holds, short-term fluctuations and setbacks are merely ripples in the course of history.
 
-You'll notice this was never "theory first," conjured up in a study. It was a weapon of thought hammered out step by step from the brutal practice of countless sacrifices — from practice, and back to practice. That itself is the most vivid illustration of "practice, knowledge, more practice, and more knowledge."
+## Three Books, One Thread of Thought
 
-Back to the beginning: egg against stone — is it really the egg that breaks?
+We have just walked through these three books following a problem-based logic. Now, let us reorder them chronologically, and you will discover a clearer line of intellectual evolution:
 
-Once you've mastered this framework — seeing through to the essence with internal and external causes, planning the path with three stages, confirming the trend with macro structure — you'll find that the balance of power was never static.
+- **A Single Spark Can Start a Prairie Fire** (1930): Piercing through the fog to discern the grand trend amid the迷茫 of revolutionary low tide;
+- **On Contradiction** (1937): Eradicating the disease of dogmatism from a philosophical height after painful reflection;
+- **On Protracted War** (1938): Deducing a strategic path to victory for the weak against the strong at a moment of existential peril.
 
-Maybe it isn't the egg that breaks. Maybe you aren't even a fragile egg anymore.
+You will find that none of this was "theory-first" speculation conjured up in an ivory tower. It was a weapon of thought forged step by step through countless cruel combats and sacrifices—emerging from practice, returning to practice. This itself is the most vivid embodiment of "practice, knowledge, practice again, know again."
 
-Which of the three works' methodologies inspired you the most? Leave your thoughts in the comments.
+Returning to our opening question: when an egg strikes a stone, must it always break?
+
+When you master this framework—**seeing through to the essence via internal and external causes, planning pathways through three stages, confirming trends through macro-structures**—you will realize that balances of power are never static.
+
+What breaks is not necessarily the egg. Indeed, you may no longer be a fragile egg at all.
+
+Which of these three works' methodologies inspires you the most? Share your thoughts in the comments below.

@@ -1,7 +1,8 @@
 /* Tiny, safe markdown → HTML for journal articles. Escapes everything
-   first, then applies a deliberately small grammar: paragraphs, headings,
-   blockquotes, lists, rules, fenced code, and inline marks (bold, italic,
-   code, links). Big enough for prose, small enough to trust. */
+   first, then applies a deliberately small grammar: paragraphs, headings
+   (h1–h6), blockquotes, lists, rules, fenced code, pipe tables, images,
+   and inline marks (bold, italic, code, links). Big enough for prose,
+   small enough to trust. */
 
 function escapeHtml(s: string): string {
   return s
@@ -51,7 +52,7 @@ export function renderMarkdown(src: string): string {
       continue;
     }
 
-    const heading = t.match(/^(#{1,3})\s+(.*)/);
+    const heading = t.match(/^(#{1,6})\s+(.*)/);
     if (heading) {
       flushPara();
       flushList();
@@ -62,6 +63,65 @@ export function renderMarkdown(src: string): string {
         .replace(/[^a-z0-9一-龥]+/g, "-")
         .replace(/(^-|-$)/g, "");
       out.push(`<h${lv} id="${id}">${inline(heading[2])}</h${lv}>`);
+      continue;
+    }
+
+    /* Images — a line of ![alt](src) renders as a figure with the alt as
+       caption (accessible by construction: caption == alt text). */
+    const img = t.match(/^!\[([^\]]*)\]\(([^)\s]+)\)$/);
+    if (img) {
+      flushPara();
+      flushList();
+      const [, alt, src] = img;
+      const caption = escapeHtml(alt);
+      out.push(
+        `<figure><img src="${escapeHtml(src)}" alt="${caption}" loading="lazy"/><figcaption>${caption}</figcaption></figure>`,
+      );
+      continue;
+    }
+
+    /* Pipe tables — a header row, a |---| separator, then data rows. */
+    if (t.startsWith("|")) {
+      flushPara();
+      flushList();
+      const rows = [t];
+      while (i + 1 < lines.length && lines[i + 1].trim().startsWith("|")) {
+        i++;
+        rows.push(lines[i].trim());
+      }
+      const isSep = (r: string) =>
+        /^\|?[\s:|-]+\|?$/.test(r) && r.includes("-");
+      const split = (r: string) =>
+        r
+          .replace(/^\|/, "")
+          .replace(/\|$/, "")
+          .split("|")
+          .map((c) => c.trim());
+      if (rows.length >= 2 && isSep(rows[1])) {
+        const head = split(rows[0]);
+        const body = rows.slice(2).map(split);
+        out.push(
+          "<table><thead><tr>" +
+            head.map((c) => `<th>${inline(c)}</th>`).join("") +
+            "</tr></thead>" +
+            (body.length
+              ? "<tbody>" +
+                body
+                  .map(
+                    (r) =>
+                      "<tr>" +
+                      r.map((c) => `<td>${inline(c)}</td>`).join("") +
+                      "</tr>",
+                  )
+                  .join("") +
+                "</tbody>"
+              : "") +
+            "</table>",
+        );
+      } else {
+        // Not a real table (no separator row) — fall back to prose.
+        para += rows.join(" ") + " ";
+      }
       continue;
     }
 
@@ -89,13 +149,17 @@ export function renderMarkdown(src: string): string {
     if (/^```/.test(t)) {
       flushPara();
       flushList();
+      // Optional language tag after the fence — rendered as a data-lang
+      // attribute so the reader can badge the block and offer copy.
+      const lang = t.replace(/^```/, "").trim();
       let code = "";
       i++;
       while (i < lines.length && !/^```/.test(lines[i].trim())) {
         code += lines[i] + "\n";
         i++;
       }
-      out.push(`<pre><code>${escapeHtml(code.trim())}</code></pre>`);
+      const langAttr = lang ? ` data-lang="${escapeHtml(lang)}"` : "";
+      out.push(`<pre${langAttr}><code>${escapeHtml(code.trim())}</code></pre>`);
       continue;
     }
 

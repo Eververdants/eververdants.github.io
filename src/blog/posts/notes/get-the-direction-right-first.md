@@ -1,57 +1,63 @@
 ---
 slug: get-the-direction-right-first
-title: "Don't Rush\nto Work Hard"
+title: "Don't Rush to Work Hard: Get the Direction Right First"
 category: NOTES
 date: 2026.07.03
-excerpt: Two methodologies from Mao Zedong's 1941 essay 'Reform Our Study' — seek truth from facts, and aim the arrow at the target — and how they cut through modern confusion.
+excerpt: Two methodologies from Mao Zedong's 1941 essay "Reform Our Study"—seeking truth from facts and having a clear target—and how they cut through modern confusion.
 tags: [Mao Zedong, Methodology, Reading Notes]
 ---
 
-Who hasn't been there? A bookmark folder stuffed with a dozen posts about "escaping confusion." Scrolling your phone at 2 a.m., hunting for an answer. During the day you sit at your desk, books open, convinced you're giving it everything — but the moment you stop and ask yourself, _what exactly am I working toward? Does any of this effort actually mean anything?_ — the words die in your throat.
+Who hasn't experienced this? Your bookmarks are filled with dozens of posts on "overcoming confusion," and at 2 a.m. you're still frantically scrolling through your phone seeking answers. During the day, you sit at your desk with books spread out, feeling like you've given it your all. Yet, when you quiet down and ask yourself: What exactly am I striving for? Is all this effort even meaningful? You often find yourself speechless. What if I told you that your biggest problem isn't a lack of effort, but rather that you've turned **"effort" itself into a straw to clutch at**? Doesn't that sound a bit counterintuitive?
 
-What if the real problem isn't that you don't work hard enough, but that you've turned "working hard" itself into a lifeline? Sounds counterintuitive, doesn't it?
+## The Debate in the Cave Dwelling
 
-## The Debate in the Cave Dwellings
+Don't think this is far removed from our lives. In 1941, inside the cave dwellings of Yan'an, a group of revolutionaries debated fiercely over "how to correctly understand the world." This question may seem grand, but it is intimately relevant to everyone. Mao Zedong crystallized this debate into his essay "Reform Our Study," offering two methodologies that transcend time: **seeking truth from facts** and **having a clear target**. Today, they remain like a beacon, capable of piercing the fog of contemporary confusion.
 
-And don't think this is far from us. In 1941, in the cave dwellings of Yan'an, a group of revolutionaries argued themselves red in the face over one question: how to correctly understand the world. It sounds grand and distant; it is actually the most personal question there is. Mao Zedong distilled that debate into an essay, _Reform Our Study_, and handed down two methodologies that have outlived their era: **seek truth from facts** and **aim the arrow at the target**. Today they still work like a lamp, cutting through the fog of modern confusion.
+At the time, there was a typical phenomenon within the Party: some returned from studies in the Soviet Union able to recite Marxist-Leninist works backwards and forwards, quoting theoretical gems at every turn. Yet, when faced with China's complex realities, they were instantly helpless, becoming "headless flies." Mao sharply criticized this dogmatic tendency, pointing out that neglecting the integration of theory and practice turned theory into a castle in the air. His concept of "seeking truth from facts" was not merely an encouragement to work diligently; it emphasized exploring the underlying laws of the world. He stated:
 
-At the time, a typical phenomenon plagued the Party: people returning from study in the Soviet Union could recite Marxism-Leninism backward and forward, gold-plated quotations rolling off their tongues — yet the moment they faced the messy, concrete realities of China, they froze, buzzing around like headless flies. Mao's criticism was sharp. This dogmatic style, he said, severed theory from practice, turning theory into a castle in the air. His "seek truth from facts" was never merely an exhortation to grind away at work — it meant _investigating the underlying laws of the world_. His own definition: "'Facts' are all things that exist objectively; 'truth' is their internal connections, that is, the laws governing them; and 'to seek' means our studying them." Of the three characters, "seek" is the soul — without the spirit of active inquiry, facts are just scattered material, and "truth" is an empty slogan on a wall.
+> "'Facts' are all things that exist objectively, 'truth' means their internal relations, i.e., the laws governing them, and 'to seek' means to study."
 
-## Two Common Misunderstandings
+Among these three concepts, **"to seek" is the soul**—without a spirit of active exploration, facts are merely scattered materials, and "truth" becomes nothing more than an empty slogan on the wall.
 
-But in practice, "seeking truth from facts" suffers two common misunderstandings.
+## Two Common Misinterpretations
 
-**The first: equating it with hard work.** Believing that toiling doggedly is itself the practice of truth. Yet if you never check your direction, hard work is simply labor spent running the wrong way.
+In reality, however, people often misunderstand "seeking truth from facts" in two major ways:
 
-**The second: flattening it into empiricism.** Applying your own stale experience to everything. But the "facts" Mao meant are all things that exist objectively — not the tired preconceptions sitting in your head.
+First, equating it with **"working steadily,"** assuming that keeping one's head down and toiling away is synonymous with pursuing truth. But without looking at the direction, hard work may just be futile effort, **running south while driving north**;
 
-## Seek Truth From Facts: Three Steps
+Second, reducing it to **"empiricism,"** applying ingrained perceptions to everything. But the "facts" Chairman Mao spoke of encompass all objective realities, not just the stale experiences residing in one's mind.
 
-So what does genuine "seeking truth from facts" actually look like? Three steps:
+## Seeking Truth from Facts: A Three-Step Approach
 
-1. **Establish the facts.** Lay out the situation, the data, the records — all of it. Replace feelings with evidence. Don't rely on instinct to say "I'm not good enough"; use evidence to answer _where_ you fall short, _by how much_, and _in what way_.
-2. **Find the patterns.** Connect the facts, look for patterns that repeat, and keep asking "why." Failing over and over — is it a flawed method? Insufficient resources? Or a wrong direction?
-3. **Define the problem.** Based on the patterns, pinpoint the core contradiction with precision. Not a vague "I want to get better," but a clear "I want to solve this specific problem in this specific domain."
+So how does one truly "seek truth from facts"? It takes just three steps:
 
-## Aim the Arrow at the Target
+1.  **Ascertain the facts**: Lay out the current situation, data, and records before you. Replace feelings with facts. Don't rely on intuition to say "I can't do this"; instead, use evidence to analyze "where I fall short, by how much, and in what specific areas."
+2.  **Identify patterns**: Connect the facts to find recurring patterns, repeatedly asking "why." For instance, if failures are repeated, is it due to flawed methods, insufficient resources, or a deviation in direction?
+3.  **Define the problem**: Based on these patterns, precisely define the core contradiction. Instead of vaguely declaring "I want to get better," clearly state "I need to solve [specific problem] in [specific field]."
 
-Once you've mapped the laws, what next? This is where most people get stuck: they see the world clearly, but have no idea how to change it. In the same essay, Mao already had the answer — **aim the arrow at the target**.
+## Having a Clear Target
 
-His metaphor was perfect: "'The target' is the Chinese revolution; 'the arrow' is Marxism-Leninism. We seek this arrow for one purpose: to hit the target of the Chinese revolution." That attitude — using precise means to strike a clearly defined goal — is what it means to aim the arrow at the target.
+After grasping the laws of reality, what's the next step? Many get stuck here: they understand the world but don't know how to change it. Mao provided the answer in the very same essay—having a clear target (literally, "having an object to shoot the arrow at").
 
-Look around and you'll see this broken link everywhere. What people call "involution" — the rat race — is often an _arrow with no target_: frantic, directionless spinning. It looks like maximum effort, but it's really tactical diligence masking strategic laziness, and it ends in pure self-consumption. What people call "lying flat" is a _target with no arrow_: learned helplessness. The target is right there in plain sight, but with no arrow to be found, they surrender. Both are the same fracture between ends and means, spinning people in place between anxiety and confusion.
+He used a brilliant metaphor:
 
-Seeking truth from facts is the eye that sees the world; aiming the arrow at the target is the hand that changes it. Lacking either one, you wander in the fog.
+> "The 'target' is the Chinese revolution, and the 'arrow' is Marxism-Leninism. We seek this 'arrow' precisely to hit the 'target' of the Chinese revolution."
 
-None of this denies effort. It rejects _sleepwalking_ diligence — it demands that every ounce of effort be awake. A ship without a destination finds every wind a headwind. Only when you first calibrate your heading by seeking truth from facts, and then raise the sails by aiming the arrow at the target, does effort gain the power to cut through reality.
+This attitude is **"having a clear target"**—using precise means to aim directly at a defined goal.
 
-## Four Questions That Break the Deadlock
+Looking at the present day, this "broken link" is everywhere. The so-called "rat race" is often **"an arrow without a target"**—blind spinning that looks like desperate exertion but is actually **using tactical diligence to mask strategic laziness**, ultimately resulting in self-consumption. Conversely, "lying flat" is **"a target without an arrow"**—learned helplessness where one sees the bullseye clearly but surrenders because they cannot find the right "arrow." Both are essentially a disconnect between goals and means, leaving people spinning in place amidst anxiety and confusion.
 
-So now: pick up a pen, and write down the four questions that break the deadlock:
+**Seeking truth from facts** is the eye that sees the world clearly; **having a clear target** is the weapon that changes it. Lacking either, one can only wander in the fog.
 
-1. What are the core facts I'm facing?
-2. What patterns are hidden within them?
-3. Where, exactly, is my bullseye — my goal?
-4. What "arrow" — what method — should I choose to hit it?
+This is not a denial of effort, but a rejection of "sleepwalking" diligence. Every ounce of exertion must be **"awake."** **For a ship without direction, no wind is favorable.** Only by first calibrating your course through "seeking truth from facts" and then hoisting your sails through "having a clear target" can effort gain the power to penetrate reality.
 
-The comments are open — I'd love to read your thinking. Perhaps by the time you've written down your answers, the direction will already be clear.
+## Four Questions to Break the Deadlock
+
+Now, pick up a pen and paper, and write down these four key questions for breaking through:
+
+1.  **What are the core facts I am facing?**
+2.  **What hidden laws lie within them?**
+3.  **Where exactly is my bullseye (goal)?**
+4.  **What "arrow" (method) should I choose to hit it?**
+
+I await your thoughts in the comments. Perhaps, the moment you write down your answers, your direction will already be clear.

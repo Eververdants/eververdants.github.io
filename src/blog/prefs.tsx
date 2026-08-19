@@ -109,10 +109,15 @@ export const ui = {
     visitMain: "VISIT THE MAIN SITE",
     scroll: "SCROLL",
     journalBack: "JOURNAL",
+    backToTop: "BACK TO TOP",
     onThisPage: (n?: number) =>
       n === undefined ? "ON THIS PAGE" : `ON THIS PAGE · ${n}`,
     previous: "← PREVIOUS",
     next: "NEXT →",
+    related: "RELATED READING",
+    taggedUnder: "TAGGED UNDER",
+    copyCode: "Copy code",
+    copied: "Copied",
     end: (year: number) => `END — © ${year} EVERVERDANTS`,
   },
   zh: {
@@ -130,10 +135,15 @@ export const ui = {
     visitMain: "返回主站",
     scroll: "滚动",
     journalBack: "返回列表",
+    backToTop: "回到顶部",
     onThisPage: (n?: number) =>
       n === undefined ? "本页目录" : `本页目录 · ${n}`,
     previous: "← 上一篇",
     next: "下一篇 →",
+    related: "延伸阅读",
+    taggedUnder: "标签",
+    copyCode: "复制代码",
+    copied: "已复制",
     end: (year: number) => `完 — © ${year} EVERVERDANTS`,
   },
 } as const;

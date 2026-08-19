@@ -35,6 +35,21 @@
   /* accent */
   --accent: #0e7a86;
   --accent-hover: #0a5f68;
+  /* accent-tinted surfaces (badges, hover washes) — auto-adapts to theme */
+  --accent-soft: color-mix(in srgb, var(--accent) 8%, transparent);
+  /* quiet card — refined list items, still editorial, never loud */
+  --card-bg: #fffdf7;
+  --card-border: #e2dfd6;
+  --card-shadow:
+    0 1px 2px rgba(20, 20, 20, 0.03), 0 8px 24px -12px rgba(20, 20, 20, 0.06);
+  --card-shadow-hover:
+    0 2px 4px rgba(20, 20, 20, 0.04), 0 16px 40px -16px rgba(20, 20, 20, 0.1);
+  --radius-card: 14px;
+  /* article type — one source of truth for reading metrics */
+  --text-body: clamp(16.5px, 1vw + 0.5rem, 19px);
+  --text-leading: 1.9;
+  /* inline code ink — lifted for contrast on dark */
+  --code-ink: #b45309;
   /* reading progress */
   --progress-track: rgba(0, 0, 0, 0.05);
   --progress-fill: #000000;
@@ -71,6 +86,20 @@
   /* accent — lifted for contrast on dark */
   --accent: #3fb4c0;
   --accent-hover: #5cc6d1;
+  /* accent-soft adapts automatically via color-mix; no dark override needed */
+  /* quiet card — warm ink surfaces, hairline borders, faint lift */
+  --card-bg: #1c1b17;
+  --card-border: #2b2922;
+  --card-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  --card-shadow-hover:
+    0 2px 0 rgba(255, 255, 255, 0.06), 0 16px 40px -16px rgba(0, 0, 0, 0.6);
+  --radius-card: 14px;
+  /* article type — same metrics as light */
+  --text-body: clamp(16.5px, 1vw + 0.5rem, 19px);
+  --text-leading: 1.9;
+  /* inline code ink — amber lifted for dark contrast */
+  --code-ink: #eab308;
   /* reading progress */
   --progress-track: rgba(255, 255, 255, 0.08);
   --progress-fill: #eae7de;
@@ -195,11 +224,13 @@ html::-webkit-scrollbar {
 
 /* Article TOC: a single teal rail indicator that slides to the active
    entry (gsap-free — the scroll-spy sets its height + translateY, CSS
-   eases the move). */
+   eases the move). left: -1px rides the nav's 1px left border (the nav
+   is relative with border-l), so the rail reads as the border itself
+   lighting up — further left and it drifts off the rail. */
 .toc-indicator {
   position: absolute;
   top: 0;
-  left: -15px;
+  left: -1px;
   width: 2px;
   border-radius: 1px;
   background: var(--accent);
@@ -421,9 +452,11 @@ body.nav-loading.nav-reveal::before {
 
 .article-content {
   font-family: var(--font-sans);
-  font-size: clamp(16px, 1.15vw, 18px);
-  line-height: 1.85;
+  font-size: var(--text-body);
+  line-height: var(--text-leading);
   color: var(--body);
+  max-width: 72ch;
+  text-wrap: pretty;
 }
 
 .article-content > :first-child {
@@ -433,7 +466,7 @@ body.nav-loading.nav-reveal::before {
 .article-content p,
 .article-content ul,
 .article-content ol {
-  margin: 0 0 clamp(20px, 3.5vh, 36px);
+  margin: 0 0 1.25em;
 }
 
 .article-content h2 {
@@ -454,17 +487,40 @@ body.nav-loading.nav-reveal::before {
   color: var(--ink);
 }
 
+.article-content h4 {
+  margin: clamp(20px, 3vh, 28px) 0 clamp(8px, 1.2vh, 12px);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.article-content h4::before {
+  content: "§";
+  margin-right: 0.5em;
+  color: var(--accent);
+  font-weight: 400;
+}
+
 .article-content strong {
   font-weight: 600;
   color: var(--ink);
 }
 
 .article-content blockquote {
-  margin: 0 0 clamp(20px, 3.5vh, 36px);
-  padding-left: clamp(16px, 2vw, 24px);
-  border-left: 3px solid var(--border-strong);
+  margin: 0 0 1.25em;
+  padding: clamp(14px, 2vw, 22px) clamp(16px, 2.5vw, 26px);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--accent-soft);
   font-style: italic;
-  color: var(--muted);
+  color: var(--ink-2);
+}
+
+/* Chinese quotes never italic — italics are western noise for CJK glyphs */
+.article-content blockquote:lang(zh) {
+  font-style: normal;
 }
 
 .article-content blockquote p {
@@ -503,21 +559,87 @@ body.nav-loading.nav-reveal::before {
 .article-content code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.85em;
-  color: #b45309;
+  color: var(--code-ink);
   background: var(--code-bg);
   padding: 0.12em 0.35em;
-  border-radius: 4px;
+  border-radius: 5px;
   border: 1px solid var(--code-border);
 }
 
 .article-content pre {
-  margin: 0 0 clamp(24px, 4vh, 40px);
+  position: relative;
+  margin: 0 0 1.5em;
   padding: clamp(16px, 2.5vw, 28px);
   background: var(--pre-bg);
   border: 1px solid var(--border-faint);
-  border-radius: 10px;
+  border-radius: 12px;
   overflow-x: auto;
   font-size: clamp(13px, 0.95vw, 15px);
+  box-shadow: var(--card-shadow);
+}
+
+/* Language badge (```lang fence) — absolute, so the block gains headroom */
+.article-content pre[data-lang] {
+  padding-top: clamp(36px, 4.5vw, 44px);
+}
+
+.article-content pre[data-lang]::before {
+  content: attr(data-lang);
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fainter);
+}
+
+/* Copy button — injected per <pre> by ArticleScene; fades in on hover,
+   visible while focused (keyboard) or just-copied. */
+.code-copy {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--field);
+  color: var(--fainter);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.code-copy svg {
+  width: 14px;
+  height: 14px;
+}
+
+.article-content pre:hover .code-copy,
+.article-content pre:focus-within .code-copy,
+.code-copy.code-copied {
+  opacity: 0.85;
+}
+
+.code-copy:hover {
+  opacity: 1;
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.code-copy.code-copied {
+  color: var(--accent);
+}
+
+.article-content pre:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-faint));
 }
 
 .article-content pre code {
@@ -532,6 +654,110 @@ body.nav-loading.nav-reveal::before {
   border: 0;
   height: 1px;
   background: var(--border-soft);
+}
+
+/* Tables (pipe-table syntax) — hairline grid, field-tinted header, zebra
+   rows, hover wash; wraps in the pre's horizontal scroll habit. */
+.article-content table {
+  width: 100%;
+  margin: 0 0 1.5em;
+  border-collapse: collapse;
+  font-size: 0.92em;
+  line-height: 1.65;
+}
+
+.article-content th,
+.article-content td {
+  padding: 10px 14px;
+  border: 1px solid var(--border-faint);
+  text-align: left;
+  vertical-align: top;
+}
+
+.article-content thead th {
+  background: var(--field);
+  color: var(--ink);
+  font-weight: 600;
+  border-bottom: 1.5px solid var(--border-strong);
+}
+
+.article-content tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--field) 55%, transparent);
+}
+
+.article-content tbody tr:hover {
+  background: var(--accent-soft);
+}
+
+/* Images (figure syntax) — rounded, hairline-framed, caption below. */
+.article-content figure {
+  margin: 2.5em auto;
+  text-align: center;
+}
+
+.article-content figure img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border-faint);
+  background: var(--chip);
+  cursor: zoom-in;
+}
+
+.article-content figcaption {
+  margin-top: 10px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--fainter);
+}
+
+/* Desktop TOC entries — a short accent hairline grows from the rail on
+   hover (same x as the active indicator, which stays full-height). */
+.toc-item {
+  position: relative;
+}
+
+.toc-item::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 50%;
+  width: 2px;
+  height: 0;
+  transform: translateY(-50%);
+  border-radius: 1px;
+  background: var(--accent);
+  opacity: 0;
+  transition:
+    height 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.toc-item:hover::before {
+  height: 60%;
+  opacity: 0.6;
+}
+
+/* Mobile collapsible TOC — the entries panel fades+sinks in on open. */
+.mobile-toc nav {
+  animation: tocOpen 0.25s ease both;
+}
+
+@keyframes tocOpen {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-toc nav {
+    animation: none;
+  }
 }
 
 /* Hero mount entrance is hidden pre-JS (GSAP animates it to visible the

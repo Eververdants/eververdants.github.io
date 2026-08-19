@@ -31,11 +31,29 @@ export default function BlogIndexScene({
   const { lang } = useBlogPrefs();
   const t = ui[lang];
   const j = lang === "zh" ? journalZh : journal;
-  const [activeSection, setActiveSection] = useState<string | null>(null);
-  const [activeTag, setActiveTag] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
+  /* deck is hoisted above the tag state: the deep-link initializer below
+     validates ?tag= against the deck's real tag ids. */
   const deck = getDeck(lang);
-  const allTags = Array.from(new Set(deck.flatMap((p) => p.tags)));
+  /* Tag pills pair a language-independent id with the current language's
+     label (articles.ts: English tag strings are the ids, translations
+     provide the labels). Filtering keys on id, display on label. */
+  const tagOptions = Array.from(
+    deck.reduce((m, p) => {
+      p.tags.forEach((id, i) => {
+        if (!m.has(id)) m.set(id, p.tagLabels[i] ?? id);
+      });
+      return m;
+    }, new Map<string, string>()),
+  ).map(([id, label]) => ({ id, label }));
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  /* Deep-link support: /blog?tag=<id> opens the index with that tag
+     already filtered (the article footer's tag pills link here). The id is
+     language-independent, so the same URL filters in both languages. */
+  const [activeTag, setActiveTag] = useState<string | null>(() => {
+    const q = new URLSearchParams(location.search).get("tag");
+    return q && deck.some((p) => p.tags.includes(q)) ? q : null;
+  });
+  const [query, setQuery] = useState("");
   const terms = query.trim().split(/\s+/).filter(Boolean);
   const searching = terms.length > 0;
   const searched = searching ? searchPosts(query.trim(), lang) : deck;
@@ -43,11 +61,21 @@ export default function BlogIndexScene({
     ? searched.filter((p) => p.tags.includes(activeTag))
     : searched;
 
-  /* Every essay's frontmatter category (localized per language) keys into
-     the section directory — stable ids for state, translated names for
-     display, and unknown categories simply fall through to "other". */
-  const sectionOf = (post: JournalPost): string | null =>
-    sections.find((s) => s.name[lang] === post.category)?.id ?? null;
+  /* The stable, language-independent section key resolved at parse time
+     (articles.ts sectionIdOf). Grouping never re-matches the localized
+     category against the reader's current UI language, so switching EN/中
+     cannot re-file or drop posts. */
+  const sectionOf = (post: JournalPost): string | null => post.sectionId;
+
+  /* Tag pills keep the ?tag= deep link in sync so a filtered view is
+     shareable and survives refresh. */
+  const pickTag = (tag: string | null) => {
+    setActiveTag(tag);
+    const u = new URL(location.href);
+    if (tag) u.searchParams.set("tag", tag);
+    else u.searchParams.delete("tag");
+    history.replaceState(null, "", u.pathname + u.search);
+  };
 
   /* Columns are always shown in the curated directory order, each carrying
      its own (filtered) posts; empty columns drop out entirely. */
@@ -166,13 +194,13 @@ export default function BlogIndexScene({
               aria-pressed={activeSection === null}
               className={`inline-flex items-baseline gap-2 rounded-full border px-[14px] py-[7px] text-[10px] font-semibold tracking-[0.22em] transition-all duration-300 ${
                 activeSection === null
-                  ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
+                  ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
                   : "border-[var(--border)] text-[var(--faint)] hover:border-[var(--border-strong)] hover:text-[var(--muted)]"
               }`}
             >
               {t.all}
               <span
-                className={`text-[9px] tracking-[0.18em] ${
+                className={`text-[9px] tabular-nums tracking-[0.18em] ${
                   activeSection === null
                     ? "text-[var(--accent)]/70"
                     : "text-[var(--faintest)]"
@@ -192,7 +220,7 @@ export default function BlogIndexScene({
                   aria-pressed={on}
                   className={`inline-flex items-baseline gap-2 rounded-full border px-[14px] py-[7px] text-[10px] font-semibold tracking-[0.22em] transition-all duration-300 ${
                     on
-                      ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
+                      ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
                       : "border-[var(--border)] text-[var(--faint)] hover:border-[var(--border-strong)] hover:text-[var(--muted)]"
                   }`}
                 >
@@ -203,7 +231,7 @@ export default function BlogIndexScene({
                   </span>
                   {s.name[lang]}
                   <span
-                    className={`text-[9px] tracking-[0.18em] ${
+                    className={`text-[9px] tabular-nums tracking-[0.18em] ${
                       on ? "text-[var(--accent)]/70" : "text-[var(--faintest)]"
                     }`}
                   >
@@ -252,29 +280,29 @@ export default function BlogIndexScene({
               </button>
             )}
           </div>
-          {allTags.length > 0 && (
+          {tagOptions.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               <button
-                onClick={() => setActiveTag(null)}
+                onClick={() => pickTag(null)}
                 className={`rounded-full border px-3 py-1 text-[9px] font-medium tracking-[0.2em] transition-colors ${
                   activeTag === null
-                    ? "border-[var(--accent)] text-[var(--accent)]"
+                    ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
                     : "border-[var(--border)] text-[var(--faint)] hover:border-[var(--border-strong)] hover:text-[var(--muted)]"
                 }`}
               >
                 {t.all}
               </button>
-              {allTags.map((tag) => (
+              {tagOptions.map(({ id, label }) => (
                 <button
-                  key={tag}
-                  onClick={() => setActiveTag(activeTag === tag ? null : tag)}
+                  key={id}
+                  onClick={() => pickTag(activeTag === id ? null : id)}
                   className={`rounded-full border px-3 py-1 text-[9px] font-medium tracking-[0.2em] transition-colors ${
-                    activeTag === tag
-                      ? "border-[var(--accent)] text-[var(--accent)]"
+                    activeTag === id
+                      ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
                       : "border-[var(--border)] text-[var(--faint)] hover:border-[var(--border-strong)] hover:text-[var(--muted)]"
                   }`}
                 >
-                  {tag.toUpperCase()}
+                  {label.toUpperCase()}
                 </button>
               ))}
             </div>
@@ -375,41 +403,48 @@ function SectionBlock({
         </div>
       </header>
 
-      <ul>
+      <ul className="mt-[clamp(20px,3vh,28px)] flex flex-col gap-4">
         {posts.map((post) => (
-          <li key={post.slug} className="border-t border-[var(--border)]">
+          <li key={post.slug}>
             <button
               onClick={() => onOpen(post.slug)}
-              className="group block w-full py-[clamp(24px,4vh,44px)] text-left"
+              className="group block w-full rounded-[var(--radius-card)] border border-[var(--card-border)] bg-[var(--card-bg)] p-[clamp(20px,3vw,30px)] text-left shadow-[var(--card-shadow)] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-[2px] hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--card-border))] hover:shadow-[var(--card-shadow-hover)] focus-visible:outline-2 focus-visible:outline-[var(--accent)] focus-visible:outline-offset-2"
             >
-              <div className="flex items-baseline justify-between gap-4">
-                <h3 className="font-sans text-[clamp(19px,2.2vw,28px)] font-bold leading-[1.2] tracking-[-0.01em] text-[var(--ink)] transition-colors group-hover:text-[var(--accent)]">
-                  <Highlight
-                    text={post.title.split("\n").join(" ")}
-                    terms={terms}
-                  />
-                </h3>
-                <span className="shrink-0 text-[11px] tracking-[0.14em] text-[var(--fainter)]">
-                  {post.date} · {post.read}
+              <div className="flex items-center justify-between gap-4">
+                <span className="shrink-0 text-[10px] font-medium tracking-[0.2em] text-[var(--fainter)]">
+                  {post.date}
+                </span>
+                <span className="shrink-0 rounded-full border border-[color-mix(in_srgb,var(--accent)_35%,transparent)] bg-[var(--accent-soft)] px-2.5 py-[3px] text-[9.5px] font-medium tracking-[0.18em] text-[var(--accent)]">
+                  {section.symbol} {post.category}
                 </span>
               </div>
-              <p className="mt-[clamp(12px,2vh,20px)] max-w-[62ch] text-[clamp(14px,1.2vw,16px)] leading-[1.75] text-[var(--muted-2)]">
+              <h3 className="mt-[14px] font-sans text-[clamp(19px,2vw,26px)] font-bold leading-[1.25] tracking-[-0.01em] text-[var(--ink)] transition-colors group-hover:text-[var(--accent)]">
+                <Highlight
+                  text={post.title.split("\n").join(" ")}
+                  terms={terms}
+                />
+              </h3>
+              <p className="mt-[10px] max-w-[62ch] text-[clamp(13.5px,1.1vw,15px)] leading-[1.75] text-[var(--muted-2)] line-clamp-2">
                 <Highlight text={post.excerpt} terms={terms} />
               </p>
-              <div className="mt-[clamp(14px,2.5vh,24px)] flex flex-wrap gap-2">
-                {post.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full border border-[var(--border-faint)] bg-[var(--chip)] px-2.5 py-0.5 text-[9px] font-medium tracking-[0.18em] text-[var(--faint)]"
-                  >
-                    {tag.toUpperCase()}
-                  </span>
-                ))}
+              <div className="mt-[16px] flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap gap-2">
+                  {post.tagLabels.map((label, i) => (
+                    <span
+                      key={post.tags[i] ?? label}
+                      className="rounded-full border border-[var(--border-faint)] bg-[var(--chip)] px-2.5 py-0.5 text-[9px] font-medium tracking-[0.18em] text-[var(--faint)]"
+                    >
+                      {label.toUpperCase()}
+                    </span>
+                  ))}
+                </div>
+                <span className="shrink-0 text-[10px] tracking-[0.16em] text-[var(--fainter)] opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                  {post.read} ↗
+                </span>
               </div>
             </button>
           </li>
         ))}
-        <li className="border-t border-[var(--border)]" aria-hidden />
       </ul>
     </section>
   );

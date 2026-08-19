@@ -13,3 +13,9 @@ Thumbs.db
 .oggen/
 
 .workbuddy
+
+# CDP 视觉验证残留（每次启动 chrome headless 时创建；Windows file lock
+# 偶尔让删除失败，git 排除以避免污染仓库）
+.chrome-*/
+.shots-*/
+scripts/_*verify.mjs

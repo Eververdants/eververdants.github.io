@@ -12,6 +12,7 @@
 
 import type { JournalPost } from "./journal";
 import { journal, journalZh } from "./journal";
+import { sections } from "./sections";
 import { renderMarkdown } from "../lib/markdown";
 import type { Lang } from "../blog/prefs";
 
@@ -100,30 +101,78 @@ function computeRead(body: string, lang: Lang): string {
   return lang === "zh" ? `${minutes} 分钟` : `${minutes} MIN`;
 }
 
-function parsePost(raw: string, lang: Lang): JournalPost {
+/* Resolve a frontmatter category string to its stable section id. The
+   category is the localized display name (ESSAYS in .md, 随笔 in .zh.md),
+   so match against BOTH names here — at parse time, once, in a way that
+   never depends on the reader's current UI language. */
+function sectionIdOf(category: string): string | null {
+  return (
+    sections.find((s) => s.name.en === category || s.name.zh === category)
+      ?.id ?? null
+  );
+}
+
+/* Tags are language-independent: the ENGLISH frontmatter tag strings are
+   the canonical ids (Literature, Mao Zedong, …). A Chinese translation
+   carries the localized labels (文学, 毛泽东, …) and maps them onto the
+   English ids positionally — translations keep the tag list in the same
+   order. With a mismatch the label falls back to itself, so a stray tag
+   never crashes. Display reads tagLabels, logic reads tags. */
+function parseTags(
+  meta: Frontmatter,
+  lang: Lang,
+  enTags: string[] | null,
+): {
+  tags: string[];
+  tagLabels: string[];
+} {
+  const labels = Array.isArray(meta.tags) ? (meta.tags as string[]) : [];
+  const tags =
+    lang === "en" || !enTags
+      ? labels
+      : labels.map((_, i) => enTags[i] ?? labels[i]);
+  return { tags, tagLabels: labels };
+}
+
+function parsePost(
+  raw: string,
+  lang: Lang,
+  enTags: string[] | null = null,
+): JournalPost {
   const { meta, body } = parseFrontmatter(raw);
   const str = (k: string) =>
     typeof meta[k] === "string" ? (meta[k] as string) : "";
+  const category = str("category");
+  const { tags, tagLabels } = parseTags(meta, lang, enTags);
   return {
     slug: str("slug"),
     title: str("title"),
-    category: str("category"),
+    category,
+    sectionId: sectionIdOf(category),
     date: str("date"),
     read: computeRead(body, lang),
     excerpt: str("excerpt"),
-    tags: Array.isArray(meta.tags) ? (meta.tags as string[]) : [],
+    tags,
+    tagLabels,
+    author: str("author") || undefined,
   };
 }
 
 /* Per-language parsed posts, keyed by slug. A post missing from one
-   language simply won't appear there. */
+   language simply won't appear there. English parses first — its tag
+   strings are the canonical ids the Chinese files map onto. */
+const PARSED_EN = new Map(
+  Object.keys(RAW.en).map((slug) => [slug, parsePost(RAW.en[slug], "en")]),
+);
+const PARSED_ZH = new Map(
+  Object.keys(RAW.zh).map((slug) => {
+    const en = PARSED_EN.get(slug);
+    return [slug, parsePost(RAW.zh[slug], "zh", en ? en.tags : null)];
+  }),
+);
 const PARSED: Record<Lang, Map<string, JournalPost>> = {
-  en: new Map(
-    Object.keys(RAW.en).map((slug) => [slug, parsePost(RAW.en[slug], "en")]),
-  ),
-  zh: new Map(
-    Object.keys(RAW.zh).map((slug) => [slug, parsePost(RAW.zh[slug], "zh")]),
-  ),
+  en: PARSED_EN,
+  zh: PARSED_ZH,
 };
 
 export interface Article {
@@ -182,7 +231,10 @@ export function searchPosts(query: string, lang: Lang = "en"): JournalPost[] {
   if (terms.length === 0) return [];
   const scored = getDeck(lang).map((post) => {
     const title = post.title.replace(/\n/g, " ").toLowerCase();
-    const meta = [post.excerpt, post.category, ...post.tags]
+    // tagLabels (the localized names) join the searchable meta so a
+    // Chinese query hits the Chinese tag names; tags themselves are the
+    // stable ids and stay out of the prose index.
+    const meta = [post.excerpt, post.category, ...post.tagLabels]
       .join(" ")
       .toLowerCase();
     const body = RAW[lang][post.slug]
