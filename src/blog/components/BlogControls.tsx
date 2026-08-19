@@ -1,4 +1,4 @@
-import { useBlogPrefs } from "../blog/prefs";
+import { useBlogPrefs } from "../prefs";
 
 /* Floating preference controls for the blog sub-site — top-right, above
    everything (z-60, under the site-nav overlay). Two pills in the blog's

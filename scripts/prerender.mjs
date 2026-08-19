@@ -46,16 +46,27 @@ const esc = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-/* ---- parse essay frontmatter (src/blog/*.md) for post metadata ----
-   Only the canonical English files (xxx.md) — the Chinese translations
-   (xxx.zh.md) share the same slugs and would double-generate. */
+/* ---- parse essay frontmatter (src/blog/posts, recursive) for metadata ----
+   Posts may live in per-section subdirectories (essays/, notes/, ...) — the
+   directory is walked recursively. Only the canonical English files (xxx.md)
+   are collected; the Chinese translations (xxx.zh.md) share the same slugs
+   and would double-generate. */
+function collectPosts(dir) {
+  const out = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...collectPosts(p));
+    else if (entry.name.endsWith(".md") && !entry.name.endsWith(".zh.md"))
+      out.push(p);
+  }
+  return out;
+}
+
 function parsePosts() {
-  const dir = join(ROOT, "src/blog");
+  const dir = join(ROOT, "src/blog/posts");
   const posts = new Map();
-  for (const file of readdirSync(dir).filter(
-    (f) => f.endsWith(".md") && !f.endsWith(".zh.md"),
-  )) {
-    const src = readFileSync(join(dir, file), "utf8");
+  for (const file of collectPosts(dir)) {
+    const src = readFileSync(file, "utf8");
     const fm = src.match(/^---\n([\s\S]*?)\n---/);
     if (!fm) continue;
     const kv = (key) => {

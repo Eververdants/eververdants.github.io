@@ -1,7 +1,7 @@
 ---
 slug: little-prince-and-the-baobabs
 title: "The Grown-Ups\nLove Numbers\n— Notes on The Little Prince"
-category: ESSAY
+category: ESSAYS
 date: 2026.06.20
 excerpt: Grown-ups love figures — but how do you measure a flower, a star, a sheep? From chapter four to seven, one line runs through: the sickness, the cause, the loneliness, and the keeping.
 tags: [Literature, Reading Notes]

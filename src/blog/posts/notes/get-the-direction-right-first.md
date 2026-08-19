@@ -1,7 +1,7 @@
 ---
 slug: get-the-direction-right-first
 title: "Don't Rush\nto Work Hard"
-category: ESSAY
+category: NOTES
 date: 2026.07.03
 excerpt: Two methodologies from Mao Zedong's 1941 essay 'Reform Our Study' — seek truth from facts, and aim the arrow at the target — and how they cut through modern confusion.
 tags: [Mao Zedong, Methodology, Reading Notes]

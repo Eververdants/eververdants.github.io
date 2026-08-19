@@ -1,7 +1,7 @@
 ---
 slug: stone-and-egg-three-classics
 title: "The Stone Is Hard,\nthe Egg Is Light"
-category: ESSAY
+category: FIELD RECORDS
 date: 2026.07.04
 excerpt: On Contradiction, On Protracted War, and A Single Spark Can Start a Prairie Fire — three essays, three periods, and the strategic framework they build for overturning an unequal contest.
 tags: [Mao Zedong, Strategy, Reading Notes]

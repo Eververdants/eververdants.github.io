@@ -1,35 +1,41 @@
-/* Article content — journal prose lives in Markdown (src/blog/*.md), each
+/* Article content — journal prose lives in Markdown (src/blog/posts/**, each
    file fronted by a tiny YAML block (slug, title, category, date, excerpt,
    tags). Metadata parses here so writing never touches markup or TypeScript;
    the essay body renders to HTML at build time, and reading time is computed
-   from the body — never hand-written. */
+   from the body — never hand-written.
+
+   Files are discovered with import.meta.glob — dropping a new *.md (and its
+   *.zh.md translation) into any src/blog/posts/ subdirectory registers it
+   automatically. No import lines to touch, ever. The curated order lives in
+   journal.ts; anything not listed there still shows, appended newest-first
+   by date. */
 
 import type { JournalPost } from "./journal";
 import { journal, journalZh } from "./journal";
 import { renderMarkdown } from "../lib/markdown";
 import type { Lang } from "../blog/prefs";
-import directionRightFirst from "../blog/get-the-direction-right-first.md?raw";
-import stoneAndEgg from "../blog/stone-and-egg-three-classics.md?raw";
-import littlePrince from "../blog/little-prince-and-the-baobabs.md?raw";
-import directionRightFirstZh from "../blog/get-the-direction-right-first.zh.md?raw";
-import stoneAndEggZh from "../blog/stone-and-egg-three-classics.zh.md?raw";
-import littlePrinceZh from "../blog/little-prince-and-the-baobabs.zh.md?raw";
 
-/* Each essay exists twice: the canonical English file (xxx.md) and a
-   Chinese translation (xxx.zh.md). The blog's language toggle swaps the
-   whole deck between the two. */
-const RAW: Record<Lang, Record<string, string>> = {
-  en: {
-    "get-the-direction-right-first": directionRightFirst,
-    "stone-and-egg-three-classics": stoneAndEgg,
-    "little-prince-and-the-baobabs": littlePrince,
-  },
-  zh: {
-    "get-the-direction-right-first": directionRightFirstZh,
-    "stone-and-egg-three-classics": stoneAndEggZh,
-    "little-prince-and-the-baobabs": littlePrinceZh,
-  },
-};
+/* All markdown under src/blog/posts/, collected recursively at build time —
+   posts may be filed into per-section subdirectories (essays/, notes/,
+   field-records/, tutorials/, ...) or dropped flat; both work. Each file
+   exists twice: the canonical English file (xxx.md) and a Chinese
+   translation (xxx.zh.md). The blog's language toggle swaps the whole deck
+   between the two; a post missing from one language simply won't appear
+   there. The slug comes from the file name, so a post can live in any
+   folder without changing its URL. */
+const mdModules = import.meta.glob("../blog/posts/**/*.md", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
+
+const RAW: Record<Lang, Record<string, string>> = { en: {}, zh: {} };
+for (const [path, content] of Object.entries(mdModules)) {
+  const file = path.split("/").pop()!;
+  const zh = file.endsWith(".zh.md");
+  const slug = file.replace(/\.zh\.md$/, "").replace(/\.md$/, "");
+  RAW[zh ? "zh" : "en"][slug] = content;
+}
 
 /* ---- frontmatter: a deliberate strict subset of YAML — only what the
    essays need (bare scalars, double-quoted strings with \n escapes, inline
@@ -125,14 +131,22 @@ export interface Article {
   html: string;
 }
 
-/* The deck in editorial order — the language's order list drives it; the
-   featured essay first. Posts with no frontmatter are skipped. Defaults to
+/* The deck in editorial order — the language's order list drives it, the
+   featured essay first, then any essay not listed (new drafts, no curation
+   yet) appended newest-first by date so new content always surfaces without
+   touching journal.ts. Posts with no frontmatter are skipped. Defaults to
    English so the main site's BlogScene call sites keep working unchanged. */
 export function getDeck(lang: Lang = "en"): JournalPost[] {
   const order = (lang === "zh" ? journalZh : journal).order;
-  return order
-    .map((slug) => PARSED[lang].get(slug))
+  const map = PARSED[lang];
+  const seen = new Set(order);
+  const curated = order
+    .map((slug) => map.get(slug))
     .filter((p): p is JournalPost => p !== undefined);
+  const rest = [...map.values()]
+    .filter((p) => !seen.has(p.slug))
+    .sort((a, b) => b.date.localeCompare(a.date));
+  return [...curated, ...rest];
 }
 
 export function getArticle(slug: string, lang: Lang = "en"): Article | null {

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type Lenis from "lenis";
-import ArticleScene from "../components/ArticleScene";
-import BlogControls from "../components/BlogControls";
-import BlogIndexScene from "../components/BlogIndexScene";
+import ArticleScene from "./components/ArticleScene";
+import BlogControls from "./components/BlogControls";
+import BlogIndexScene from "./components/BlogIndexScene";
 import LoadingOverlay from "../components/LoadingOverlay";
 import Scrollbar from "../components/Scrollbar";
 import { getArticle } from "../data/articles";
@@ -10,7 +10,7 @@ import { initScrollbar } from "../effects/scrollbar";
 import { initScrollTriggerGlue } from "../effects/scrollTriggerGlue";
 import { initSiteNavIntercept } from "../effects/siteNav";
 import { initSmoothScroll } from "../effects/smoothScroll";
-import { BlogPrefsProvider, useBlogPrefs } from "./prefs";
+import { BlogPrefsProvider } from "./prefs";
 
 const BLOG = "/blog";
 

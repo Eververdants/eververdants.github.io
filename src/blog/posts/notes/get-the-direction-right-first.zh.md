@@ -1,7 +1,7 @@
 ---
 slug: get-the-direction-right-first
 title: "别急着努力\n先搞清楚方向"
-category: 随笔
+category: 札记
 date: 2026.07.03
 excerpt: 毛泽东一九四一年《改造我们的学习》中的两种方法论——实事求是、有的放矢——以及它们如何穿透现代的迷茫。
 tags: [毛泽东, 方法论, 读书笔记]

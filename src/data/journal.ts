@@ -25,6 +25,11 @@ export interface JournalPost {
   tags: string[];
 }
 
+/* Blog sections — the editorial columns the content site is filed under.
+   Defined in ./sections (independent of the journal cover copy) and
+   re-exported here so existing importers keep working. */
+export { sections, type BlogSection } from "./sections";
+
 export interface Journal {
   // Cover fields drive the asymmetric editorial masthead.
   cover: {

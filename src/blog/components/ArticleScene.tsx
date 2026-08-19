@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import type { JournalPost } from "../data/journal";
-import { journal } from "../data/journal";
-import { getArticle, getDeck } from "../data/articles";
-import { ui, useBlogPrefs } from "../blog/prefs";
+import type { JournalPost } from "../../data/journal";
+import { journal } from "../../data/journal";
+import { getArticle, getDeck } from "../../data/articles";
+import { ui, useBlogPrefs } from "../prefs";
 
 /* Article reader — a functional, light reading page for journal essays
    (and future technical posts), deliberately the opposite of the dark

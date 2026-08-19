@@ -1,7 +1,7 @@
 ---
 slug: stone-and-egg-three-classics
 title: "石头硬\n鸡蛋轻"
-category: 随笔
+category: 田野手记
 date: 2026.07.04
 excerpt: 《矛盾论》《论持久战》《星星之火，可以燎原》——三篇著作，三个时期，以及它们为扭转强弱悬殊的较量所搭建的战略框架。
 tags: [毛泽东, 战略, 读书笔记]
