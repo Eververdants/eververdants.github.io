@@ -367,25 +367,11 @@ function readUrl() {
 function renderFooter() {
   const el = document.getElementById("footer")!;
   const u = t();
-  const meta = d._meta;
-  const stars = repos.reduce((s, r) => s + r.stars, 0);
-  const date = new Date(meta.fetchedAt);
-  const dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
   el.innerHTML = `
     <div class="wrap footer__grid">
-      <div>
-        <div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">
-          <span class="footer__sign">Eververdants</span>
-          <span class="mono" style="color:var(--faint)">· 万山青未阑</span>
-        </div>
-        <p class="footer__meta mono">
-          ${meta.count} ${esc(u.metaRepos)} · ${stars} ${esc(u.metaStars)} · ${esc(u.syncLabel)} ${dateStr}
-          <br/>${esc(u.footerNote)}
-        </p>
-      </div>
+      <span class="footer__sign">Eververdants <span class="mono" style="color:var(--faint)">· 万山青未阑</span></span>
       <nav class="footer__links">
         <a class="navlink" href="#top" id="top-link">↑ ${esc(u.backHome)}</a>
-        <a class="navlink" href="https://eververdants.github.io/blog/" target="_blank" rel="noopener">Blog ↗</a>
         <a class="navlink" href="https://eververdants.github.io/" target="_blank" rel="noopener">${esc(u.mainSite)} ↗</a>
         <a class="navlink" href="https://github.com/Eververdants" target="_blank" rel="noopener">${esc(u.github)} ↗</a>
       </nav>

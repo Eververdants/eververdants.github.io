@@ -745,28 +745,23 @@ img {
   color: #fff;
 }
 
-/* ---------- 页脚 ---------- */
+/* ---------- 页脚（干净：品牌 + 链接） ---------- */
 .footer {
   border-top: 1px solid var(--border);
-  padding: 40px 0 56px;
+  padding: 32px 0 44px;
 }
 .footer__grid {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 24px;
-  align-items: end;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 .footer__sign {
   font-family: var(--font-serif);
   font-style: italic;
   font-size: 1.25rem;
   color: var(--ink);
-}
-.footer__meta {
-  color: var(--faint);
-  font-size: 11px;
-  margin-top: 8px;
-  line-height: 1.8;
 }
 .footer__links {
   display: flex;
@@ -897,9 +892,6 @@ img {
   }
   .row__link {
     margin-left: auto;
-  }
-  .footer__grid {
-    grid-template-columns: 1fr;
   }
   .footer__links {
     justify-content: flex-start;

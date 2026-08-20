@@ -6,7 +6,6 @@ export interface Dict {
   overline: (year: number) => string;
   title: string;
   sub: string;
-  sync: string;
   metaRepos: string;
   metaStars: string;
   metaLangs: string;
@@ -27,8 +26,6 @@ export interface Dict {
   open: string;
   archived: string;
   noDesc: string;
-  footerNote: string;
-  syncLabel: string;
   backHome: string;
   mainSite: string;
   github: string;
@@ -41,7 +38,6 @@ export const ui: Record<Lang, Dict> = {
     overline: (year: number) => `OPEN-SOURCE INDEX · EST. ${year}`,
     title: "Works",
     sub: "Every public project, filed in one ledger.",
-    sync: "SYNCED",
     metaRepos: "REPOSITORIES",
     metaStars: "STARS",
     metaLangs: "LANGUAGES",
@@ -62,8 +58,6 @@ export const ui: Record<Lang, Dict> = {
     open: "Open",
     archived: "ARCHIVED",
     noDesc: "No description",
-    footerNote: "Data pulled via gh repo list — synced from the GitHub API",
-    syncLabel: "LAST SYNC",
     backHome: "Back to top",
     mainSite: "Main site",
     github: "GitHub",
@@ -74,7 +68,6 @@ export const ui: Record<Lang, Dict> = {
     overline: (year: number) => `开源项目索引 · ${year}`,
     title: "作品",
     sub: "全部开源项目，一册收录。",
-    sync: "已同步",
     metaRepos: "仓库",
     metaStars: "星标",
     metaLangs: "语言",
@@ -95,8 +88,6 @@ export const ui: Record<Lang, Dict> = {
     open: "打开",
     archived: "已归档",
     noDesc: "暂无描述",
-    footerNote: "数据经 gh repo list 拉取 —— 由 GitHub API 自动同步",
-    syncLabel: "最近同步",
     backHome: "回到顶部",
     mainSite: "返回主站",
     github: "GitHub",
