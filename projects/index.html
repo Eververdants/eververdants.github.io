@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="zh-Hans" data-theme="dark">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WORKS INDEX — Eververdants · 作品索引</title>
     <meta
       name="description"
-      content="Eververdants（万山青未阑）的个人开源项目索引 —— 由 GitHub API 自动同步的作品台账：Tauri 桌面工具、Rust 服务、TypeScript 应用与 Python 实验。"
+      content="Eververdants（万山青未阑）的个人开源项目索引 —— 由 GitHub API 自动同步的作品台账：Tauri 桌面工具、Rust 服务、TypeScript 应用与 Python 实验。 / The open-source index of Eververdants — a live ledger of every public project, synced from GitHub."
     />
     <meta name="author" content="Eververdants" />
     <link rel="canonical" href="https://eververdants.github.io/projects/" />
@@ -15,23 +15,30 @@
     <meta property="og:title" content="WORKS INDEX — Eververdants" />
     <meta
       property="og:description"
-      content="个人开源项目索引 · 由 gh CLI 自动同步的 GitHub 作品台账"
+      content="个人开源项目索引 · 由 gh CLI 自动同步的 GitHub 作品台账 / Open-source projects by Eververdants, synced from GitHub."
     />
     <meta property="og:url" content="https://eververdants.github.io/projects/" />
     <meta property="og:image" content="https://eververdants.github.io/og-image.png" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script>
-      // 防 FOUC：进入页面即读取主题偏好（支持 ?theme=light|dark 临时覆盖）
+      /* 防 FOUC + 偏好打通：语言与主题与博客共享同一对 localStorage key
+         （blog-lang / blog-theme），切换任一处，两处同时生效。 */
       (function () {
         try {
-          var p = new URLSearchParams(location.search).get("theme");
-          var t = p === "light" || p === "dark" ? p : localStorage.getItem("windex-theme");
-          if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+          var p = new URLSearchParams(location.search);
+          var theme = p.get("theme");
+          theme = theme === "dark" || theme === "light" ? theme : localStorage.getItem("blog-theme");
+          if (theme === "dark") document.documentElement.dataset.theme = "dark";
+          var lang = p.get("lang");
+          if (lang === "zh" || lang === "en") document.documentElement.lang = lang;
+          else if (localStorage.getItem("blog-lang") === "zh") {
+            document.documentElement.lang = "zh";
+          }
         } catch (e) {}
       })();
     </script>
     <style>
-      /* 字体与主站共用 public/fonts（绝对路径，随主站一起部署） */
+      /* 字体与主站/博客共用 public/fonts（绝对路径，随主站一起部署） */
       @font-face {
         font-family: "Inter";
         src: url("/fonts/inter-latin.woff2") format("woff2-variations");

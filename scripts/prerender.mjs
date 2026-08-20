@@ -1,9 +1,13 @@
-// Prerender blog articles to static HTML so non-JS crawlers (and AI engines
-// with weak JS execution) can read full article bodies.
+// Prerender blog articles + the WORKS INDEX sub-site to static HTML so
+// non-JS crawlers (and AI engines with weak JS execution) can read full
+// content directly from the served document.
 //
 // - renders each /blog/<slug> against the built blog sub-site in headless Chrome
 // - extracts the rendered article block, builds a clean static shell with
 //   per-page title/description/canonical/OG + BlogPosting JSON-LD
+// - renders /projects/ against the built WORKS INDEX entry and bakes the
+//   fully-rendered DOM (all repos + CollectionPage JSON-LD) into
+//   dist/projects/index.html
 // - writes dist/blog/<slug>/index.html, dist/sitemap.xml, dist/robots.txt
 //
 // Safety: never fails the build. Missing Chrome / render failure => warn and
@@ -123,19 +127,26 @@ function startServer() {
       });
       res.end(readFileSync(file));
     } else {
-      // SPA fallback: /blog/* serves the blog sub-site's own entry, every
-      // other path the main site.
+      // SPA fallback: each sub-site serves its own entry, every other path
+      // the main site.
       const isBlog = p.startsWith("/blog");
+      const isProjects = p.startsWith("/projects");
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end(
-        readFileSync(join(dist, isBlog ? "blog/index.html" : "index.html")),
+        readFileSync(
+          join(
+            dist,
+            isBlog ? "blog/index.html" : isProjects ? "projects/index.html" : "index.html",
+          ),
+        ),
       );
     }
   }).listen(PORT, "127.0.0.1");
 }
 
-/* ---- render one article in headless Chrome, return the rendered [data-article] HTML ---- */
-async function renderArticle(chromePath, slug) {
+/* ---- render a URL in headless Chrome, evaluate `expr` on the page, return
+   its value (string) ---- */
+async function renderWithChrome(chromePath, url, expr, waitMs = 15000) {
   const profile = join(tmpdir(), `hermes-prerender-${Date.now()}`);
   const chrome = spawn(
     chromePath,
@@ -187,33 +198,52 @@ async function renderArticle(chromePath, slug) {
       });
 
     await send("Page.enable");
-    await send("Page.navigate", {
-      url: `http://127.0.0.1:${PORT}/blog/${slug}/`,
-    });
+    await send("Page.navigate", { url });
 
-    let html = "";
-    for (let i = 0; i < 30; i++) {
-      await sleep(500);
+    let value = "";
+    const deadline = Date.now() + waitMs;
+    while (Date.now() < deadline) {
+      await sleep(400);
       const r = await send("Runtime.evaluate", {
         returnByValue: true,
-        // The body now loads on demand (its own chunk), so wait until the
-        // article content has actually rendered before grabbing the shell.
-        expression: `(() => { const el = document.querySelector('[data-article]'); const body = el && el.querySelector('.article-content'); return body && body.innerHTML.trim().length > 300 ? el.outerHTML : ''; })()`,
+        expression: expr,
       });
-      if (r.result?.result?.value?.length > 300) {
-        html = r.result.result.value;
+      const v = r.result?.result?.value;
+      if (typeof v === "string" && v.length > 300) {
+        value = v;
         break;
       }
     }
     ws.close();
-    if (!html) throw new Error("article did not render");
-    return html;
+    if (!value) throw new Error("page did not render");
+    return value;
   } finally {
     chrome.kill();
     try {
       rmSync(profile, { recursive: true, force: true });
     } catch {}
   }
+}
+
+/* ---- render one article, extract the rendered [data-article] block ---- */
+async function renderArticle(chromePath, slug) {
+  return renderWithChrome(
+    chromePath,
+    `http://127.0.0.1:${PORT}/blog/${slug}/`,
+    `(() => { const el = document.querySelector('[data-article]'); const body = el && el.querySelector('.article-content'); return body && body.innerHTML.trim().length > 300 ? el.outerHTML : ''; })()`,
+  );
+}
+
+/* ---- render the WORKS INDEX sub-site, capture the whole document ---- */
+async function renderProjects(chromePath) {
+  const html = await renderWithChrome(
+    chromePath,
+    `http://127.0.0.1:${PORT}/projects/`,
+    `(() => { const h = document.querySelector('.hero__title'); return h && h.textContent.trim() ? document.documentElement.outerHTML : ''; })()`,
+  );
+  const out = join(ROOT, "dist/projects/index.html");
+  writeFileSync(out, html);
+  return out;
 }
 
 /* ---- build a static shell for one article from the built blog entry's
@@ -296,6 +326,7 @@ function writeSitemap(posts) {
   const urls = [
     `<url><loc>${SITE}/</loc><priority>1.0</priority></url>`,
     `<url><loc>${SITE}/selected-blog/</loc><priority>0.8</priority></url>`,
+    `<url><loc>${SITE}/projects/</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`,
     `<url><loc>${SITE}/blog/</loc><priority>0.7</priority></url>`,
     ...posts.map(
       (p) =>
@@ -375,6 +406,7 @@ async function main() {
   const posts = parsePosts();
   const chromePath = findChrome();
   let ok = 0;
+  let projectsOk = false;
   if (chromePath) {
     const server = startServer();
     await sleep(300);
@@ -391,6 +423,13 @@ async function main() {
         console.log(`  ✗ ${post.slug}: ${e.message}`);
       }
     }
+    try {
+      const out = await renderProjects(chromePath);
+      projectsOk = true;
+      console.log(`  ✓ /projects/ prerendered -> ${out.replace(ROOT, ".")}`);
+    } catch (e) {
+      console.log(`  ✗ /projects/: ${e.message}`);
+    }
     server.close();
   } else {
     console.log(
@@ -403,7 +442,7 @@ async function main() {
   writeRobots();
   writeRss(posts);
   console.log(
-    `prerender done: ${ok}/${posts.length} articles + sitemap.xml + robots.txt + rss.xml`,
+    `prerender done: ${ok}/${posts.length} articles${projectsOk ? " + /projects/" : ""} + sitemap.xml + robots.txt + rss.xml`,
   );
 }
 

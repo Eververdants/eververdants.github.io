@@ -19,6 +19,7 @@
 - Languages / 语言：Chinese (native), English / 中文（母语）、English
 
 ## Projects / 项目
+- **WORKS INDEX（全量索引 / Full index）**：Every public repo, filed in one ledger — names, languages, stars, live-synced from GitHub. / 全部公开仓库一册收录：名称、语言、星标，由 GitHub 自动同步。 <https://eververdants.github.io/projects/>
 - **ETBSaveManager** — A Tauri 2.0 save manager for Escape The Backrooms — full CRUD, multilingual UI, virtual-scrolled item list. The most-starred tool here. / 基于 Tauri 2.0 的《Escape The Backrooms》存档管理器：完整 CRUD、多语言 UI、虚拟滚动列表。本站星标最多的开源工具。 <https://github.com/Eververdants/ETBSaveManager>
 - **AppAudioRouter** — A Windows audio routing tool — route each app's sound to a chosen device, with auto-refresh and cross-session route memory. / Windows 音频路由工具：把每个应用的声音指向指定设备，支持自动刷新与会话间路由记忆。 <https://github.com/Eververdants/AppAudioRouter>
 - **ArtText-Studio** — Turn words into shareable visual works — hundreds of procedural styles, or let AI match the vibe. Code and design in one. / 把文字变成可分享的视觉作品：数百种程序化生成风格，或让 AI 匹配氛围。代码与设计一体。 <https://github.com/Eververdants/ArtText-Studio>
