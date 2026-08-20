@@ -9,6 +9,7 @@ import { PhotosPrefsProvider, usePhotosPrefs } from "./lib/prefs";
 import { applyGallerySeo, applyWorkSeo } from "./lib/seo";
 import { initSmoothScroll } from "../effects/smoothScroll";
 import { initScrollbar } from "../effects/scrollbar";
+import Scrollbar from "../components/Scrollbar";
 
 /* Path-based routes (matching the prerendered statics + GitHub Pages):
    /photos/                  → gallery
@@ -37,28 +38,24 @@ function Scene() {
   const [route, setRoute] = useState<Route>(() => parseRoute());
   const lenisRef = useRef<Lenis | null>(null);
 
-  /* Lenis smooth scroll + the embedded custom scrollbar. The scrollbar DOM
-     lives OUTSIDE the React tree (appended to <body> once) so language
-     re-renders never rebuild it and its listeners survive. */
+  /* Lenis smooth scroll + the shared embedded custom scrollbar — the SAME
+     component the main site and blog use (<Scrollbar/> renders in the tree,
+     fixed overlay, no theme accent). initScrollbar just wires drag/measure
+     onto it. */
   useEffect(() => {
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     const smooth = initSmoothScroll(reduced);
     lenisRef.current = smooth?.lenis ?? null;
-    const barEl = document.createElement("div");
-    barEl.id = "scrollbar";
-    barEl.setAttribute("aria-hidden", "true");
-    barEl.innerHTML = '<div id="scrollbar-thumb"></div>';
-    document.body.appendChild(barEl);
-    const thumbEl = barEl.querySelector("#scrollbar-thumb") as HTMLElement;
-    const bar = thumbEl
+    const barEl = document.getElementById("scrollbar");
+    const thumbEl = document.getElementById("scrollbar-thumb");
+    const bar = barEl && thumbEl
       ? initScrollbar(barEl, thumbEl, lenisRef.current)
       : null;
     return () => {
       bar?.destroy();
       smooth?.destroy();
-      barEl.remove();
     };
   }, []);
 
@@ -122,6 +119,7 @@ function Scene() {
         {route.name === "gallery" ? <Gallery /> : <WorkDetail slug={route.slug} />}
       </main>
       <Footer />
+      <Scrollbar />
     </div>
   );
 }

@@ -1,3 +1,10 @@
+/* === Tailwind theme + utilities only (no preflight/reset) ===
+   Needed by the shared <Scrollbar/> component (same one the main site and
+   blog use) for its fixed positioning & overlay styling. Preflight is
+   intentionally excluded so the photos design tokens below stay intact. */
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+
 /* === Self-hosted fonts === */
 @font-face {
   font-family: "Fraunces";
@@ -35,6 +42,10 @@
   --overlay: rgba(20, 18, 14, 0.62);
   --selection: rgba(14, 122, 134, 0.18);
   --radius-card: 14px;
+  --scrollbar-track: rgba(0, 0, 0, 0.04);
+  --scrollbar-border: rgba(0, 0, 0, 0.08);
+  --scrollbar-thumb: rgba(30, 28, 24, 0.38);
+  --scrollbar-thumb-hover: rgba(30, 28, 24, 0.6);
 }
 [data-theme="dark"] {
   --bg: #15140f;
@@ -48,6 +59,10 @@
   --accent-soft: #1f3a3d;
   --overlay: rgba(0, 0, 0, 0.68);
   --selection: rgba(63, 180, 192, 0.22);
+  --scrollbar-track: rgba(255, 255, 255, 0.04);
+  --scrollbar-border: rgba(255, 255, 255, 0.08);
+  --scrollbar-thumb: rgba(235, 232, 223, 0.35);
+  --scrollbar-thumb-hover: rgba(235, 232, 223, 0.6);
 }
 
 * { box-sizing: border-box; }
@@ -328,27 +343,23 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .site-footer a:hover { color: var(--accent); }
 .site-footer .f-back { font-family: "Fraunces", serif; font-style: italic; text-transform: none; letter-spacing: 0; font-size: 0.84rem; }
 
-/* === Embedded scrollbar (desktop chrome; touch keeps the native one) === */
+/* === Native scrollbar hidden (no gutter -> no layout shift) === */
+html { scrollbar-width: none; }
+html::-webkit-scrollbar { display: none; }
+
+/* === The shared embedded scrollbar (same <Scrollbar/> component as the
+   main site & blog) — neutral ink/paper palette via --scrollbar-*, no
+   theme accent, so it reads on both light and dark. === */
 #scrollbar {
-  position: fixed; right: 0; top: 0; bottom: 0;
-  width: clamp(10px, 0.9vw, 14px); z-index: 200;
-  border-left: 1px solid var(--rule);
-  background: transparent;
-  opacity: 0.55;
-  transition: opacity 200ms ease;
+  background: var(--scrollbar-track);
+  border-left-color: var(--scrollbar-border);
 }
-#scrollbar:hover, #scrollbar.dragging { opacity: 1; }
 #scrollbar-thumb {
-  position: absolute; left: 3px; right: 3px; top: 0;
-  border-radius: 999px;
-  background: var(--faint);
-  transition: background-color 200ms ease;
+  background: var(--scrollbar-thumb);
 }
-#scrollbar:hover #scrollbar-thumb, #scrollbar.dragging #scrollbar-thumb {
-  background: var(--accent);
-}
-@media (hover: none), (pointer: coarse) {
-  #scrollbar { display: none; }
+#scrollbar-thumb:hover,
+#scrollbar.dragging #scrollbar-thumb {
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* === Plain theme transition (shared with blog/projects via themePlain.ts) === */
