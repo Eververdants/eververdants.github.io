@@ -372,7 +372,7 @@ function renderFooter() {
       <span class="footer__sign">Eververdants <span class="mono" style="color:var(--faint)">· 万山青未阑</span></span>
       <nav class="footer__links">
         <a class="navlink" href="#top" id="top-link">↑ ${esc(u.backHome)}</a>
-        <a class="navlink" href="https://eververdants.github.io/" target="_blank" rel="noopener">${esc(u.mainSite)} ↗</a>
+        <a class="navlink" href="/">${esc(u.mainSite)} ↗</a>
         <a class="navlink" href="https://github.com/Eververdants" target="_blank" rel="noopener">${esc(u.github)} ↗</a>
       </nav>
     </div>`;
