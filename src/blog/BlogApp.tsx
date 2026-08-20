@@ -6,7 +6,6 @@ import BlogControls from "./components/BlogControls";
 import BlogIndexScene from "./components/BlogIndexScene";
 import LoadingOverlay from "../components/LoadingOverlay";
 import Scrollbar from "../components/Scrollbar";
-import { getArticle } from "../data/articles";
 import { initScrollbar } from "../effects/scrollbar";
 import { initScrollTriggerGlue } from "../effects/scrollTriggerGlue";
 import { initSiteNavIntercept } from "../effects/siteNav";
@@ -25,11 +24,13 @@ const getSlug = (p: string) =>
    and index ↔ article swap in-app with pushState/replaceState. Owns the
    blog's smooth scroll, custom scrollbar, and ScrollTrigger wiring. */
 export default function BlogApp() {
-  /* Only known slugs open an article — an unknown /blog/<slug> falls back to
-     the index (defensive; the 404 flow already normalizes the rest). */
+  /* Any /blog/<slug> opens the reader; the article scene validates the
+     slug itself (its body loads on demand) and reports back via
+     onNotFound when the slug does not exist — the unknown-slug fallback
+     back to the index is preserved, just async now. */
   const [article, setArticle] = useState<string | null>(() => {
     const slug = getSlug(location.pathname.replace(/\/+$/, ""));
-    return slug && getArticle(slug) ? slug : null;
+    return slug ?? null;
   });
   const lenisRef = useRef<Lenis | null>(null);
 
@@ -96,27 +97,35 @@ export default function BlogApp() {
     scrollTop();
   }, [scrollTop]);
 
-  /* Browser Back/Forward between the index and essays. */
+  /* The reader calls this when its on-demand body load turns up nothing —
+     an unknown /blog/<slug> falls back to the index, same as before, only
+     validated asynchronously now. */
+  const closeNotFound = useCallback(() => {
+    setArticle(null);
+    history.replaceState(null, "", BLOG);
+    scrollTop();
+  }, [scrollTop]);
+
+  /* Browser Back/Forward between the index and essays. The reader
+     validates the slug on its own. */
   useEffect(() => {
     const onPop = () => {
       const slug = getSlug(location.pathname.replace(/\/+$/, ""));
-      const next = slug && getArticle(slug) ? slug : null;
-      setArticle(next);
+      setArticle(slug);
       scrollTop();
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, [scrollTop]);
 
-  const valid = article !== null && getArticle(article) !== null;
-
   return (
     <BlogPrefsProvider>
-      {valid ? (
+      {article !== null ? (
         <ArticleScene
-          slug={article!}
+          slug={article}
           onClose={closeArticle}
           onOpen={openArticleReplace}
+          onNotFound={closeNotFound}
           scrollTo={scrollToY}
         />
       ) : (

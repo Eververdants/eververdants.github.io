@@ -54,9 +54,32 @@ export default function BlogIndexScene({
     return q && deck.some((p) => p.tags.includes(q)) ? q : null;
   });
   const [query, setQuery] = useState("");
+  const [results, setResults] = useState<JournalPost[] | null>(null);
   const terms = query.trim().split(/\s+/).filter(Boolean);
   const searching = terms.length > 0;
-  const searched = searching ? searchPosts(query.trim(), lang) : deck;
+
+  /* Full-text search fetches its body index chunk on first query — deferred
+     with a short debounce so typing never fires a request per keystroke.
+     The previous result set stays visible until the new one lands, so the
+     list never flashes empty; null marks the first query still loading. */
+  useEffect(() => {
+    if (!searching) {
+      setResults(null);
+      return;
+    }
+    let alive = true;
+    const timer = window.setTimeout(() => {
+      searchPosts(query.trim(), lang).then((r) => {
+        if (alive) setResults(r);
+      });
+    }, 180);
+    return () => {
+      window.clearTimeout(timer);
+      alive = false;
+    };
+  }, [query, lang, searching]);
+
+  const searched = searching ? (results ?? []) : deck;
   const tagFiltered = activeTag
     ? searched.filter((p) => p.tags.includes(activeTag))
     : searched;
@@ -207,7 +230,7 @@ export default function BlogIndexScene({
             <span aria-hidden className="h-px flex-1 bg-[var(--border)]" />
             {searching && (
               <span className="shrink-0 text-[10px] tabular-nums tracking-[0.3em] text-[var(--accent)]">
-                {t.result(tagFiltered.length)}
+                {results === null ? "…" : t.result(tagFiltered.length)}
               </span>
             )}
           </div>
@@ -368,7 +391,13 @@ export default function BlogIndexScene({
             ))
           ) : (
             <p className="py-[clamp(48px,8vh,96px)] text-center text-[13px] tracking-[0.2em] text-[var(--faint)]">
-              {searching ? t.noMatch : activeTag ? t.noTag : t.noSection}
+              {searching && results === null
+                ? "…"
+                : searching
+                  ? t.noMatch
+                  : activeTag
+                    ? t.noTag
+                    : t.noSection}
             </p>
           )}
 

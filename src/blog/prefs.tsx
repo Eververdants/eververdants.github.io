@@ -120,6 +120,9 @@ export const ui = {
     taggedUnder: "TAGGED UNDER",
     copyCode: "Copy code",
     copied: "Copied",
+    loading: "LOADING",
+    loadFailed: "LOAD FAILED",
+    retry: "RETRY",
     end: (year: number) => `END — © ${year} EVERVERDANTS`,
   },
   zh: {
@@ -148,6 +151,9 @@ export const ui = {
     taggedUnder: "标签",
     copyCode: "复制代码",
     copied: "已复制",
+    loading: "载入中",
+    loadFailed: "加载失败",
+    retry: "重试",
     end: (year: number) => `完 — © ${year} EVERVERDANTS`,
   },
 } as const;

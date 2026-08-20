@@ -3,7 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { JournalPost } from "../../data/journal";
 import { journal } from "../../data/journal";
-import { getArticle, getDeck } from "../../data/articles";
+import { getDeck, loadArticle } from "../../data/articles";
 import { sections } from "../../data/sections";
 import { ui, useBlogPrefs } from "../prefs";
 
@@ -32,11 +32,13 @@ export default function ArticleScene({
   slug,
   onClose,
   onOpen,
+  onNotFound,
   scrollTo,
 }: {
   slug: string;
   onClose: () => void;
   onOpen: (slug: string) => void;
+  onNotFound: () => void;
   scrollTo: (y: number) => void;
 }) {
   const { lang } = useBlogPrefs();
@@ -52,12 +54,49 @@ export default function ArticleScene({
     alt: string;
     caption: string;
   } | null>(null);
-  const article = getArticle(slug, lang);
   const deck = getDeck(lang);
+
+  /* Metadata comes from the build-time index, so the header renders
+     instantly while the essay's own chunk streams in. An unknown slug
+     reports back to App (onNotFound) instead of rendering an error. */
   const i = deck.findIndex((p) => p.slug === slug);
+  const post: JournalPost | null = i >= 0 ? deck[i] : null;
   const prev: JournalPost | null = i > 0 ? deck[i - 1] : null;
   const next: JournalPost | null =
     i >= 0 && i < deck.length - 1 ? deck[i + 1] : null;
+
+  /* The body — fetched on demand the first time this essay is opened.
+     On a deep link the prerendered static shell already carries the
+     rendered body inside #root; reusing it as the initial content means
+     React takes over without a skeleton flash. The lazy fetch still runs
+     and lands on identical HTML. */
+  const [html, setHtml] = useState<string | null>(() => {
+    const el = document.querySelector("#root .article-content");
+    return el && el.innerHTML.trim().length > 300 ? el.innerHTML : null;
+  });
+  const [failed, setFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    setHtml(null);
+    setFailed(false);
+    loadArticle(slug, lang)
+      .then((a) => {
+        if (!alive) return;
+        if (!a) {
+          onNotFound();
+          return;
+        }
+        setHtml(a.html);
+      })
+      .catch(() => {
+        if (alive) setFailed(true);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [slug, lang, onNotFound, retry]);
 
   /* Reading progress + TOC scroll-spy — one scroll listener. Progress fills
      the top bar; the active heading is the last one whose top sits above the
@@ -131,7 +170,7 @@ export default function ArticleScene({
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [slug, lang]);
+  }, [slug, lang, html]);
 
   /* Code blocks — inject a copy button into every <pre>. The article HTML
      is renderer output, not React-owned, so the button is added via the
@@ -172,7 +211,7 @@ export default function ArticleScene({
       buttons.push(btn);
     });
     return () => buttons.forEach((b) => b.remove());
-  }, [slug, lang, t]);
+  }, [slug, lang, html, t]);
 
   /* Lightbox — showModal on open, close() on dismiss (Esc or backdrop). */
   useEffect(() => {
@@ -227,7 +266,8 @@ export default function ArticleScene({
   /* Scroll reveals — each body block (paragraph, heading, quote) rises in
      as it enters. Subtle and once-only so reading never fights the motion.
      The article mounts after the global coordinator, so these triggers are
-     created here, scoped to this root. */
+     created here, scoped to this root. Re-runs when the on-demand body
+     arrives (html state) — before that there is nothing to reveal. */
   useEffect(() => {
     const ctx = gsap.context(() => {
       const blocks = gsap.utils.toArray<HTMLElement>(".article-content > *");
@@ -247,18 +287,18 @@ export default function ArticleScene({
       });
     }, root);
     return () => ctx.revert();
-  }, [slug, lang]);
+  }, [slug, lang, html]);
 
   /* Related reading — tag Jaccard similarity (|A∩B| / |A∪B|), same-column
      posts weighted +0.2, newest first on ties; never the current article.
      With zero tag overlap the scoring degenerates to same-column recency,
      so the fallback is built into the sort rather than a separate branch. */
   const related = useMemo(() => {
-    if (!article) return [];
-    const tags = article.post.tags;
-    const sid = article.post.sectionId;
+    if (!post) return [];
+    const tags = post.tags;
+    const sid = post.sectionId;
     return deck
-      .filter((p) => p.slug !== article.post.slug)
+      .filter((p) => p.slug !== post.slug)
       .map((p) => {
         const overlap = p.tags.filter((tg) => tags.includes(tg)).length;
         const union = new Set([...p.tags, ...tags]).size || 1;
@@ -270,10 +310,11 @@ export default function ArticleScene({
       .sort((a, b) => b.s - a.s || b.post.date.localeCompare(a.post.date))
       .slice(0, 3)
       .map((x) => x.post);
-  }, [article, deck]);
+  }, [post, deck]);
 
-  if (!article) return null;
-  const { post } = article;
+  /* Unknown slug — the load effect has already called onNotFound and App
+     is swapping back to the index; render nothing on this frame. */
+  if (!post) return null;
 
   /* The column's editorial glyph for the author card — looked up by the
      language-independent sectionId, never by matching the localized
@@ -382,12 +423,45 @@ export default function ArticleScene({
           </details>
         )}
         <div className="mt-[clamp(36px,6vh,60px)] lg:grid lg:grid-cols-[minmax(0,1fr)_220px] lg:gap-[clamp(32px,5vw,64px)]">
-          <article
-            key={lang}
-            className="article-content min-w-0"
-            onClick={onArticleClick}
-            dangerouslySetInnerHTML={{ __html: article.html }}
-          />
+          {/* body — on-demand: a quiet skeleton while the essay's own
+              chunk streams in, an editorial error state on failure */}
+          {html ? (
+            <article
+              key={lang}
+              className="article-content min-w-0"
+              onClick={onArticleClick}
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
+          ) : failed ? (
+            <div className="min-w-0" role="alert">
+              <p className="text-[12px] tracking-[0.3em] text-[var(--faint)]">
+                {t.loadFailed}
+              </p>
+              <button
+                onClick={() => setRetry((n) => n + 1)}
+                className="mt-5 inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-4 py-2 text-[10px] font-semibold tracking-[0.24em] text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              >
+                {t.retry} ↻
+              </button>
+            </div>
+          ) : (
+            <div
+              className="article-skeleton min-w-0"
+              aria-busy="true"
+              aria-label={t.loading}
+            >
+              <p className="mb-6 text-[10px] font-semibold tracking-[0.34em] text-[var(--fainter)]">
+                {t.loading}
+              </p>
+              <div className="space-y-3.5">
+                <div className="h-3.5 w-2/3 animate-pulse rounded-[2px] bg-[var(--border)]" />
+                <div className="h-3.5 w-full animate-pulse rounded-[2px] bg-[var(--border)]" />
+                <div className="h-3.5 w-11/12 animate-pulse rounded-[2px] bg-[var(--border)]" />
+                <div className="h-3.5 w-4/5 animate-pulse rounded-[2px] bg-[var(--border)]" />
+                <div className="h-3.5 w-[92%] animate-pulse rounded-[2px] bg-[var(--border)]" />
+              </div>
+            </div>
+          )}
 
           {/* table of contents — sticky right rail (desktop only) */}
           {toc.length > 0 && (

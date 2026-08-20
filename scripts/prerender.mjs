@@ -196,7 +196,9 @@ async function renderArticle(chromePath, slug) {
       await sleep(500);
       const r = await send("Runtime.evaluate", {
         returnByValue: true,
-        expression: `(() => { const el = document.querySelector('[data-article]'); return el ? el.outerHTML : ''; })()`,
+        // The body now loads on demand (its own chunk), so wait until the
+        // article content has actually rendered before grabbing the shell.
+        expression: `(() => { const el = document.querySelector('[data-article]'); const body = el && el.querySelector('.article-content'); return body && body.innerHTML.trim().length > 300 ? el.outerHTML : ''; })()`,
       });
       if (r.result?.result?.value?.length > 300) {
         html = r.result.result.value;
