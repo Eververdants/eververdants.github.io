@@ -148,7 +148,12 @@ function blogIndexPlugin(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   base: "/",
-  plugins: [react(), tailwindcss(), subSiteEntryFallbackPlugin(), blogIndexPlugin()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    subSiteEntryFallbackPlugin(),
+    blogIndexPlugin(),
+  ],
   build: {
     // Modern browsers only (es2022): smaller output, no legacy transforms.
     target: "es2022",
@@ -161,7 +166,9 @@ export default defineConfig({
       input: {
         main: fileURLToPath(new URL("./index.html", import.meta.url)),
         blog: fileURLToPath(new URL("./blog/index.html", import.meta.url)),
-        projects: fileURLToPath(new URL("./projects/index.html", import.meta.url)),
+        projects: fileURLToPath(
+          new URL("./projects/index.html", import.meta.url),
+        ),
       },
       output: {
         // Split heavy deps into stable vendor chunks so content updates

@@ -17,8 +17,14 @@
       property="og:description"
       content="个人开源项目索引 · 由 gh CLI 自动同步的 GitHub 作品台账 / Open-source projects by Eververdants, synced from GitHub."
     />
-    <meta property="og:url" content="https://eververdants.github.io/projects/" />
-    <meta property="og:image" content="https://eververdants.github.io/og-image.png" />
+    <meta
+      property="og:url"
+      content="https://eververdants.github.io/projects/"
+    />
+    <meta
+      property="og:image"
+      content="https://eververdants.github.io/og-image.png"
+    />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script>
       /* 防 FOUC + 偏好打通：语言与主题与博客共享同一对 localStorage key
@@ -27,10 +33,14 @@
         try {
           var p = new URLSearchParams(location.search);
           var theme = p.get("theme");
-          theme = theme === "dark" || theme === "light" ? theme : localStorage.getItem("blog-theme");
+          theme =
+            theme === "dark" || theme === "light"
+              ? theme
+              : localStorage.getItem("blog-theme");
           if (theme === "dark") document.documentElement.dataset.theme = "dark";
           var lang = p.get("lang");
-          if (lang === "zh" || lang === "en") document.documentElement.lang = lang;
+          if (lang === "zh" || lang === "en")
+            document.documentElement.lang = lang;
           else if (localStorage.getItem("blog-lang") === "zh") {
             document.documentElement.lang = "zh";
           }
@@ -55,7 +65,8 @@
       }
       @font-face {
         font-family: "Fraunces";
-        src: url("/fonts/fraunces-italic-latin.woff2") format("woff2-variations");
+        src: url("/fonts/fraunces-italic-latin.woff2")
+          format("woff2-variations");
         font-weight: 100 900;
         font-style: italic;
         font-display: swap;

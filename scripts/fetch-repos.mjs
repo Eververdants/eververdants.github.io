@@ -46,7 +46,9 @@ function loadCuration() {
   try {
     return JSON.parse(readFileSync(CURATION, "utf8"));
   } catch {
-    console.warn("[fetch-repos] 未找到 curation.json，仅使用 GitHub 原始数据。");
+    console.warn(
+      "[fetch-repos] 未找到 curation.json，仅使用 GitHub 原始数据。",
+    );
     return {};
   }
 }
@@ -79,10 +81,15 @@ function tryGh() {
   }
   const cmd = `gh repo list ${OWNER} --limit 100 --json ${FIELDS} --visibility public`;
   try {
-    const out = execSync(cmd, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+    const out = execSync(cmd, {
+      encoding: "utf8",
+      maxBuffer: 64 * 1024 * 1024,
+    });
     return JSON.parse(out.trim());
   } catch (e) {
-    console.warn(`[fetch-repos] gh 拉取失败（${e.message.split("\n")[0]}）——保留旧数据。`);
+    console.warn(
+      `[fetch-repos] gh 拉取失败（${e.message.split("\n")[0]}）——保留旧数据。`,
+    );
     return null;
   }
 }
@@ -98,7 +105,8 @@ function main() {
     // blurb 支持双语对象 { en, zh }，也兼容旧版纯字符串（当作中文）
     const b = c.blurb;
     const blurbEn = typeof b === "object" ? b.en : "";
-    const blurbZh = typeof b === "object" ? b.zh : typeof b === "string" ? b : "";
+    const blurbZh =
+      typeof b === "object" ? b.zh : typeof b === "string" ? b : "";
     return {
       ...r,
       featured: !!c.featured,
@@ -122,7 +130,7 @@ function main() {
   mkdirSync(dirname(OUT), { recursive: true });
   writeFileSync(OUT, JSON.stringify(data, null, 2) + "\n");
   console.log(
-    `[fetch-repos] ✓ 已同步 ${repos.length} 个公开仓库 → src/projects/data/repos.json (${new Date(data._meta.fetchedAt).toLocaleString("zh-CN")})`
+    `[fetch-repos] ✓ 已同步 ${repos.length} 个公开仓库 → src/projects/data/repos.json (${new Date(data._meta.fetchedAt).toLocaleString("zh-CN")})`,
   );
 }
 

@@ -25,11 +25,11 @@ npm run preview    # 预览构建产物
 
 站点内含三个独立 SPA 入口（同一 dist/ 一次部署）：
 
-| 入口      | 路径         | 技术栈               | 数据源                                |
-| --------- | ------------ | -------------------- | ------------------------------------- |
-| 主站      | `/`          | React + GSAP         | `src/data/`                           |
-| 博客      | `/blog/`     | React                | `src/blog/posts/`（frontmatter）      |
-| 作品索引  | `/projects/` | 纯 TS（零运行时依赖） | `src/projects/data/repos.json`（gh）   |
+| 入口     | 路径         | 技术栈                | 数据源                               |
+| -------- | ------------ | --------------------- | ------------------------------------ |
+| 主站     | `/`          | React + GSAP          | `src/data/`                          |
+| 博客     | `/blog/`     | React                 | `src/blog/posts/`（frontmatter）     |
+| 作品索引 | `/projects/` | 纯 TS（零运行时依赖） | `src/projects/data/repos.json`（gh） |
 
 作品索引的数据由 `scripts/fetch-repos.mjs` 用 `gh repo list --json` 拉取，合并
 `scripts/curation.json`（精选/配图/标签/文案覆盖）后写入 `src/projects/data/repos.json`

@@ -108,21 +108,17 @@ export default function IntroLoader() {
 
   if (!visible) return null;
 
-  const stage =
-    STAGES.reduce(
-      (acc, s) => (progress >= s.at ? s : acc),
-      STAGES[0],
-    ).label;
+  const stage = STAGES.reduce(
+    (acc, s) => (progress >= s.at ? s : acc),
+    STAGES[0],
+  ).label;
   const unveiled = (progress / 100) * NAME.length;
   const d = new Date();
   const today = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
   const pct = String(progress).padStart(3, "0");
 
   return (
-    <div
-      className={`intro-loader ${leaving ? "leaving" : ""}`}
-      aria-hidden
-    >
+    <div className={`intro-loader ${leaving ? "leaving" : ""}`} aria-hidden>
       {/* backdrop: faint dot grid + ambient glows (echo Background.tsx) */}
       <div className="intro-dots" />
       <div className="intro-glow intro-glow-a" />

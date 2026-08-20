@@ -136,7 +136,11 @@ function startServer() {
         readFileSync(
           join(
             dist,
-            isBlog ? "blog/index.html" : isProjects ? "projects/index.html" : "index.html",
+            isBlog
+              ? "blog/index.html"
+              : isProjects
+                ? "projects/index.html"
+                : "index.html",
           ),
         ),
       );

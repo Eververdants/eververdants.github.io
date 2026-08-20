@@ -1,7 +1,33 @@
 import type { Lang } from "./i18n";
 
-const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const MONTHS_ZH = ["1 月", "2 月", "3 月", "4 月", "5 月", "6 月", "7 月", "8 月", "9 月", "10 月", "11 月", "12 月"];
+const MONTHS_EN = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+const MONTHS_ZH = [
+  "1 月",
+  "2 月",
+  "3 月",
+  "4 月",
+  "5 月",
+  "6 月",
+  "7 月",
+  "8 月",
+  "9 月",
+  "10 月",
+  "11 月",
+  "12 月",
+];
 
 /** 2026-08-20T04:28:34Z → "2026/08/20" */
 export function fmtDate(iso: string): string {

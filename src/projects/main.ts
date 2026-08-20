@@ -97,7 +97,8 @@ function renderControls() {
       persistLang(next);
       const y = window.scrollY;
       render();
-      if (lenisHandle?.lenis) lenisHandle.lenis.scrollTo(y, { immediate: true });
+      if (lenisHandle?.lenis)
+        lenisHandle.lenis.scrollTo(y, { immediate: true });
       else window.scrollTo(0, y);
       initReveal();
     });
@@ -105,7 +106,8 @@ function renderControls() {
 
   const btn = el.querySelector("#theme-btn") as HTMLButtonElement;
   btn.addEventListener("click", (e) => {
-    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    const next =
+      document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     const r = btn.getBoundingClientRect();
     runThemeWipe(next, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
     persistTheme(next);
@@ -115,7 +117,10 @@ function renderControls() {
       i.classList.toggle("is-on", on);
       i.classList.toggle("is-off", !on);
     });
-    btn.setAttribute("aria-label", next === "light" ? t().themeDark : t().themeLight);
+    btn.setAttribute(
+      "aria-label",
+      next === "light" ? t().themeDark : t().themeLight,
+    );
   });
 }
 
@@ -145,13 +150,16 @@ function renderHero() {
       entries.forEach((en) => {
         if (en.isIntersecting) {
           en.target.querySelectorAll("[data-count]").forEach((n) => {
-            countUp(n as HTMLElement, Number((n as HTMLElement).dataset.count || 0));
+            countUp(
+              n as HTMLElement,
+              Number((n as HTMLElement).dataset.count || 0),
+            );
           });
           io.disconnect();
         }
       });
     },
-    { threshold: 0.4 }
+    { threshold: 0.4 },
   );
   io.observe(el);
 }
@@ -189,7 +197,7 @@ function renderFeatured() {
                 <span class="mono">↺ ${timeAgo(langNow(), r.pushedAt)}</span>
               </div>
             </div>
-          </a>`
+          </a>`,
           )
           .join("")}
       </div>
@@ -202,7 +210,9 @@ function langNow(): Lang {
 }
 
 function filtered(): Repo[] {
-  let list = repos.filter((r) => state.filterLang === "ALL" || r.language === state.filterLang);
+  let list = repos.filter(
+    (r) => state.filterLang === "ALL" || r.language === state.filterLang,
+  );
   if (state.q.trim()) {
     const q = state.q.trim().toLowerCase();
     list = list.filter(
@@ -212,12 +222,15 @@ function filtered(): Repo[] {
         (r.blurbEn || "").toLowerCase().includes(q) ||
         (r.blurbZh || "").toLowerCase().includes(q) ||
         r.language.toLowerCase().includes(q) ||
-        r.topics.some((x) => x.toLowerCase().includes(q))
+        r.topics.some((x) => x.toLowerCase().includes(q)),
     );
   }
-  if (state.sort === "updated") list = [...list].sort((a, b) => lastActive(b) - lastActive(a));
-  if (state.sort === "stars") list = [...list].sort((a, b) => b.stars - a.stars);
-  if (state.sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
+  if (state.sort === "updated")
+    list = [...list].sort((a, b) => lastActive(b) - lastActive(a));
+  if (state.sort === "stars")
+    list = [...list].sort((a, b) => b.stars - a.stars);
+  if (state.sort === "name")
+    list = [...list].sort((a, b) => a.name.localeCompare(b.name));
   return list;
 }
 
@@ -243,7 +256,7 @@ function renderToolbar() {
       ${langs
         .map(
           (l) =>
-            `<button class="chip" type="button" data-lang="${esc(l.lang)}" aria-pressed="${state.filterLang === l.lang}">${esc(l.lang)} <span class="cnt">${l.count}</span></button>`
+            `<button class="chip" type="button" data-lang="${esc(l.lang)}" aria-pressed="${state.filterLang === l.lang}">${esc(l.lang)} <span class="cnt">${l.count}</span></button>`,
         )
         .join("")}
     </div>
@@ -282,10 +295,16 @@ function renderToolbar() {
 /* 点击筛选/排序后，把选中态同步到所有 chip / sort 按钮（aria-pressed） */
 function syncToolbar() {
   document.querySelectorAll("#toolbar .chip").forEach((c) => {
-    c.setAttribute("aria-pressed", String((c as HTMLElement).dataset.lang === state.filterLang));
+    c.setAttribute(
+      "aria-pressed",
+      String((c as HTMLElement).dataset.lang === state.filterLang),
+    );
   });
   document.querySelectorAll("#toolbar .sort__btn").forEach((b) => {
-    b.setAttribute("aria-pressed", String((b as HTMLElement).dataset.sort === state.sort));
+    b.setAttribute(
+      "aria-pressed",
+      String((b as HTMLElement).dataset.sort === state.sort),
+    );
   });
 }
 
@@ -307,7 +326,9 @@ function renderLedger() {
     el.querySelector("#clear-filters")!.addEventListener("click", () => {
       state.q = "";
       state.filterLang = "ALL";
-      const input = document.getElementById("search-input") as HTMLInputElement | null;
+      const input = document.getElementById(
+        "search-input",
+      ) as HTMLInputElement | null;
       if (input) input.value = "";
       syncToolbar();
       syncUrl();
@@ -330,7 +351,10 @@ function renderLedger() {
         <p class="row__desc">${esc(repoDesc(lang, r.description, r.blurbEn, r.blurbZh)) || `<span style="color:var(--fainter)">${esc(u.noDesc)}</span>`}</p>
         ${
           r.topics.length
-            ? `<div class="row__topics">${r.topics.slice(0, 4).map((x) => `<span class="row__topic">${esc(x)}</span>`).join("")}</div>`
+            ? `<div class="row__topics">${r.topics
+                .slice(0, 4)
+                .map((x) => `<span class="row__topic">${esc(x)}</span>`)
+                .join("")}</div>`
             : ""
         }
       </div>
@@ -340,7 +364,7 @@ function renderLedger() {
         <span class="mono">↺ ${timeAgo(lang, r.pushedAt)}</span>
         <span class="row__link">${esc(u.open)} <span class="arrow">↗</span></span>
       </div>
-    </a>`
+    </a>`,
     )
     .join("");
 }
@@ -358,7 +382,8 @@ function readUrl() {
   const p = new URLSearchParams(location.search);
   state.q = p.get("q") || "";
   const lang = p.get("lang");
-  state.filterLang = lang && repos.some((r) => r.language === lang) ? lang : "ALL";
+  state.filterLang =
+    lang && repos.some((r) => r.language === lang) ? lang : "ALL";
   const s = p.get("sort");
   state.sort = s === "stars" || s === "name" ? s : "updated";
 }
@@ -404,7 +429,11 @@ function injectJsonLd() {
       alternateName: "作品索引",
       url: "https://eververdants.github.io/projects/",
       inLanguage: ["en", "zh-Hans"],
-      isPartOf: { "@type": "WebSite", name: "Eververdants", url: "https://eververdants.github.io/" },
+      isPartOf: {
+        "@type": "WebSite",
+        name: "Eververdants",
+        url: "https://eververdants.github.io/",
+      },
       mainEntity: {
         "@type": "ItemList",
         name: "Open-source projects by Eververdants",
@@ -429,7 +458,7 @@ function initReveal() {
         }
       });
     },
-    { threshold: 0.08, rootMargin: "0px 0px -4% 0px" }
+    { threshold: 0.08, rootMargin: "0px 0px -4% 0px" },
   );
   document.querySelectorAll("[data-reveal]").forEach((el) => {
     const r = (el as HTMLElement).getBoundingClientRect();
