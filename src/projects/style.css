@@ -4,7 +4,7 @@
    - 同一套主题变量（米白 #f7f5ef / 暖深 #161512 + 青绿 accent）
    - Fraunces italic 大标题 + Inter 正文 + mono 元信息
    - 右上角 EN/中 + 日/月 控制簇（语言偏好与博客共享 blog-lang/blog-theme）
-   - View Transitions 圆形揭幕主题切换（themeWipe 同款）
+   - 主题切换为普通过渡（themePlain 同款，无揭幕动画）
    ============================================================ */
 
 :root {
@@ -264,22 +264,16 @@ img {
   opacity: 1;
 }
 
-/* 主题圆形揭幕（themeWipe 同款动画） */
-::view-transition-old(root) {
-  animation: none;
-}
-::view-transition-new(root) {
-  animation: themeWipeReveal 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes themeWipeReveal {
-  from {
-    clip-path: circle(0px at var(--wipe-x, 50vw) var(--wipe-y, 50vh));
-    transform: scale(1.02);
-  }
-  to {
-    clip-path: circle(200vmax at var(--wipe-x, 50vw) var(--wipe-y, 50vh));
-    transform: scale(1);
-  }
+/* 主题普通过渡（themePlain.ts：翻转时短暂加 .theme-anim，颜色淡入淡出） */
+html.theme-anim,
+html.theme-anim *,
+html.theme-anim *::before,
+html.theme-anim *::after {
+  transition:
+    background-color 260ms ease,
+    color 260ms ease,
+    border-color 260ms ease,
+    fill 260ms ease !important;
 }
 
 /* ---------- Hero（大字编辑排版） ---------- */
@@ -945,9 +939,5 @@ img {
   .is-js [data-reveal] {
     opacity: 1 !important;
     transform: none !important;
-  }
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation: none !important;
   }
 }

@@ -1,6 +1,6 @@
 import type { MouseEvent } from "react";
 import { useBlogPrefs } from "../prefs";
-import { runThemeWipe } from "../../effects/themeWipe";
+import { themeFlip } from "../../effects/themePlain";
 
 /* Floating preference controls for the blog sub-site — top-right, above
    everything (z-60, under the site-nav overlay). A single quiet strip in
@@ -14,9 +14,9 @@ import { runThemeWipe } from "../../effects/themeWipe";
      is faint. No thumb, no filled segment: just ink and a hairline.
    - Theme is a bare icon button whose glyph morphs with a springy rotate +
      scale as it flips (sun spins in for light, moon for dark).
-   - Pressing the theme button fires the full-page circular reveal
-     (themeWipe.ts via the View Transitions API): the new page blooms out
-     of the button's center and becomes the screen. */
+   - Pressing the theme button just flips the palette with a plain colour
+     transition (themePlain.ts) — the same quiet behaviour every sub-site
+     now shares. No reveal animation. */
 
 function SunIcon() {
   return (
@@ -59,14 +59,9 @@ const iconSwap =
 export default function BlogControls() {
   const { lang, setLang, theme, setTheme } = useBlogPrefs();
 
-  const onTheme = (e: MouseEvent<HTMLButtonElement>) => {
+  const onTheme = (_e: MouseEvent<HTMLButtonElement>) => {
     const next = theme === "light" ? "dark" : "light";
-    setTheme(next);
-    const r = e.currentTarget.getBoundingClientRect();
-    runThemeWipe(next, {
-      x: r.left + r.width / 2,
-      y: r.top + r.height / 2,
-    });
+    themeFlip(() => setTheme(next));
   };
 
   return (
@@ -114,7 +109,8 @@ export default function BlogControls() {
           className="mx-1.5 h-3.5 w-px self-center bg-[var(--border-strong)]"
         />
 
-        {/* theme — the glyph morphs in place; the press blooms the reveal */}
+        {/* theme — the glyph morphs in place; the press flips the palette
+            with a plain colour transition (themePlain.ts) */}
         <button
           type="button"
           onClick={onTheme}

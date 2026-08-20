@@ -1,48 +1,135 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
+import type Lenis from "lenis";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { Gallery } from "./components/Gallery";
 import { WorkDetail } from "./components/WorkDetail";
-import { getWork } from "./data/works";
+import { getWork, getWorks } from "./data/works";
+import { PhotosPrefsProvider, usePhotosPrefs } from "./lib/prefs";
+import { applyGallerySeo, applyWorkSeo } from "./lib/seo";
+import { initSmoothScroll } from "../effects/smoothScroll";
+import { initScrollbar } from "../effects/scrollbar";
+
+/* Path-based routes (matching the prerendered statics + GitHub Pages):
+   /photos/                  → gallery
+   /photos/work/<slug>/      → a single work's detail page
+   All internal links are BASE-relative (/photos/...) — never hardcoded
+   domains — so the same build works on any host. */
+const PHOTOS = "/photos";
+const GALLERY = `${PHOTOS}/`;
+const WORK = `${PHOTOS}/work/`;
 
 type Route = { name: "gallery" } | { name: "work"; slug: string };
 
-const parseHash = (): Route => {
-  const h = window.location.hash.replace(/^#/, "");
-  const m = h.match(/^\/work\/([\w-]+)$/);
-  return m ? { name: "work", slug: m[1] } : { name: "gallery" };
+const routeFromPath = (p: string): Route => {
+  const norm = p.replace(/\/+$/, "");
+  if (norm.startsWith(WORK)) {
+    const slug = decodeURIComponent(norm.slice(WORK.length));
+    if (slug) return { name: "work", slug };
+  }
+  return { name: "gallery" };
 };
 
-export function App() {
-  const [route, setRoute] = useState<Route>(() => parseHash());
+const parseRoute = (): Route => routeFromPath(location.pathname);
 
+function Scene() {
+  const { lang } = usePhotosPrefs();
+  const [route, setRoute] = useState<Route>(() => parseRoute());
+  const lenisRef = useRef<Lenis | null>(null);
+
+  /* Lenis smooth scroll + the embedded custom scrollbar. The scrollbar DOM
+     lives OUTSIDE the React tree (appended to <body> once) so language
+     re-renders never rebuild it and its listeners survive. */
   useEffect(() => {
-    const apply = () => {
-      const r = parseHash();
-      if (r.name === "work" && !getWork(r.slug)) {
-        // Bad slug — silently snap back to the gallery without a history entry.
-        history.replaceState(null, "", "#/");
-        setRoute({ name: "gallery" });
-      } else {
-        setRoute(r);
-      }
-      window.scrollTo({ top: 0, behavior: "auto" });
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const smooth = initSmoothScroll(reduced);
+    lenisRef.current = smooth?.lenis ?? null;
+    const barEl = document.createElement("div");
+    barEl.id = "scrollbar";
+    barEl.setAttribute("aria-hidden", "true");
+    barEl.innerHTML = '<div id="scrollbar-thumb"></div>';
+    document.body.appendChild(barEl);
+    const thumbEl = barEl.querySelector("#scrollbar-thumb") as HTMLElement;
+    const bar = thumbEl
+      ? initScrollbar(barEl, thumbEl, lenisRef.current)
+      : null;
+    return () => {
+      bar?.destroy();
+      smooth?.destroy();
+      barEl.remove();
     };
-    apply(); // validate the initial route (e.g. a stale deep link)
-    window.addEventListener("hashchange", apply);
-    return () => window.removeEventListener("hashchange", apply);
   }, []);
 
+  const scrollTop = () => {
+    const l = lenisRef.current;
+    if (l) l.scrollTo(0, { immediate: true });
+    else window.scrollTo(0, 0);
+  };
+
+  /* SEO per route + guard against unknown slugs (deep link to a removed
+     work falls back to the gallery without a history entry). Re-runs on
+     language change so title/OG/JSON-LD follow the UI language. */
+  useEffect(() => {
+    if (route.name === "work") {
+      const w = getWork(route.slug);
+      if (!w) {
+        history.replaceState(null, "", GALLERY);
+        setRoute({ name: "gallery" });
+        return;
+      }
+      applyWorkSeo(w, lang);
+    } else {
+      applyGallerySeo(getWorks(), lang);
+    }
+  }, [route, lang]);
+
+  /* Browser back/forward. */
+  useEffect(() => {
+    const onPop = () => {
+      setRoute(parseRoute());
+      scrollTop();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  /* Delegate in-app navigation: intercept <a href="/photos/..."> clicks and
+     swap routes with pushState (full page loads still work without JS). */
+  const onClick = (e: MouseEvent<HTMLDivElement>) => {
+    const a = (e.target as HTMLElement).closest?.(
+      'a[href]',
+    ) as HTMLAnchorElement | null;
+    if (!a) return;
+    const href = a.getAttribute("href") || "";
+    if (!href.startsWith(PHOTOS + "/")) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)
+      return;
+    const url = new URL(a.href, location.origin);
+    if (url.pathname === location.pathname) return;
+    e.preventDefault();
+    history.pushState(null, "", url.pathname + url.search + url.hash);
+    setRoute(routeFromPath(url.pathname));
+    scrollTop();
+  };
+
   return (
-    <div className="shell">
+    <div className="shell" onClick={onClick}>
       <Header />
       <hr className="hairline" />
       <main style={{ minHeight: "70vh" }}>
-        {route.name === "gallery"
-          ? <Gallery />
-          : <WorkDetail slug={route.slug} />}
+        {route.name === "gallery" ? <Gallery /> : <WorkDetail slug={route.slug} />}
       </main>
       <Footer />
     </div>
+  );
+}
+
+export function App() {
+  return (
+    <PhotosPrefsProvider>
+      <Scene />
+    </PhotosPrefsProvider>
   );
 }

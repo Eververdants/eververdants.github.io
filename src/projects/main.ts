@@ -6,7 +6,7 @@ import { fmtCount, timeAgo, lastActive, esc } from "./lib/format";
 import { ui, repoDesc, type Lang } from "./lib/i18n";
 import { initSmoothScroll } from "../effects/smoothScroll";
 import { initScrollbar } from "../effects/scrollbar";
-import { runThemeWipe } from "../effects/themeWipe";
+import { themeFlip } from "../effects/themePlain";
 
 const d = data as unknown as Dataset;
 const repos: Repo[] = d.repos;
@@ -105,12 +105,10 @@ function renderControls() {
   });
 
   const btn = el.querySelector("#theme-btn") as HTMLButtonElement;
-  btn.addEventListener("click", (e) => {
+  btn.addEventListener("click", () => {
     const next =
       document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-    const r = btn.getBoundingClientRect();
-    runThemeWipe(next, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
-    persistTheme(next);
+    themeFlip(() => persistTheme(next));
     // 图标状态跟随
     btn.querySelectorAll(".theme-icon").forEach((i, k) => {
       const on = (k === 0) === (next === "light");

@@ -10,10 +10,10 @@ import { useEffect, useState } from "react";
    echo the site's cinematic editorial backdrop (Background.tsx).
 
    On completion the cover collapses into a circle from the sheet's center —
-   the same circular-wipe vocabulary as the theme toggle (themeWipe.ts) —
-   while the hero entrance plays on the same beat (see initGsap, which waits
-   for the "site-intro-reveal" event), so the page emerges out of the wipe
-   like a print coming out of the tray.
+   echoing the site's circular-wipe vocabulary — while the hero entrance
+   plays on the same beat (see initGsap, which waits for the
+   "site-intro-reveal" event), so the page emerges out of the wipe like a
+   print coming out of the tray.
 
    It only ever runs on a fresh visit:
    - skipped when reached via the main↔blog nav swap (body.nav-loading — the

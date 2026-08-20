@@ -8,6 +8,8 @@
 // - renders /projects/ against the built WORKS INDEX entry and bakes the
 //   fully-rendered DOM (all repos + CollectionPage JSON-LD) into
 //   dist/projects/index.html
+// - renders /photos/ (gallery + every /photos/work/<slug> detail, each with
+//   its own Photograph JSON-LD) into dist/photos/…
 // - writes dist/blog/<slug>/index.html, dist/sitemap.xml, dist/robots.txt
 //
 // Safety: never fails the build. Missing Chrome / render failure => warn and
@@ -93,6 +95,34 @@ function parsePosts() {
     });
   }
   return [...posts.values()];
+}
+
+/* ---- parse photos works frontmatter (src/photos/works) for slugs ---- */
+function parseWorks() {
+  const dir = join(ROOT, "src/photos/works");
+  const out = [];
+  let names = [];
+  try {
+    names = readdirSync(dir);
+  } catch {
+    return out;
+  }
+  for (const name of names) {
+    if (!name.endsWith(".md")) continue;
+    const src = readFileSync(join(dir, name), "utf8");
+    const fm = src.match(/^---\n([\s\S]*?)\n---/);
+    if (!fm) continue;
+    const kv = (key) => {
+      const line = fm[1].match(new RegExp(`^${key}:\\s*(.*)$`, "m"));
+      if (!line) return "";
+      return line[1].trim().replace(/^"|"$/g, "");
+    };
+    const slug = kv("slug");
+    if (!slug) continue;
+    out.push({ slug, title: kv("title"), date: kv("date") });
+  }
+  out.sort((a, b) => a.slug.localeCompare(b.slug));
+  return out;
 }
 
 /* ---- tiny static server with SPA fallback (needed by headless Chrome) ---- */
@@ -252,10 +282,9 @@ async function renderProjects(chromePath) {
 }
 
 /* ---- render the photos sub-site gallery, capture the whole document ----
-   Hash-routed detail pages can't be baked to separate static files, but the
-   gallery itself (works list, category filter, captions) is worth baking for
-   crawlers / AI engines that skip JS. The rendered document keeps the shell's
-   <head>, and real browsers re-hydrate from the bundle anyway. */
+   The gallery (works list, category filter, hero, CollectionPage + ItemList
+   JSON-LD injected by the app) is baked into dist/photos/index.html so
+   crawlers / AI engines that skip JS can read every work. */
 async function renderPhotos(chromePath) {
   const html = await renderWithChrome(
     chromePath,
@@ -265,6 +294,18 @@ async function renderPhotos(chromePath) {
   const out = join(ROOT, "dist/photos/index.html");
   writeFileSync(out, html);
   return out;
+}
+
+/* ---- render one work's detail page to its own static file ----
+   Path-routed /photos/work/<slug>/ renders the full Photograph JSON-LD and
+   metadata in-app (src/photos/lib/seo.ts); capture the whole document so
+   each detail page is independently crawlable, like the blog's articles. */
+async function renderWork(chromePath, slug) {
+  return renderWithChrome(
+    chromePath,
+    `http://127.0.0.1:${PORT}/photos/work/${slug}/`,
+    `(() => { const a = document.querySelector('article[data-work-slug]'); return a ? document.documentElement.outerHTML : ''; })()`,
+  );
 }
 
 /* ---- build a static shell for one article from the built blog entry's
@@ -342,7 +383,7 @@ function buildStatic(post, articleHtml) {
   return out;
 }
 
-function writeSitemap(posts) {
+function writeSitemap(posts, works) {
   const today = new Date().toISOString().slice(0, 10);
   const urls = [
     `<url><loc>${SITE}/</loc><priority>1.0</priority></url>`,
@@ -353,6 +394,10 @@ function writeSitemap(posts) {
     ...posts.map(
       (p) =>
         `<url><loc>${SITE}/blog/${p.slug}/</loc><lastmod>${p.date.replace(/\./g, "-")}</lastmod><priority>0.9</priority></url>`,
+    ),
+    ...works.map(
+      (w) =>
+        `<url><loc>${SITE}/photos/work/${w.slug}/</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`,
     ),
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
@@ -426,14 +471,16 @@ ${items}
 
 async function main() {
   const posts = parsePosts();
+  const works = parseWorks();
   const chromePath = findChrome();
   let ok = 0;
   let projectsOk = false;
   let photosOk = false;
+  let photosWorksOk = 0;
   if (chromePath) {
     const server = startServer();
     await sleep(300);
-    console.log(`prerender: ${posts.length} article(s) via ${chromePath}`);
+    console.log(`prerender: ${posts.length} article(s) + ${works.length} photo work(s) via ${chromePath}`);
     for (const post of posts) {
       try {
         const html = await renderArticle(chromePath, post.slug);
@@ -460,6 +507,21 @@ async function main() {
     } catch (e) {
       console.log(`  ✗ /photos/: ${e.message}`);
     }
+    for (const w of works) {
+      try {
+        const html = await renderWork(chromePath, w.slug);
+        const dir = join(ROOT, "dist/photos/work", w.slug);
+        mkdirSync(dir, { recursive: true });
+        const out = join(dir, "index.html");
+        writeFileSync(out, html);
+        photosWorksOk++;
+        console.log(
+          `  ✓ photos/work/${w.slug} (${html.length} chars) -> ${out.replace(ROOT, ".")}`,
+        );
+      } catch (e) {
+        console.log(`  ✗ photos/work/${w.slug}: ${e.message}`);
+      }
+    }
     server.close();
   } else {
     console.log(
@@ -468,11 +530,11 @@ async function main() {
   }
   // Always emit sitemap + robots + rss so production deploys (CI runners have
   // no Chrome) still get them even when article prerendering is skipped.
-  writeSitemap(posts);
+  writeSitemap(posts, works);
   writeRobots();
   writeRss(posts);
   console.log(
-    `prerender done: ${ok}/${posts.length} articles${projectsOk ? " + /projects/" : ""}${photosOk ? " + /photos/" : ""} + sitemap.xml + robots.txt + rss.xml`,
+    `prerender done: ${ok}/${posts.length} articles${projectsOk ? " + /projects/" : ""}${photosOk ? " + /photos/" : ""}${photosWorksOk ? ` + ${photosWorksOk}/${works.length} photo works` : ""} + sitemap.xml + robots.txt + rss.xml`,
   );
 }
 

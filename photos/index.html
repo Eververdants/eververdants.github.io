@@ -5,15 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Photographs — Eververdants</title>
     <script>
-      // Apply the visitor's saved sub-site theme BEFORE first paint so a
-      // returning visitor never flashes the wrong palette. Shares the same
-      // key as the blog sub-site, so one toggle syncs theme everywhere.
-      // The photos app (src/photos/components/ThemeToggle.tsx) keeps it in
-      // sync from then on; CSS theme tokens key off html[data-theme].
+      // Apply the visitor's saved sub-site language & theme BEFORE first
+      // paint so a returning visitor never flashes the wrong palette or
+      // script. Shares the same keys as the blog/projects sub-sites
+      // (blog-lang / blog-theme), so one toggle syncs everywhere; a
+      // ?lang=/?theme= URL override wins for the current visit. The photos
+      // app (src/photos/lib/prefs.tsx) keeps them in sync from then on.
       try {
-        if (localStorage.getItem("blog-theme") === "dark") {
-          document.documentElement.dataset.theme = "dark";
-        }
+        var p = new URLSearchParams(location.search);
+        var theme = p.get("theme");
+        theme =
+          theme === "dark" || theme === "light"
+            ? theme
+            : localStorage.getItem("blog-theme");
+        if (theme === "dark") document.documentElement.dataset.theme = "dark";
+        var lang = p.get("lang");
+        if (lang === "en" || lang === "zh") document.documentElement.lang = lang;
+        else if (localStorage.getItem("blog-lang") === "zh")
+          document.documentElement.lang = "zh";
       } catch (e) {}
     </script>
     <meta
@@ -48,6 +57,7 @@
       content="https://eververdants.github.io/og-image.png"
     />
     <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="llms.txt" href="https://eververdants.github.io/llms.txt" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",

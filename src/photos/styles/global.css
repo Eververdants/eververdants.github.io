@@ -34,6 +34,7 @@
   --accent-soft: #d6ecee;
   --overlay: rgba(20, 18, 14, 0.62);
   --selection: rgba(14, 122, 134, 0.18);
+  --radius-card: 14px;
 }
 [data-theme="dark"] {
   --bg: #15140f;
@@ -96,6 +97,26 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .theme-toggle .toggle-icon { display: inline-flex; transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1); }
 .theme-toggle:hover .toggle-icon { transform: rotate(22deg); }
 
+/* === Header control cluster: EN/中 + divider + theme === */
+.header-controls { display: inline-flex; align-items: center; gap: 0.9rem; }
+.lang-pair { position: relative; display: inline-flex; align-items: stretch; }
+.lang-btn {
+  position: relative; z-index: 1;
+  min-width: 1.9em; text-align: center;
+  font-size: 0.66rem; letter-spacing: 0.2em; font-weight: 600;
+  padding: 0.3rem 0.15rem; color: var(--faint);
+  transition: color 200ms ease;
+}
+.lang-btn:hover { color: var(--muted); }
+.lang-btn.is-active { color: var(--ink); }
+.lang-underline {
+  position: absolute; bottom: 0.1rem; left: 0;
+  width: 1.9em; height: 2px; border-radius: 1px;
+  background: var(--accent);
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.controls-divider { width: 1px; height: 1rem; background: var(--rule); align-self: center; }
+
 /* === Gallery hero === */
 .gallery-hero { padding: clamp(1.6rem, 5vw, 3.6rem) 0 1.4rem; }
 .gallery-hero .overline {
@@ -110,7 +131,37 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 .gallery-hero .lede {
   max-width: 38rem; color: var(--ink-soft);
-  font-size: 1.04rem; line-height: 1.6; margin: 0 0 1.8rem;
+  font-size: 1.04rem; line-height: 1.6; margin: 0;
+}
+.hero-row {
+  display: flex; flex-wrap: wrap; gap: 1.4rem 2rem;
+  align-items: flex-end; justify-content: space-between;
+  margin: 0 0 1.4rem;
+}
+.home-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: 0.66rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--ink-soft); font-weight: 500;
+  border: 1px solid var(--rule); border-radius: 999px;
+  padding: 0.62rem 1.15rem; white-space: nowrap;
+  transition: color 200ms ease, border-color 200ms ease, background-color 200ms ease;
+}
+.home-btn:hover { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.home-btn span { transition: transform 200ms ease; }
+.home-btn:hover span { transform: translate(1px, -1px); }
+.hero-meta {
+  display: flex; flex-wrap: wrap; gap: 1rem 2.6rem;
+  padding: 1.15rem 0 0; margin: 0 0 1.7rem;
+  border-top: 1px solid var(--rule);
+}
+.hero-meta .meta-item { display: inline-flex; align-items: baseline; gap: 0.65rem; }
+.hero-meta b {
+  font-family: "Fraunces", serif; font-style: italic; font-weight: 400;
+  font-size: 1.45rem; color: var(--ink);
+}
+.hero-meta .mono {
+  font-size: 0.62rem; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--muted);
 }
 
 /* === Filter bar === */
@@ -148,7 +199,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   position: relative; overflow: hidden;
   background: var(--paper);
   border: 1px solid var(--rule);
-  transition: border-color 250ms ease;
+  border-radius: var(--radius-card);
+  transition: border-color 250ms ease, border-radius 250ms ease;
 }
 .work-card-media img {
   width: 100%; height: auto; display: block;
@@ -206,12 +258,12 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   letter-spacing: -0.01em; color: var(--ink);
   margin: 0.7rem 0 0.3rem; max-width: 22ch;
 }
-.detail-title-zh {
+.detail-title-sub {
   font-family: "Fraunces", serif; font-weight: 400;
   font-size: clamp(1.05rem, 2.1vw, 1.45rem); color: var(--muted);
   margin: 0 0 1.4rem; letter-spacing: 0.02em;
 }
-.detail-hero { margin: 1.4rem 0 2.4rem; background: var(--paper); border: 1px solid var(--rule); overflow: hidden; }
+.detail-hero { margin: 1.4rem 0 2.4rem; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius-card); overflow: hidden; }
 .detail-hero img { width: 100%; height: auto; display: block; }
 .detail-body {
   display: grid; grid-template-columns: 1.4fr 1fr;
@@ -239,7 +291,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem; margin: 2.2rem 0 0;
 }
-.detail-gallery img { width: 100%; height: auto; border: 1px solid var(--rule); background: var(--paper); }
+.detail-gallery img { width: 100%; height: auto; border: 1px solid var(--rule); border-radius: var(--radius-card); background: var(--paper); }
 
 .detail-nav {
   display: flex; justify-content: space-between; align-items: baseline;
@@ -252,6 +304,15 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .detail-nav .n-title { font-family: "Fraunces", serif; font-style: italic; font-size: 1.05rem; color: var(--ink); transition: color 200ms ease; }
 .detail-nav a:hover .n-title { color: var(--accent); }
 .detail-nav .n-empty { font-family: "Fraunces", serif; font-style: italic; color: var(--faint); font-size: 0.95rem; }
+
+.detail-back { padding: 0 0 2.6rem; }
+.detail-back a {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: 0.66rem; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--muted); padding: 0.2rem 0.1rem;
+  transition: color 200ms ease;
+}
+.detail-back a:hover { color: var(--accent); }
 
 /* === Footer === */
 .site-footer {
@@ -266,6 +327,41 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .site-footer a { color: var(--ink-soft); transition: color 200ms ease; }
 .site-footer a:hover { color: var(--accent); }
 .site-footer .f-back { font-family: "Fraunces", serif; font-style: italic; text-transform: none; letter-spacing: 0; font-size: 0.84rem; }
+
+/* === Embedded scrollbar (desktop chrome; touch keeps the native one) === */
+#scrollbar {
+  position: fixed; right: 0; top: 0; bottom: 0;
+  width: clamp(10px, 0.9vw, 14px); z-index: 200;
+  border-left: 1px solid var(--rule);
+  background: transparent;
+  opacity: 0.55;
+  transition: opacity 200ms ease;
+}
+#scrollbar:hover, #scrollbar.dragging { opacity: 1; }
+#scrollbar-thumb {
+  position: absolute; left: 3px; right: 3px; top: 0;
+  border-radius: 999px;
+  background: var(--faint);
+  transition: background-color 200ms ease;
+}
+#scrollbar:hover #scrollbar-thumb, #scrollbar.dragging #scrollbar-thumb {
+  background: var(--accent);
+}
+@media (hover: none), (pointer: coarse) {
+  #scrollbar { display: none; }
+}
+
+/* === Plain theme transition (shared with blog/projects via themePlain.ts) === */
+html.theme-anim,
+html.theme-anim *,
+html.theme-anim *::before,
+html.theme-anim *::after {
+  transition:
+    background-color 260ms ease,
+    color 260ms ease,
+    border-color 260ms ease,
+    fill 260ms ease !important;
+}
 
 /* === Entrance === */
 @keyframes fadeUp {

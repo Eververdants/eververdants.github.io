@@ -1,31 +1,27 @@
-import { useState } from "react";
+import { usePhotosPrefs } from "../lib/prefs";
+import { ui } from "../lib/i18n";
+import { themeFlip } from "../../effects/themePlain";
 
-type Theme = "light" | "dark";
-// Shares the blog/projects theme key so one toggle syncs every sub-site.
-const KEY = "blog-theme";
-
-const current = (): Theme =>
-  (document.documentElement.dataset.theme as Theme) || "light";
-
-const apply = (t: Theme) => {
-  document.documentElement.dataset.theme = t;
-  try { localStorage.setItem(KEY, t); } catch {}
-};
-
+/* Plain theme button — the photos form that the whole site now shares:
+   no reveal animation, just a short colour transition (themeFlip). The
+   preference persists to blog-theme so blog/projects follow instantly. */
 export function ThemeToggle() {
-  const [t, setT] = useState<Theme>(current);
-  const isDark = t === "dark";
+  const { theme, setTheme, lang } = usePhotosPrefs();
+  const isDark = theme === "dark";
+  const t = ui[lang];
+
   const onClick = () => {
-    const next: Theme = current() === "dark" ? "light" : "dark";
-    apply(next);
-    setT(next);
+    const next: "light" | "dark" = theme === "dark" ? "light" : "dark";
+    themeFlip(() => setTheme(next));
   };
+
   return (
     <button
       type="button"
       className="theme-toggle"
       onClick={onClick}
-      aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+      aria-label={isDark ? t.themeLight : t.themeDark}
+      title={isDark ? "Light" : "Dark"}
     >
       <span className="toggle-icon" aria-hidden>
         {isDark
