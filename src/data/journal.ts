@@ -35,6 +35,18 @@ export interface JournalPost {
   // frontmatter category (localized per file). Grouping, recommendation and
   // glyph lookup read this — never the reader's current UI language.
   sectionId: string | null;
+  // Cited original texts — rendered as the closing "references" list of the
+  // article, each row a link straight to the full original source.
+  sources: Source[];
+}
+
+/* One cited original text: the work's title, its provenance (author · date ·
+   volume), and a URL that opens the full text. Written once per language in
+   the post's frontmatter as "title|provenance|url" list items. */
+export interface Source {
+  title: string;
+  source: string;
+  url: string;
 }
 
 /* Blog sections — the editorial columns the content site is filed under.

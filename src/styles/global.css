@@ -681,6 +681,89 @@ body.nav-loading.nav-reveal::before {
   color: var(--body);
 }
 
+/* ---- article references: the source list closing an essay ----
+   An editorial appendix: a solid rule above (deliberately heavier than the
+   hairline section rules so it reads as "end matter"), an overline-style
+   heading, then one row per cited original. Each row is a single whole-line
+   link (number · title · provenance · affordance) that opens the full text
+   in a new tab. */
+.article-content .references {
+  margin-top: clamp(56px, 8vh, 84px);
+  padding-top: clamp(22px, 3.5vh, 32px);
+  border-top: 2px solid var(--ink);
+}
+.article-content .references-heading {
+  margin: 0 0 clamp(16px, 2.5vh, 22px);
+  padding: 0;
+  border: 0;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--fainter);
+}
+.article-content .references ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.article-content .references li + li {
+  border-top: 1px solid var(--border-soft);
+}
+.article-content .references a {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(10px, 1.6vw, 16px);
+  padding: clamp(13px, 2vh, 18px) 6px;
+  color: var(--ink);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.18s ease;
+}
+.article-content .references a:hover {
+  color: var(--ink);
+  background: var(--card-bg);
+}
+.article-content .ref-index {
+  flex: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.article-content .ref-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.article-content .ref-title {
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.article-content .ref-source {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--faint);
+}
+.article-content .ref-go {
+  flex: none;
+  margin-left: auto;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
+  transition: color 0.18s ease;
+}
+.article-content .references a:hover .ref-go {
+  color: var(--accent);
+}
+
 .article-content hr {
   margin: clamp(36px, 6vh, 60px) 0;
   border: 0;

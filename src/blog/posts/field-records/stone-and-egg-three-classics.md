@@ -5,6 +5,10 @@ category: FIELD RECORDS
 date: 2026.07.04
 excerpt: On Contradiction, On Protracted War, and A Single Spark Can Start a Prairie Fire—three works, three periods, and the strategic frameworks they built to reverse asymmetrical contests.
 tags: [Mao Zedong, Strategy, Reading Notes]
+sources:
+  - "A Single Spark Can Start a Prairie Fire"|Mao Zedong · January 1930 · Selected Works of Mao Zedong, Vol. I|https://www.qstheory.cn/books/2019-07/31/c_1119448591_6.htm
+  - "On Contradiction"|Mao Zedong · August 1937 · Selected Works of Mao Zedong, Vol. I|https://www.qstheory.cn/books/2019-07/31/c_1119448591_22.htm
+  - "On Protracted War"|Mao Zedong · May 1938 · Selected Works of Mao Zedong, Vol. II|https://www.qstheory.cn/books/2019-07/31/c_1119478087_9.htm
 ---
 
 Common sense tells us: when an egg strikes a stone, it is always the egg that breaks.

@@ -5,6 +5,8 @@ category: NOTES
 date: 2026.07.03
 excerpt: Two methodologies from Mao Zedong's 1941 essay "Reform Our Study"—seeking truth from facts and having a clear target—and how they cut through modern confusion.
 tags: [Mao Zedong, Methodology, Reading Notes]
+sources:
+  - "Reform Our Study"|Mao Zedong · May 19, 1941, report to the Yan'an cadre conference · Selected Works of Mao Zedong, Vol. III|https://www.qstheory.cn/books/2019-07/31/c_1119479227_2.htm
 ---
 
 Who hasn't experienced this? Your bookmarks are filled with dozens of posts on "overcoming confusion," and at 2 a.m. you're still frantically scrolling through your phone seeking answers. During the day, you sit at your desk with books spread out, feeling like you've given it your all. Yet, when you quiet down and ask yourself: What exactly am I striving for? Is all this effort even meaningful? You often find yourself speechless. What if I told you that your biggest problem isn't a lack of effort, but rather that you've turned **"effort" itself into a straw to clutch at**? Doesn't that sound a bit counterintuitive?

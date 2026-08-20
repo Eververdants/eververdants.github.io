@@ -4,7 +4,7 @@
    and inline marks (bold, italic, code, links). Big enough for prose,
    small enough to trust. */
 
-function escapeHtml(s: string): string {
+export function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

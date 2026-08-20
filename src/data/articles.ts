@@ -10,10 +10,10 @@
    journal.ts; anything not listed there still shows, appended newest-first
    by date. */
 
-import type { JournalPost } from "./journal";
+import type { JournalPost, Source } from "./journal";
 import { journal, journalZh } from "./journal";
 import { sections } from "./sections";
-import { renderMarkdown } from "../lib/markdown";
+import { escapeHtml, renderMarkdown } from "../lib/markdown";
 import type { Lang } from "../blog/prefs";
 
 /* All markdown under src/blog/posts/, collected recursively at build time —
@@ -58,11 +58,26 @@ function parseFrontmatter(raw: string): { meta: Frontmatter; body: string } {
   }
   if (end === -1) return { meta: {}, body: raw };
   const meta: Frontmatter = {};
+  // A bare "key:" opens a list; the following "- item" lines collect into
+  // it (used by sources). Any other key line closes the open list.
+  let listKey: string | null = null;
   for (const line of lines.slice(1, end)) {
+    const item = line.match(/^\s*-\s+(.*)$/);
+    if (item && listKey) {
+      const arr = meta[listKey];
+      if (Array.isArray(arr)) arr.push(item[1].trim());
+      continue;
+    }
+    listKey = null;
     const m = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
     if (!m) continue;
     const [, key, rest] = m;
     const val = rest.trim();
+    if (val === "") {
+      listKey = key;
+      meta[key] = [];
+      continue;
+    }
     if (val.startsWith("[") && val.endsWith("]")) {
       meta[key] = val
         .slice(1, -1)
@@ -134,6 +149,15 @@ function parseTags(
   return { tags, tagLabels: labels };
 }
 
+/* Parse one "title|provenance|url" list item into a Source. All three
+   fields are required — a malformed row drops out silently rather than
+   rendering a broken reference. */
+function parseSource(item: string): Source | null {
+  const [title, source, url] = item.split("|").map((s) => s.trim());
+  if (!title || !source || !url) return null;
+  return { title, source, url };
+}
+
 function parsePost(
   raw: string,
   lang: Lang,
@@ -155,6 +179,9 @@ function parsePost(
     tags,
     tagLabels,
     author: str("author") || undefined,
+    sources: (Array.isArray(meta.sources) ? (meta.sources as string[]) : [])
+      .map(parseSource)
+      .filter((s): s is Source => s !== null),
   };
 }
 
@@ -180,6 +207,41 @@ export interface Article {
   html: string;
 }
 
+/* The references block that closes an essay that cites original texts —
+   an editorial source list appended after the rendered body. Each entry is
+   one whole-row link that opens the full original in a new tab. The heading
+   and the "read" affordance follow the deck's language; the entries
+   themselves are already localized in the frontmatter. */
+const REFS_TITLE: Record<Lang, string> = {
+  en: "References & Original Texts",
+  zh: "参考文献 · 原文出处",
+};
+const REFS_GO: Record<Lang, string> = {
+  en: "Read Original",
+  zh: "阅读原文",
+};
+
+function renderSources(sources: Source[], lang: Lang): string {
+  const items = sources
+    .map((s, i) => {
+      const body =
+        `<span class="ref-index">${String(i + 1).padStart(2, "0")}</span>` +
+        `<span class="ref-body">` +
+        `<span class="ref-title">${escapeHtml(s.title)}</span>` +
+        `<span class="ref-source">${escapeHtml(s.source)}</span>` +
+        `</span>` +
+        `<span class="ref-go">${REFS_GO[lang]} ↗</span>`;
+      return `<li><a href="${escapeHtml(s.url)}" target="_blank" rel="noreferrer">${body}</a></li>`;
+    })
+    .join("");
+  return (
+    `<section class="references">` +
+    `<h2 id="references" class="references-heading">${REFS_TITLE[lang]}</h2>` +
+    `<ol>${items}</ol>` +
+    `</section>`
+  );
+}
+
 /* The deck in editorial order — the language's order list drives it, the
    featured essay first, then any essay not listed (new drafts, no curation
    yet) appended newest-first by date so new content always surfaces without
@@ -202,7 +264,11 @@ export function getArticle(slug: string, lang: Lang = "en"): Article | null {
   const post = PARSED[lang].get(slug);
   const raw = RAW[lang][slug];
   if (!post || !raw) return null;
-  return { post, html: renderMarkdown(parseFrontmatter(raw).body) };
+  const body = parseFrontmatter(raw).body;
+  const html = post.sources.length
+    ? renderMarkdown(body) + "\n" + renderSources(post.sources, lang)
+    : renderMarkdown(body);
+  return { post, html };
 }
 
 /* Search — plain-text index over the deck plus each essay's body. The body
