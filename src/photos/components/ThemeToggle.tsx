@@ -1,7 +1,8 @@
 import { useState } from "react";
 
 type Theme = "light" | "dark";
-const KEY = "photos-theme";
+// Shares the blog/projects theme key so one toggle syncs every sub-site.
+const KEY = "blog-theme";
 
 const current = (): Theme =>
   (document.documentElement.dataset.theme as Theme) || "light";
