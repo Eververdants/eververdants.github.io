@@ -1,0 +1,56 @@
+{
+  "_comment": "手动精选覆盖层。key 为 GitHub 仓库名；脚本会将其与 gh 实时数据合并进 src/projects/data/repos.json。featured=true 的仓库进入首页「精选」区（需要 thumb 配图）；blurb 可覆盖 GitHub 描述；tag 显示在卡片右上角。thumb 用站根绝对路径 /assets/…（与主站 public/assets 共享）。删除某项即恢复默认。",
+  "ETBSaveManager": {
+    "featured": true,
+    "thumb": "/assets/works-etb-save.webp",
+    "tag": "FLAGSHIP",
+    "blurb": "基于 Tauri 2.0 的《Escape The Backrooms》存档管理器：完整 CRUD、多语言 UI、虚拟滚动列表 —— 本站星标最多的开源工具。"
+  },
+  "AppAudioRouter": {
+    "featured": true,
+    "thumb": "/assets/works-audio-router.webp",
+    "tag": "TOOLING",
+    "blurb": "Windows 音频路由工具：把每个应用的声音指向指定设备，支持自动刷新与会话间路由记忆。"
+  },
+  "ArtText-Studio": {
+    "featured": true,
+    "thumb": "/assets/works-arttext.webp",
+    "tag": "CREATIVE",
+    "blurb": "把文字变成可分享的视觉作品：数百种程序化生成风格，或让 AI 匹配氛围 —— 代码与设计一体。"
+  },
+  "eververdants.github.io": {
+    "featured": false,
+    "tag": "THIS SITE",
+    "blurb": "本作品索引所属的主站 —— React + Vite + GSAP 打造的全屏动态个人网站，含双语博客子站。"
+  },
+  "Eververdants": {
+    "featured": false,
+    "tag": "META",
+    "blurb": "GitHub 个人主页 README —— 这份作品索引的封面。"
+  },
+  "douyin-seo-playbook": {
+    "featured": false,
+    "tag": "HANDBOOK",
+    "blurb": "抖音搜索引擎优化实战手册 —— 覆盖推荐算法、权重体系、内容创作与商业投放的全链路策略。"
+  },
+  "aetheris": {
+    "featured": false,
+    "tag": "RUST",
+    "blurb": "零开销 Windows 游戏优化服务 —— Rust + ETW 事件驱动，无轮询。"
+  },
+  "video-analytics": {
+    "featured": false,
+    "tag": "DASHBOARD",
+    "blurb": "多账号视频数据看板（抖音 / B 站）：实时采集、趋势分析、账号对比与智能预测。"
+  },
+  "ink-quality-net": {
+    "featured": false,
+    "tag": "ML",
+    "blurb": "基于 MobileNetV2 的书写质量检测：文本存在性与模糊分类（PyTorch / ONNX / TFLite）。"
+  },
+  "MicrophoneController": {
+    "featured": false,
+    "tag": "UTILITY",
+    "blurb": "一键控制麦克风静音 / 取消静音 —— 通话、直播、录音时的快速开关。"
+  }
+}

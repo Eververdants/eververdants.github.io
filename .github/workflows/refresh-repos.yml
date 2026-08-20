@@ -1,0 +1,55 @@
+name: Refresh repo index
+
+# 自动收录新仓库（WORKS INDEX 子站数据）：
+# 1) 每周一 02:00 UTC 定时执行；
+# 2) 每次 push 到 main 后执行；
+# 3) 支持手动触发（Actions → Run workflow）。
+# 流程：用 gh 拉取全部公开仓库 → 合并 scripts/curation.json → 提交回 main，
+# 随后主站 deploy.yml（push 到 main 触发）自动重新部署，新仓库即上线。
+
+on:
+  schedule:
+    - cron: "0 2 * * 1"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-repos
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Regenerate repos.json from GitHub API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/fetch-repos.mjs
+
+      - name: Commit updated index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/projects/data/repos.json
+          if git diff --cached --quiet; then
+            echo "no changes — index is up to date"
+          else
+            git commit -m "chore(index): auto-refresh repos from GitHub API"
+            git push origin main
+          fi

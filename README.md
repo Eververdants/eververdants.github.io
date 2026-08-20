@@ -15,10 +15,26 @@ Eververdants 的个人网站。
 
 ```bash
 npm install
-npm run dev        # 开发服务器
+npm run dev        # 开发服务器（/ 主站、/blog 博客、/projects 作品索引）
+npm run sync       # 拉取 GitHub 公开仓库数据 → src/projects/data/repos.json
 npm run build      # 构建到 dist/
 npm run preview    # 预览构建产物
 ```
+
+## 子站
+
+站点内含三个独立 SPA 入口（同一 dist/ 一次部署）：
+
+| 入口      | 路径         | 技术栈               | 数据源                                |
+| --------- | ------------ | -------------------- | ------------------------------------- |
+| 主站      | `/`          | React + GSAP         | `src/data/`                           |
+| 博客      | `/blog/`     | React                | `src/blog/posts/`（frontmatter）      |
+| 作品索引  | `/projects/` | 纯 TS（零运行时依赖） | `src/projects/data/repos.json`（gh）   |
+
+作品索引的数据由 `scripts/fetch-repos.mjs` 用 `gh repo list --json` 拉取，合并
+`scripts/curation.json`（精选/配图/标签/文案覆盖）后写入 `src/projects/data/repos.json`
+（提交进仓库，CI 无需 gh 认证）。`.github/workflows/refresh-repos.yml` 每周一自动重新
+拉取并提交 —— 新仓库会自动出现在 /projects/ 台账中。
 
 ## 部署
 

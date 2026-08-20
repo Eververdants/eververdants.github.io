@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-Hans" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WORKS INDEX — Eververdants · 作品索引</title>
+    <meta
+      name="description"
+      content="Eververdants（万山青未阑）的个人开源项目索引 —— 由 GitHub API 自动同步的作品台账：Tauri 桌面工具、Rust 服务、TypeScript 应用与 Python 实验。"
+    />
+    <meta name="author" content="Eververdants" />
+    <link rel="canonical" href="https://eververdants.github.io/projects/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Eververdants" />
+    <meta property="og:title" content="WORKS INDEX — Eververdants" />
+    <meta
+      property="og:description"
+      content="个人开源项目索引 · 由 gh CLI 自动同步的 GitHub 作品台账"
+    />
+    <meta property="og:url" content="https://eververdants.github.io/projects/" />
+    <meta property="og:image" content="https://eververdants.github.io/og-image.png" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script>
+      // 防 FOUC：进入页面即读取主题偏好（支持 ?theme=light|dark 临时覆盖）
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search).get("theme");
+          var t = p === "light" || p === "dark" ? p : localStorage.getItem("windex-theme");
+          if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+        } catch (e) {}
+      })();
+    </script>
+    <style>
+      /* 字体与主站共用 public/fonts（绝对路径，随主站一起部署） */
+      @font-face {
+        font-family: "Inter";
+        src: url("/fonts/inter-latin.woff2") format("woff2-variations");
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Fraunces";
+        src: url("/fonts/fraunces-latin.woff2") format("woff2-variations");
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Fraunces";
+        src: url("/fonts/fraunces-italic-latin.woff2") format("woff2-variations");
+        font-weight: 100 900;
+        font-style: italic;
+        font-display: swap;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/projects/main.ts"></script>
+  </body>
+</html>

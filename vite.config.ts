@@ -7,16 +7,24 @@ import tailwindcss from "@tailwindcss/vite";
 import { parsePostMeta, stripMarkdown } from "./src/data/parsePost.ts";
 import type { JournalPost } from "./src/data/journal.ts";
 
-/* The two entries each SPA-fallback their own paths, but Vite's built-in
-   dev/preview server only knows the root index.html — a deep link like
-   /blog/<slug> with no static file (dev) would fall to the main site and
-   normalize to the root. Rewrite /blog/* to the blog entry, matching what
-   the prerendered statics serve in production. */
-function blogFallbackMiddleware() {
+/* Each SPA entry (main /blog /projects) fallbacks its own paths, but Vite's
+   built-in dev/preview server only knows the root index.html — a deep link
+   like /blog/<slug> or /projects/ with no static file (dev) would fall to
+   the main site and normalize to the root. Rewrite those prefixes to their
+   own entries, matching what the prerendered statics serve in production. */
+const SUB_SITES = [
+  { prefix: "/blog", entry: "/blog/index.html" },
+  { prefix: "/projects", entry: "/projects/index.html" },
+];
+
+function subSiteFallbackMiddleware() {
   return (req: { url?: string }, _res: unknown, next: () => void) => {
     const url = (req.url ?? "").split("?")[0];
-    if (url === "/blog" || url.startsWith("/blog/")) {
-      req.url = "/blog/index.html";
+    for (const { prefix, entry } of SUB_SITES) {
+      if (url === prefix || url.startsWith(prefix + "/")) {
+        req.url = entry;
+        break;
+      }
     }
     next();
   };
@@ -24,16 +32,16 @@ function blogFallbackMiddleware() {
 
 /* configureServer / configurePreviewServer are plugin hooks, not top-level
    config keys — hence the inline plugin. */
-function blogEntryFallbackPlugin() {
+function subSiteEntryFallbackPlugin() {
   return {
-    name: "blog-entry-fallback",
+    name: "subsite-entry-fallback",
     configureServer(server: { middlewares: { use: (m: unknown) => void } }) {
-      server.middlewares.use(blogFallbackMiddleware());
+      server.middlewares.use(subSiteFallbackMiddleware());
     },
     configurePreviewServer(server: {
       middlewares: { use: (m: unknown) => void };
     }) {
-      server.middlewares.use(blogFallbackMiddleware());
+      server.middlewares.use(subSiteFallbackMiddleware());
     },
   };
 }
@@ -140,18 +148,20 @@ function blogIndexPlugin(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   base: "/",
-  plugins: [react(), tailwindcss(), blogEntryFallbackPlugin(), blogIndexPlugin()],
+  plugins: [react(), tailwindcss(), subSiteEntryFallbackPlugin(), blogIndexPlugin()],
   build: {
     // Modern browsers only (es2022): smaller output, no legacy transforms.
     target: "es2022",
     rollupOptions: {
-      // Two independent SPA entries: the main site at / and the light blog
-      // sub-site at /blog/. Each gets its own index.html + app bundle; both
-      // deploy together inside one dist/ (GitHub Pages serves /blog/ as a
-      // subdirectory).
+      // Three independent SPA entries: the main site at /, the light blog
+      // sub-site at /blog/, and the WORKS INDEX projects sub-site at
+      // /projects/. Each gets its own index.html + app bundle; all deploy
+      // together inside one dist/ (GitHub Pages serves them as
+      // subdirectories).
       input: {
         main: fileURLToPath(new URL("./index.html", import.meta.url)),
         blog: fileURLToPath(new URL("./blog/index.html", import.meta.url)),
+        projects: fileURLToPath(new URL("./projects/index.html", import.meta.url)),
       },
       output: {
         // Split heavy deps into stable vendor chunks so content updates

@@ -60,6 +60,19 @@ function TitlePanel() {
         <p className="mt-[clamp(28px,5vh,56px)] text-[11px] tracking-[0.42em] text-white/40">
           PORTFOLIO — {works.masthead.year}
         </p>
+        {/* to the full works index sub-site — same CTA language as /blog/ */}
+        <a
+          href="/projects/"
+          className="group mt-[clamp(32px,6vh,56px)] inline-flex items-center gap-3 rounded-full border border-[#f9a633]/70 px-[clamp(18px,2.4vw,30px)] py-[clamp(10px,1.5vh,16px)] text-[11px] font-medium tracking-[0.3em] text-[#f9a633] shadow-[0_0_0_rgba(249,166,51,0)] transition-all duration-300 hover:bg-[#f9a633] hover:text-black hover:shadow-[0_8px_30px_rgba(249,166,51,0.25)]"
+        >
+          VIEW THE WORKS INDEX
+          <span
+            aria-hidden
+            className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+          >
+            ↗
+          </span>
+        </a>
       </div>
     </div>
   );
