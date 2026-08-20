@@ -128,21 +128,22 @@ function startServer() {
       res.end(readFileSync(file));
     } else {
       // SPA fallback: each sub-site serves its own entry, every other path
-      // the main site.
+      // the main site. Guarded with existsSync so a sub-site whose static
+      // entry is missing (e.g. first build) never crashes the server.
       const isBlog = p.startsWith("/blog");
       const isProjects = p.startsWith("/projects");
+      const isPhotos = p.startsWith("/photos");
+      const entry = isBlog
+        ? "blog/index.html"
+        : isProjects
+          ? "projects/index.html"
+          : isPhotos
+            ? "photos/index.html"
+            : "index.html";
+      const entryPath = join(dist, entry);
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end(
-        readFileSync(
-          join(
-            dist,
-            isBlog
-              ? "blog/index.html"
-              : isProjects
-                ? "projects/index.html"
-                : "index.html",
-          ),
-        ),
+        readFileSync(existsSync(entryPath) ? entryPath : join(dist, "index.html")),
       );
     }
   }).listen(PORT, "127.0.0.1");
@@ -250,6 +251,22 @@ async function renderProjects(chromePath) {
   return out;
 }
 
+/* ---- render the photos sub-site gallery, capture the whole document ----
+   Hash-routed detail pages can't be baked to separate static files, but the
+   gallery itself (works list, category filter, captions) is worth baking for
+   crawlers / AI engines that skip JS. The rendered document keeps the shell's
+   <head>, and real browsers re-hydrate from the bundle anyway. */
+async function renderPhotos(chromePath) {
+  const html = await renderWithChrome(
+    chromePath,
+    `http://127.0.0.1:${PORT}/photos/`,
+    `(() => { const el = document.querySelector('.gallery-grid, .gallery-empty'); return el ? document.documentElement.outerHTML : ''; })()`,
+  );
+  const out = join(ROOT, "dist/photos/index.html");
+  writeFileSync(out, html);
+  return out;
+}
+
 /* ---- build a static shell for one article from the built blog entry's
    index.html template (the article reader lives on the blog sub-site) ---- */
 function buildStatic(post, articleHtml) {
@@ -331,6 +348,7 @@ function writeSitemap(posts) {
     `<url><loc>${SITE}/</loc><priority>1.0</priority></url>`,
     `<url><loc>${SITE}/selected-blog/</loc><priority>0.8</priority></url>`,
     `<url><loc>${SITE}/projects/</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`,
+    `<url><loc>${SITE}/photos/</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`,
     `<url><loc>${SITE}/blog/</loc><priority>0.7</priority></url>`,
     ...posts.map(
       (p) =>
@@ -411,6 +429,7 @@ async function main() {
   const chromePath = findChrome();
   let ok = 0;
   let projectsOk = false;
+  let photosOk = false;
   if (chromePath) {
     const server = startServer();
     await sleep(300);
@@ -434,6 +453,13 @@ async function main() {
     } catch (e) {
       console.log(`  ✗ /projects/: ${e.message}`);
     }
+    try {
+      const out = await renderPhotos(chromePath);
+      photosOk = true;
+      console.log(`  ✓ /photos/ prerendered -> ${out.replace(ROOT, ".")}`);
+    } catch (e) {
+      console.log(`  ✗ /photos/: ${e.message}`);
+    }
     server.close();
   } else {
     console.log(
@@ -446,7 +472,7 @@ async function main() {
   writeRobots();
   writeRss(posts);
   console.log(
-    `prerender done: ${ok}/${posts.length} articles${projectsOk ? " + /projects/" : ""} + sitemap.xml + robots.txt + rss.xml`,
+    `prerender done: ${ok}/${posts.length} articles${projectsOk ? " + /projects/" : ""}${photosOk ? " + /photos/" : ""} + sitemap.xml + robots.txt + rss.xml`,
   );
 }
 

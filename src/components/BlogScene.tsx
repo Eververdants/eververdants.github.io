@@ -128,6 +128,19 @@ function Cover() {
             ↗
           </span>
         </a>
+        {/* to the photos sub-site — same warm-accent CTA language */}
+        <a
+          href="/photos/"
+          className="group mt-[clamp(28px,4vh,44px)] inline-flex items-center gap-3 rounded-full border border-[#f9a633]/70 px-[clamp(18px,2.4vw,30px)] py-[clamp(10px,1.5vh,16px)] text-[11px] font-medium tracking-[0.3em] text-[#f9a633] shadow-[0_0_0_rgba(249,166,51,0)] transition-all duration-300 hover:bg-[#f9a633] hover:text-black hover:shadow-[0_8px_30px_rgba(249,166,51,0.25)]"
+        >
+          VISIT THE PHOTOGRAPHS
+          <span
+            aria-hidden
+            className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+          >
+            ↗
+          </span>
+        </a>
       </div>
 
       {/* corner caption — editorial margin note */}

@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build && node scripts/postbuild.mjs && node scripts/prerender.mjs",
     "sync": "node scripts/fetch-repos.mjs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "new-work": "node scripts/new-work.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

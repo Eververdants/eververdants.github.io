@@ -6,15 +6,17 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { parsePostMeta, stripMarkdown } from "./src/data/parsePost.ts";
 import type { JournalPost } from "./src/data/journal.ts";
+import { worksIndexPlugin } from "./src/photos/build/worksIndexPlugin.ts";
 
-/* Each SPA entry (main /blog /projects) fallbacks its own paths, but Vite's
-   built-in dev/preview server only knows the root index.html — a deep link
-   like /blog/<slug> or /projects/ with no static file (dev) would fall to
-   the main site and normalize to the root. Rewrite those prefixes to their
+/* Each SPA entry (main /blog /projects /photos) fallbacks its own paths, but
+   Vite's built-in dev/preview server only knows the root index.html — a deep
+   link like /blog/<slug> or /projects/ with no static file (dev) would fall
+   to the main site and normalize to the root. Rewrite those prefixes to their
    own entries, matching what the prerendered statics serve in production. */
 const SUB_SITES = [
   { prefix: "/blog", entry: "/blog/index.html" },
   { prefix: "/projects", entry: "/projects/index.html" },
+  { prefix: "/photos", entry: "/photos/index.html" },
 ];
 
 function subSiteFallbackMiddleware() {
@@ -153,15 +155,16 @@ export default defineConfig({
     tailwindcss(),
     subSiteEntryFallbackPlugin(),
     blogIndexPlugin(),
+    worksIndexPlugin(),
   ],
   build: {
     // Modern browsers only (es2022): smaller output, no legacy transforms.
     target: "es2022",
     rollupOptions: {
-      // Three independent SPA entries: the main site at /, the light blog
-      // sub-site at /blog/, and the WORKS INDEX projects sub-site at
-      // /projects/. Each gets its own index.html + app bundle; all deploy
-      // together inside one dist/ (GitHub Pages serves them as
+      // Four independent SPA entries: the main site at /, the light blog
+      // sub-site at /blog/, the WORKS INDEX at /projects/ and the photo
+      // journal at /photos/. Each gets its own index.html + app bundle; all
+      // deploy together inside one dist/ (GitHub Pages serves them as
       // subdirectories).
       input: {
         main: fileURLToPath(new URL("./index.html", import.meta.url)),
@@ -169,6 +172,7 @@ export default defineConfig({
         projects: fileURLToPath(
           new URL("./projects/index.html", import.meta.url),
         ),
+        photos: fileURLToPath(new URL("./photos/index.html", import.meta.url)),
       },
       output: {
         // Split heavy deps into stable vendor chunks so content updates

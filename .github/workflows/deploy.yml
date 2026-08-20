@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, photos]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -18,60 +18,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main site
-        uses: actions/checkout@v4
-        with:
-          ref: main
-
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-
-      - name: Install & build main site
-        run: |
-          npm ci
-          npm run build
-
-      # Photos sub-site: developed on the `photos` branch in a sibling
-      # worktree (../eververdants-photos). Built here with base /photos/
-      # and merged into dist/photos/ so it deploys as
-      # https://eververdants.github.io/photos/.
-      # The photos steps are tolerant: a missing or broken `photos` branch
-      # will NOT block the main site deploy (a warning is emitted instead).
-      - name: Checkout photos sub-site
-        uses: actions/checkout@v4
-        with:
-          ref: photos
-          path: photos-src
-        continue-on-error: true
-
-      - name: Install & build photos sub-site
-        if: hashFiles('photos-src/package.json') != ''
-        working-directory: photos-src
-        env:
-          VITE_BASE: /photos/
-        run: |
-          npm ci --no-audit --no-fund
-          npm run build
-        continue-on-error: true
-
-      - name: Merge photos into dist/photos/
-        if: hashFiles('photos-src/dist/index.html') != ''
-        run: |
-          mkdir -p dist/photos
-          cp -r photos-src/dist/. dist/photos/
-
-      - name: Warn if photos sub-site is missing
-        if: hashFiles('photos-src/dist/index.html') == ''
-        run: |
-          echo "::warning::photos sub-site was not built (branch 'photos' missing or build failed). Deploying without /photos/."
-
+      - run: npm ci
+      - run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
-
   deploy:
     needs: build
     runs-on: ubuntu-latest
