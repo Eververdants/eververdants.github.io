@@ -128,9 +128,12 @@ function renderHero() {
   const u = t();
   el.innerHTML = `
     <div class="wrap">
-      <div class="hero__overline mono" data-reveal>${esc(u.overline)}</div>
+      <div class="hero__overline mono" data-reveal>${esc(u.overline(new Date().getFullYear()))}</div>
       <h1 class="hero__title" data-reveal style="--reveal-delay:70ms">${esc(u.title)}</h1>
-      <p class="hero__sub" data-reveal style="--reveal-delay:120ms">${esc(u.sub)}</p>
+      <div class="hero__row" data-reveal style="--reveal-delay:120ms">
+        <p class="hero__sub">${esc(u.sub)}</p>
+        <a class="home-btn" href="/">${esc(u.mainSite)} <span aria-hidden="true">↗</span></a>
+      </div>
       <div class="hero__meta" data-reveal style="--reveal-delay:170ms">
         <div class="meta-item"><b data-count="${meta.count}"><em>·</em>0</b><span class="mono">${esc(u.metaRepos)}</span></div>
         <div class="meta-item"><b data-count="${stars}"><em>·</em>0</b><span class="mono">${esc(u.metaStars)}</span></div>
@@ -179,11 +182,11 @@ function renderFeatured() {
             <div class="feat__body">
               <span class="feat__tag mono">${esc(r.tag || r.language)}</span>
               <h3 class="feat__name">${esc(r.name)}<span class="arrow">↗</span></h3>
-              <p class="feat__desc">${esc(repoDesc(document.documentElement.lang === "zh" ? "zh" : "en", r.description, r.blurb))}</p>
+              <p class="feat__desc">${esc(repoDesc(langNow(), r.description, r.blurbEn, r.blurbZh))}</p>
               <div class="feat__meta">
-                <span class="mono"><span class="lang-dot" style="background:${langColor(r.language)}"></span>${esc(r.language)}</span>
+                <span class="mono lang-chip"><span class="lang-dot" style="background:${langColor(r.language)}"></span>${esc(r.language)}</span>
                 <span class="mono">★ ${fmtCount(r.stars)}</span>
-                <span class="mono">↺ ${timeAgo(document.documentElement.lang === "zh" ? "zh" : "en", r.pushedAt)}</span>
+                <span class="mono">↺ ${timeAgo(langNow(), r.pushedAt)}</span>
               </div>
             </div>
           </a>`
@@ -206,7 +209,8 @@ function filtered(): Repo[] {
       (r) =>
         r.name.toLowerCase().includes(q) ||
         (r.description || "").toLowerCase().includes(q) ||
-        (r.blurb || "").toLowerCase().includes(q) ||
+        (r.blurbEn || "").toLowerCase().includes(q) ||
+        (r.blurbZh || "").toLowerCase().includes(q) ||
         r.language.toLowerCase().includes(q) ||
         r.topics.some((x) => x.toLowerCase().includes(q))
     );
@@ -260,6 +264,7 @@ function renderToolbar() {
   el.querySelectorAll(".chip").forEach((c) => {
     c.addEventListener("click", () => {
       state.filterLang = (c as HTMLElement).dataset.lang || "ALL";
+      syncToolbar();
       syncUrl();
       renderLedger();
     });
@@ -267,9 +272,20 @@ function renderToolbar() {
   el.querySelectorAll(".sort__btn").forEach((b) => {
     b.addEventListener("click", () => {
       state.sort = (b as HTMLElement).dataset.sort as SortKey;
+      syncToolbar();
       syncUrl();
       renderLedger();
     });
+  });
+}
+
+/* 点击筛选/排序后，把选中态同步到所有 chip / sort 按钮（aria-pressed） */
+function syncToolbar() {
+  document.querySelectorAll("#toolbar .chip").forEach((c) => {
+    c.setAttribute("aria-pressed", String((c as HTMLElement).dataset.lang === state.filterLang));
+  });
+  document.querySelectorAll("#toolbar .sort__btn").forEach((b) => {
+    b.setAttribute("aria-pressed", String((b as HTMLElement).dataset.sort === state.sort));
   });
 }
 
@@ -293,9 +309,7 @@ function renderLedger() {
       state.filterLang = "ALL";
       const input = document.getElementById("search-input") as HTMLInputElement | null;
       if (input) input.value = "";
-      document.querySelectorAll(".chip").forEach((c) =>
-        c.setAttribute("aria-pressed", String((c as HTMLElement).dataset.lang === "ALL"))
-      );
+      syncToolbar();
       syncUrl();
       renderLedger();
     });
@@ -313,7 +327,7 @@ function renderLedger() {
           ${r.tag ? `<span class="row__tag">${esc(r.tag)}</span>` : ""}
           ${r.archived ? `<span class="row__tag" style="border-color:var(--border);color:var(--faint)">${esc(u.archived)}</span>` : ""}
         </div>
-        <p class="row__desc">${esc(repoDesc(lang, r.description, r.blurb)) || `<span style="color:var(--fainter)">${esc(u.noDesc)}</span>`}</p>
+        <p class="row__desc">${esc(repoDesc(lang, r.description, r.blurbEn, r.blurbZh)) || `<span style="color:var(--fainter)">${esc(u.noDesc)}</span>`}</p>
         ${
           r.topics.length
             ? `<div class="row__topics">${r.topics.slice(0, 4).map((x) => `<span class="row__topic">${esc(x)}</span>`).join("")}</div>`
@@ -321,7 +335,7 @@ function renderLedger() {
         }
       </div>
       <div class="row__meta">
-        <span class="mono"><span class="lang-dot" style="background:${langColor(r.language)}"></span>${esc(r.language)}</span>
+        <span class="mono lang-chip"><span class="lang-dot" style="background:${langColor(r.language)}"></span>${esc(r.language)}</span>
         <span class="mono">★ ${fmtCount(r.stars)}</span>
         <span class="mono">↺ ${timeAgo(lang, r.pushedAt)}</span>
         <span class="row__link">${esc(u.open)} <span class="arrow">↗</span></span>
@@ -390,7 +404,7 @@ function injectJsonLd() {
     item: {
       "@type": "SoftwareSourceCode",
       name: r.name,
-      description: r.blurb || r.description || undefined,
+      description: r.blurbZh || r.blurbEn || r.description || undefined,
       codeRepository: r.url,
       programmingLanguage: r.language === "Markdown" ? undefined : r.language,
       author: { "@type": "Person", name: "Eververdants" },

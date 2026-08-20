@@ -18,7 +18,9 @@ export interface Repo {
   featured?: boolean;
   tag?: string;
   thumb?: string;
-  blurb?: string;
+  /** 人工精选双语描述（en / zh），由 scripts/curation.json 合并而来 */
+  blurbEn?: string;
+  blurbZh?: string;
 }
 
 export interface Dataset {

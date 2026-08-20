@@ -95,12 +95,17 @@ function main() {
   const repos = normalizeRepos(raw).map((r) => {
     const c = curation[r.name];
     if (!c) return r;
+    // blurb 支持双语对象 { en, zh }，也兼容旧版纯字符串（当作中文）
+    const b = c.blurb;
+    const blurbEn = typeof b === "object" ? b.en : "";
+    const blurbZh = typeof b === "object" ? b.zh : typeof b === "string" ? b : "";
     return {
       ...r,
       featured: !!c.featured,
       tag: c.tag || "",
       thumb: c.thumb || "",
-      blurb: c.blurb || r.description,
+      blurbEn,
+      blurbZh,
     };
   });
 

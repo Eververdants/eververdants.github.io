@@ -2,7 +2,7 @@
   "_meta": {
     "owner": "Eververdants",
     "source": "gh repo list --json",
-    "fetchedAt": "2026-08-20T05:23:04.581Z",
+    "fetchedAt": "2026-08-20T05:57:26.353Z",
     "count": 10
   },
   "repos": [
@@ -25,7 +25,8 @@
       "featured": false,
       "tag": "THIS SITE",
       "thumb": "",
-      "blurb": "本作品索引所属的主站 —— React + Vite + GSAP 打造的全屏动态个人网站，含双语博客子站。"
+      "blurbEn": "The main site this index belongs to — a full-screen motion site built with React, Vite and GSAP, plus a bilingual blog sub-site.",
+      "blurbZh": "本作品索引所属的主站 —— React + Vite + GSAP 打造的全屏动态个人网站，含双语博客子站。"
     },
     {
       "name": "ETBSaveManager",
@@ -60,7 +61,8 @@
       "featured": true,
       "tag": "FLAGSHIP",
       "thumb": "/assets/works-etb-save.webp",
-      "blurb": "基于 Tauri 2.0 的《Escape The Backrooms》存档管理器：完整 CRUD、多语言 UI、虚拟滚动列表 —— 本站星标最多的开源工具。"
+      "blurbEn": "A Tauri 2.0 save manager for Escape The Backrooms — full CRUD, multilingual UI, virtual-scrolled item list. The most-starred tool here.",
+      "blurbZh": "基于 Tauri 2.0 的《Escape The Backrooms》存档管理器：完整 CRUD、多语言 UI、虚拟滚动列表 —— 本站星标最多的开源工具。"
     },
     {
       "name": "Eververdants",
@@ -81,7 +83,8 @@
       "featured": false,
       "tag": "META",
       "thumb": "",
-      "blurb": "GitHub 个人主页 README —— 这份作品索引的封面。"
+      "blurbEn": "The GitHub profile README — the cover of this very index.",
+      "blurbZh": "GitHub 个人主页 README —— 这份作品索引的封面。"
     },
     {
       "name": "aetheris",
@@ -102,7 +105,8 @@
       "featured": false,
       "tag": "RUST",
       "thumb": "",
-      "blurb": "零开销 Windows 游戏优化服务 —— Rust + ETW 事件驱动，无轮询。"
+      "blurbEn": "A zero-overhead Windows game-optimization service — Rust, ETW-driven, no polling.",
+      "blurbZh": "零开销 Windows 游戏优化服务 —— Rust + ETW 事件驱动，无轮询。"
     },
     {
       "name": "video-analytics",
@@ -123,7 +127,8 @@
       "featured": false,
       "tag": "DASHBOARD",
       "thumb": "",
-      "blurb": "多账号视频数据看板（抖音 / B 站）：实时采集、趋势分析、账号对比与智能预测。"
+      "blurbEn": "A multi-account video analytics dashboard for Douyin & Bilibili — real-time collection, trend analysis, account comparison, smart predictions.",
+      "blurbZh": "多账号视频数据看板（抖音 / B 站）：实时采集、趋势分析、账号对比与智能预测。"
     },
     {
       "name": "douyin-seo-playbook",
@@ -155,7 +160,8 @@
       "featured": false,
       "tag": "HANDBOOK",
       "thumb": "",
-      "blurb": "抖音搜索引擎优化实战手册 —— 覆盖推荐算法、权重体系、内容创作与商业投放的全链路策略。"
+      "blurbEn": "A hands-on Douyin SEO playbook — recommendation algorithm, weight system, content craft and paid placement, end to end.",
+      "blurbZh": "抖音搜索引擎优化实战手册 —— 覆盖推荐算法、权重体系、内容创作与商业投放的全链路策略。"
     },
     {
       "name": "MicrophoneController",
@@ -176,7 +182,8 @@
       "featured": false,
       "tag": "UTILITY",
       "thumb": "",
-      "blurb": "一键控制麦克风静音 / 取消静音 —— 通话、直播、录音时的快速开关。"
+      "blurbEn": "One-click microphone mute/unmute control — a quick switch for calls, streams and recordings.",
+      "blurbZh": "一键控制麦克风静音 / 取消静音 —— 通话、直播、录音时的快速开关。"
     },
     {
       "name": "ink-quality-net",
@@ -197,7 +204,8 @@
       "featured": false,
       "tag": "ML",
       "thumb": "",
-      "blurb": "基于 MobileNetV2 的书写质量检测：文本存在性与模糊分类（PyTorch / ONNX / TFLite）。"
+      "blurbEn": "A MobileNetV2-based handwriting quality detector — text presence & blur classification (PyTorch / ONNX / TFLite).",
+      "blurbZh": "基于 MobileNetV2 的书写质量检测：文本存在性与模糊分类（PyTorch / ONNX / TFLite）。"
     },
     {
       "name": "AppAudioRouter",
@@ -218,7 +226,8 @@
       "featured": true,
       "tag": "TOOLING",
       "thumb": "/assets/works-audio-router.webp",
-      "blurb": "Windows 音频路由工具：把每个应用的声音指向指定设备，支持自动刷新与会话间路由记忆。"
+      "blurbEn": "A Windows audio routing tool — point each app's sound at the device you want, with auto-refresh and cross-session route memory.",
+      "blurbZh": "Windows 音频路由工具：把每个应用的声音指向指定设备，支持自动刷新与会话间路由记忆。"
     },
     {
       "name": "ArtText-Studio",
@@ -239,7 +248,8 @@
       "featured": true,
       "tag": "CREATIVE",
       "thumb": "/assets/works-arttext.webp",
-      "blurb": "把文字变成可分享的视觉作品：数百种程序化生成风格，或让 AI 匹配氛围 —— 代码与设计一体。"
+      "blurbEn": "Turn words into shareable visual works — hundreds of procedural styles, or let AI match the vibe. Code and design in one.",
+      "blurbZh": "把文字变成可分享的视觉作品：数百种程序化生成风格，或让 AI 匹配氛围 —— 代码与设计一体。"
     }
   ]
 }

@@ -292,10 +292,37 @@ img {
   color: var(--ink);
   text-wrap: balance;
 }
+.hero__row {
+  margin-top: clamp(20px, 3vh, 32px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
 .hero__sub {
-  margin-top: clamp(18px, 3vh, 30px);
   color: var(--muted);
   font-size: 14px;
+}
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  transition: color 0.3s, border-color 0.3s, background-color 0.3s;
+}
+.home-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 .hero__meta {
   margin-top: clamp(32px, 6vh, 56px);
@@ -465,14 +492,20 @@ img {
   display: inline-block;
   flex: none;
 }
+/* 语言名 + 颜色点：保持适当间隔 */
+.lang-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
 
-/* ---------- 台账工具条 ---------- */
+/* ---------- 台账工具条（两行：搜索+排序 / 语言筛选，不拥挤） ---------- */
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(200px, 1fr) auto auto;
-  gap: 18px;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  gap: 16px 24px;
   align-items: center;
-  padding-bottom: 18px;
+  padding: 2px 0 20px;
   border-bottom: 1px solid var(--border);
 }
 .search {
@@ -507,8 +540,9 @@ img {
   font-size: 13px;
 }
 .chips {
+  grid-column: 1 / -1;
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 .chip {
@@ -518,16 +552,16 @@ img {
   color: var(--faint);
   font-family: var(--font-mono);
   font-size: 10.5px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  padding: 6px 11px;
+  padding: 7px 13px;
   border-radius: 999px;
   cursor: pointer;
   transition: color 0.25s, border-color 0.25s, background-color 0.25s;
 }
 .chip .cnt {
   opacity: 0.55;
-  margin-left: 4px;
+  margin-left: 5px;
 }
 .chip:hover {
   color: var(--ink);
@@ -551,9 +585,9 @@ img {
   color: var(--faint);
   font-family: var(--font-mono);
   font-size: 10.5px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  padding: 7px 12px;
+  padding: 8px 14px;
   cursor: pointer;
   border-left: 1px solid var(--border-faint);
   transition: color 0.25s, background-color 0.25s;
@@ -576,9 +610,9 @@ img {
 .row {
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) auto;
-  gap: 18px;
+  gap: 20px;
   align-items: center;
-  padding: 20px 12px;
+  padding: 22px 14px;
   border-bottom: 1px solid var(--border-faint);
   transition: background-color 0.25s;
 }
