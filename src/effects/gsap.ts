@@ -56,7 +56,25 @@ export function initGsap(
       if (undo) undos.push(undo);
     } else {
       initUniversalReveal();
-      initHeroEntrance();
+      /* Hero entrance plays when the intro loader's darkroom wipe opens —
+         one continuous camera move: the sheet develops, the page emerges out
+         of the circular wipe. IntroLoader fires "site-intro-reveal" right
+         before it starts wiping (and immediately, on a skipped-load visit);
+         the 3.5s timer is a safety net in case the loader never ran. */
+      let heroIn = false;
+      const fireHeroEntrance = () => {
+        if (heroIn) return;
+        heroIn = true;
+        initHeroEntrance();
+      };
+      window.addEventListener("site-intro-reveal", fireHeroEntrance, {
+        once: true,
+      });
+      const heroTimer = window.setTimeout(fireHeroEntrance, 3500);
+      undos.push(() => {
+        window.removeEventListener("site-intro-reveal", fireHeroEntrance);
+        window.clearTimeout(heroTimer);
+      });
       initHeroCover();
       initResume();
       initHandscroll();

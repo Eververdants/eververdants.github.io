@@ -857,3 +857,307 @@ body.nav-loading.nav-reveal::before {
     opacity: 1;
   }
 }
+
+/* ---- intro loader: "developing the darkroom" first-visit cover ----
+   IntroLoader.tsx. A sheet of photographic paper develops the site name
+   letter by letter (blurred negative -> crisp teal-lit print) under a
+   travelling scan line; a hairline gradient bar tracks progress with
+   darkroom stage captions. On completion the whole cover collapses into a
+   circle from the sheet's center (the same circular-wipe vocabulary as the
+   theme toggle) while the hero entrance plays on the same beat — the page
+   emerges out of the wipe like a print leaving the tray. The loader is
+   skipped on nav-swap visits, repeats and reduced motion (component-side),
+   this CSS is just the visual. */
+html.intro-lock {
+  overflow: hidden;
+}
+
+.intro-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a0a0a;
+  overflow: hidden;
+  clip-path: circle(200vmax at 50% 50%);
+  transition: clip-path 0.78s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: introFadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes introFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.intro-loader.leaving {
+  clip-path: circle(0 at 50% 50%);
+}
+
+/* On wipe-out the circle alone handles the exit — the developed sheet
+   reads as being drawn back into the tray as the hole opens. */
+.intro-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* faint dot grid, echoing the site's bg-dots canvas */
+.intro-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.055) 1px,
+    transparent 1px
+  );
+  background-size: 26px 26px;
+  mask-image: radial-gradient(ellipse at center, #000 25%, transparent 72%);
+  -webkit-mask-image: radial-gradient(
+    ellipse at center,
+    #000 25%,
+    transparent 72%
+  );
+}
+
+/* ambient glows, echoing Background.tsx's teal/amber pools */
+.intro-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.intro-glow-a {
+  width: 52vmax;
+  height: 52vmax;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(16, 174, 194, 0.18),
+    transparent 65%
+  );
+}
+
+.intro-glow-b {
+  width: 44vmax;
+  height: 44vmax;
+  left: 50%;
+  bottom: -14%;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    circle,
+    rgba(240, 166, 51, 0.13),
+    transparent 65%
+  );
+}
+
+/* corner registration marks — print-shop crosses */
+.intro-mark {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  opacity: 0.5;
+}
+
+.intro-mark::before,
+.intro-mark::after {
+  content: "";
+  position: absolute;
+  background: #10aec2;
+}
+
+.intro-mark::before {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-50%);
+}
+
+.intro-mark::after {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+.intro-mark-tl {
+  left: 24px;
+  top: 24px;
+}
+
+.intro-mark-tr {
+  right: 24px;
+  top: 24px;
+}
+
+.intro-mark-bl {
+  left: 24px;
+  bottom: 24px;
+}
+
+.intro-mark-br {
+  right: 24px;
+  bottom: 24px;
+}
+
+/* the darkroom sheet */
+.intro-sheet {
+  position: relative;
+  width: min(88vw, 420px);
+  padding: 34px 28px 42px;
+  border: 1px solid rgba(16, 174, 194, 0.3);
+  background: rgba(16, 174, 194, 0.03);
+  box-shadow:
+    0 0 70px rgba(16, 174, 194, 0.08),
+    inset 0 0 60px rgba(16, 174, 194, 0.05);
+  overflow: hidden;
+  text-align: center;
+}
+
+.intro-sheet-overline {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  color: rgba(16, 174, 194, 0.85);
+  margin-bottom: 16px;
+}
+
+/* the developing name — Fraunces, letter by letter */
+.intro-name {
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+  font-family: var(--font-fraunces);
+  font-weight: 500;
+  font-size: clamp(27px, 10.5vw, 54px);
+  line-height: 1.05;
+  letter-spacing: 0.005em;
+}
+
+.intro-char {
+  display: inline-block;
+  color: #17171a;
+  filter: blur(5px);
+  opacity: 0.2;
+  transition:
+    opacity 0.5s ease,
+    filter 0.5s ease,
+    color 0.5s ease,
+    text-shadow 0.5s ease;
+}
+
+.intro-char.unveiled {
+  color: #f5f5f2;
+  opacity: 1;
+  filter: blur(0);
+  text-shadow: 0 0 22px rgba(16, 174, 194, 0.4);
+}
+
+/* travelling scan line — the print emerging under the safe-light */
+.intro-scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -90px;
+  height: 90px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(126, 212, 222, 0.09) 45%,
+    rgba(126, 212, 222, 0.22) 50%,
+    rgba(126, 212, 222, 0.09) 55%,
+    transparent
+  );
+  animation: introScan 1.9s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes introScan {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(270px);
+  }
+}
+
+/* hairline gradient progress bar */
+.intro-progress {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(88vw, 420px);
+}
+
+.intro-track {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+}
+
+.intro-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  background: linear-gradient(90deg, #10aec2, #f9a633);
+  box-shadow: 0 0 12px rgba(16, 174, 194, 0.55);
+}
+
+.intro-pct {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.75);
+  font-variant-numeric: tabular-nums;
+}
+
+/* darkroom stage caption */
+.intro-foot {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.intro-stage {
+  color: #10aec2;
+  animation: introStage 0.4s ease both;
+}
+
+.intro-foot-sep {
+  color: rgba(255, 255, 255, 0.18);
+}
+
+@keyframes introStage {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-loader {
+    display: none;
+  }
+}

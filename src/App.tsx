@@ -4,6 +4,7 @@ import BlogScene from "./components/BlogScene";
 import FilmGrain from "./components/FilmGrain";
 import FocusBand from "./components/FocusBand";
 import HeroScene from "./components/HeroScene";
+import IntroLoader from "./components/IntroLoader";
 import LoadingOverlay from "./components/LoadingOverlay";
 import OutroScene from "./components/OutroScene";
 import PortfolioScene from "./components/PortfolioScene";
@@ -139,6 +140,7 @@ export default function App() {
       <FilmGrain />
       <FocusBand />
       <Scrollbar />
+      <IntroLoader />
       <LoadingOverlay />
     </>
   );
