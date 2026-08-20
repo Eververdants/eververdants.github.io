@@ -95,6 +95,7 @@ export function useBlogPrefs(): BlogPrefs {
 /* ---- UI copy — every visible label on the blog sub-site ---- */
 export const ui = {
   en: {
+    find: "FIND",
     searchPlaceholder: "SEARCH ESSAYS",
     searchLabel: "Search essays",
     clearSearch: "Clear search",
@@ -104,6 +105,7 @@ export const ui = {
     noTag: "NO ESSAYS UNDER THIS TAG",
     noSection: "NOTHING FILED HERE YET",
     columns: "COLUMNS",
+    tags: "TAGS",
     column: "COLUMN",
     posts: "POSTS",
     visitMain: "VISIT THE MAIN SITE",
@@ -121,6 +123,7 @@ export const ui = {
     end: (year: number) => `END — © ${year} EVERVERDANTS`,
   },
   zh: {
+    find: "检索",
     searchPlaceholder: "搜索文章",
     searchLabel: "搜索文章",
     clearSearch: "清除搜索",
@@ -130,6 +133,7 @@ export const ui = {
     noTag: "该标签下暂无文章",
     noSection: "这里还没有归档文章",
     columns: "栏目",
+    tags: "标签",
     column: "栏目",
     posts: "篇",
     visitMain: "返回主站",

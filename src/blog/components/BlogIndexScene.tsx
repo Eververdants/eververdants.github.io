@@ -92,6 +92,8 @@ export default function BlogIndexScene({
     : groups;
   const empty = viewGroups.length === 0;
   const rootRef = useRef<HTMLElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const kbdHint = /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "CTRL K";
 
   /* The hero's entrance + scroll-hint exit are owned here, not the global
      coordinator: this scene mounts after App init, so initGsap already ran
@@ -101,6 +103,18 @@ export default function BlogIndexScene({
       "(prefers-reduced-motion: reduce)",
     ).matches;
     if (rootRef.current) return initBlogIndex(rootRef.current, prefersReduced);
+  }, []);
+
+  /* ⌘K / Ctrl K jumps into the archive search from anywhere on the index. */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   /* Re-keying the list container replays the staggered entrance on every
@@ -178,10 +192,68 @@ export default function BlogIndexScene({
         </div>
       </div>
 
-      {/* ---- below the fold: columns + search + tags + grouped list ---- */}
+      {/* ---- below the fold: FIND → COLUMNS → TAGS → grouped list ----
+         Search leads as the first tool (goal-driven: "find something");
+         the columns and tags follow as the browse structure. Each zone gets
+         its own editorial overline so nothing floats between two pill rows. */}
       <div className="mx-auto max-w-[860px] px-[clamp(16px,4vw,40px)] pb-[clamp(80px,14vh,160px)]">
-        {/* column switcher — the journal's filing system */}
+        {/* FIND — full-width archive search; the live result count sits in
+            the overline row, updating without re-keying the list */}
         <div>
+          <div className="flex items-center gap-3">
+            <p className="shrink-0 text-[10px] font-semibold tracking-[0.34em] text-[var(--fainter)]">
+              {t.find}
+            </p>
+            <span aria-hidden className="h-px flex-1 bg-[var(--border)]" />
+            {searching && (
+              <span className="shrink-0 text-[10px] tabular-nums tracking-[0.3em] text-[var(--accent)]">
+                {t.result(tagFiltered.length)}
+              </span>
+            )}
+          </div>
+          <div className="relative mt-3">
+            <svg
+              aria-hidden
+              viewBox="0 0 24 24"
+              className="pointer-events-none absolute left-[18px] top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[var(--faint)]"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <line x1="16.5" y1="16.5" x2="21" y2="21" />
+            </svg>
+            <input
+              ref={searchRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t.searchPlaceholder}
+              aria-label={t.searchLabel}
+              spellCheck={false}
+              className="w-full rounded-full border border-[var(--border)] bg-[var(--field)] py-3 pl-12 pr-16 text-[13px] tracking-[0.12em] text-[var(--ink)] outline-none transition-all placeholder:text-[var(--faintest)] focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+            />
+            {query ? (
+              <button
+                onClick={() => setQuery("")}
+                aria-label={t.clearSearch}
+                className="absolute right-3 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-[var(--faint)] transition-colors hover:bg-[var(--chip)] hover:text-[var(--ink)]"
+              >
+                <span aria-hidden className="block text-[12px] leading-none">
+                  ✕
+                </span>
+              </button>
+            ) : (
+              <kbd className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 rounded-md border border-[var(--border-strong)] bg-[var(--chip)] px-1.5 py-[3px] text-[9px] font-medium tracking-[0.14em] text-[var(--fainter)]">
+                {kbdHint}
+              </kbd>
+            )}
+          </div>
+        </div>
+
+        {/* COLUMNS — the journal's filing system */}
+        <div className="mt-[clamp(36px,6vh,56px)]">
           <div className="flex items-center gap-3">
             <p className="shrink-0 text-[10px] font-semibold tracking-[0.34em] text-[var(--fainter)]">
               {t.columns}
@@ -243,45 +315,16 @@ export default function BlogIndexScene({
           </div>
         </div>
 
-        {/* search + tag filter — a query narrows the deck, a tag narrows the
-            results further; both combine with the active column via AND */}
-        <div className="mt-[clamp(28px,4.5vh,44px)] flex flex-col gap-4">
-          <div className="relative max-w-[400px]">
-            <svg
-              aria-hidden
-              viewBox="0 0 24 24"
-              className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--faintest)]"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            >
-              <circle cx="11" cy="11" r="7" />
-              <line x1="16.5" y1="16.5" x2="21" y2="21" />
-            </svg>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t.searchPlaceholder}
-              aria-label={t.searchLabel}
-              spellCheck={false}
-              className="w-full rounded-full border border-[var(--border)] bg-[var(--field)] py-2.5 pl-11 pr-10 text-[12px] tracking-[0.14em] text-[var(--ink)] outline-none transition-colors placeholder:text-[var(--faintest)] focus:border-[var(--accent)]"
-            />
-            {query && (
-              <button
-                onClick={() => setQuery("")}
-                aria-label={t.clearSearch}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--faint)] transition-colors hover:text-[var(--ink)]"
-              >
-                <span aria-hidden className="block text-[14px] leading-none">
-                  ✕
-                </span>
-              </button>
-            )}
-          </div>
-          {tagOptions.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
+        {/* TAGS — cross-cutting filter, AND-combined with search + column */}
+        {tagOptions.length > 0 && (
+          <div className="mt-[clamp(28px,4.5vh,44px)]">
+            <div className="flex items-center gap-3">
+              <p className="shrink-0 text-[10px] font-semibold tracking-[0.34em] text-[var(--fainter)]">
+                {t.tags}
+              </p>
+              <span aria-hidden className="h-px flex-1 bg-[var(--border)]" />
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               <button
                 onClick={() => pickTag(null)}
                 className={`rounded-full border px-3 py-1 text-[9px] font-medium tracking-[0.2em] transition-colors ${
@@ -306,17 +349,11 @@ export default function BlogIndexScene({
                 </button>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* grouped list — re-keyed to replay the staggered entrance */}
         <div key={viewKey}>
-          {searching && !empty && (
-            <p className="mt-[clamp(28px,4.5vh,48px)] text-[10px] tracking-[0.3em] text-[var(--faint)]">
-              {t.result(tagFiltered.length)}
-            </p>
-          )}
-
           {!empty ? (
             viewGroups.map((g, i) => (
               <SectionBlock

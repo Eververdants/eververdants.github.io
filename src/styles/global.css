@@ -444,6 +444,38 @@ body.nav-loading.nav-reveal::before {
   }
 }
 
+/* ---- theme wipe: circular reveal via the View Transitions API ----
+   themeWipe.ts flips data-theme inside document.startViewTransition; the
+   browser captures the old page, then the new page is revealed with a
+   circle that blooms from the toggle button (--wipe-x/--wipe-y are set on
+   <html> by the module). The REAL page animates — grid, text and colors
+   stay in perfect registration: no fake disc, no seams, no flash. */
+::view-transition-old(root) {
+  animation: none;
+}
+
+::view-transition-new(root) {
+  animation: themeWipeReveal 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes themeWipeReveal {
+  from {
+    clip-path: circle(0px at var(--wipe-x, 50vw) var(--wipe-y, 50vh));
+    transform: scale(1.02);
+  }
+  to {
+    clip-path: circle(200vmax at var(--wipe-x, 50vw) var(--wipe-y, 50vh));
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
 /* ---- article reader: light technical layout ----
    The reading page is 米白 + gray grid, dark ink, functional — not the
    dark cinematic editorial of the rest of the site. The markdown renderer
