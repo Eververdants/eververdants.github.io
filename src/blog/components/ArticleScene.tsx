@@ -3,7 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import type { JournalPost } from "../../data/journal";
-import { journal } from "../../data/journal";
+import { journal, topicById } from "../../data/journal";
 import { getDeck, loadArticle } from "../../data/articles";
 import { sections } from "../../data/sections";
 import { ui, useBlogPrefs } from "../prefs";
@@ -832,6 +832,38 @@ export default function ArticleScene({
               {t.visitMain} ↗
             </a>
           </div>
+
+          {/* topics — which 专题 features this essay belongs to; jump to
+              the topic's own page (/blog/topic/<id>). href carries the
+              language-independent id so the deep link opens the same
+              topic in either language. */}
+          {post.topics.length > 0 && (
+            <div className="mt-[clamp(28px,5vh,44px)]">
+              <p className="text-[10px] font-semibold tracking-[0.3em] text-[var(--fainter)]">
+                {t.topicLabel}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {post.topics.map((id) => {
+                  const tp = topicById.get(id);
+                  if (!tp) return null;
+                  return (
+                    <a
+                      key={id}
+                      href={`/blog/topic/${encodeURIComponent(id)}`}
+                      className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--chip)] px-3.5 py-1.5 text-[10px] font-medium tracking-[0.18em] text-[var(--muted-2)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                    >
+                      <span
+                        aria-hidden
+                        className="h-[6px] w-[6px] rounded-full"
+                        style={{ backgroundColor: tp.color, opacity: 0.75 }}
+                      />
+                      {tp.symbol} {tp.name[lang]}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* tags — clickable, jump back to the index with the tag active.
               href carries the language-independent id so the deep link

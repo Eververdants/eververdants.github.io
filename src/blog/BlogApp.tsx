@@ -3,9 +3,11 @@ import type Lenis from "lenis";
 import ArticleScene from "./components/ArticleScene";
 import BackToTop from "./components/BackToTop";
 import BlogIndexScene from "./components/BlogIndexScene";
+import TopicScene from "./components/TopicScene";
 import LoadingOverlay from "../components/LoadingOverlay";
 import Scrollbar from "../components/Scrollbar";
 import GlassTopBar from "../components/GlassTopBar";
+import { topicById } from "../data/journal";
 import { initScrollbar } from "../effects/scrollbar";
 import { initScrollTriggerGlue } from "../effects/scrollTriggerGlue";
 import { initSiteNavIntercept } from "../effects/siteNav";
@@ -14,32 +16,46 @@ import { BlogPrefsProvider, useBlogPrefs } from "./prefs";
 
 const BLOG = "/blog";
 
+/* The blog sub-site's three view kinds: the index (topic directory),
+   a 专题 topic page (/blog/topic/<id>) and an essay reader (/blog/<slug>).
+   App routes between them in-app with pushState/replaceState. */
+type BlogView =
+  | { kind: "index" }
+  | { kind: "topic"; id: string }
+  | { kind: "article"; slug: string };
+
+/* Path → view. A topic page is a two-segment path: topic/<id>. Anything
+   else under /blog/ is an article slug (existing slugs never collide with
+   the literal "topic"). Unknown slugs validate asynchronously in the
+   reader; unknown topic ids fall back to the index below. */
+const parseView = (path: string): BlogView => {
+  const clean = path.replace(/\/+$/, "");
+  if (clean === BLOG) return { kind: "index" };
+  const rest = clean.startsWith(BLOG + "/")
+    ? clean.slice(BLOG.length + 1)
+    : "";
+  const [head, tail] = rest.split("/");
+  if (head === "topic")
+    return tail
+      ? { kind: "topic", id: decodeURIComponent(tail) }
+      : { kind: "index" };
+  return head
+    ? { kind: "article", slug: decodeURIComponent(head) }
+    : { kind: "index" };
+};
+
 /* The glass top bar, fed by the blog's own prefs provider. Active is always
-   "blog" on this sub-site (index + reader are both the Blog section). In the
-   article reader it auto-hides on scroll for an immersive read. */
+   "blog" on this sub-site; in the article reader it auto-hides on scroll
+   for an immersive read (topic pages keep it visible like the index). */
 function BlogTopBar({ autoHide = false }: { autoHide?: boolean }) {
   const prefs = useBlogPrefs();
   return <GlassTopBar prefs={prefs} active="blog" autoHide={autoHide} />;
 }
 
-const getSlug = (p: string) =>
-  p.startsWith(BLOG + "/")
-    ? decodeURIComponent(p.slice(BLOG.length + 1))
-    : null;
-
-/* The blog sub-site's own SPA: /blog = the light index, /blog/<slug> = an
-   essay reader. Independent of the main site — a full page-load lands here,
-   and index ↔ article swap in-app with pushState/replaceState. Owns the
-   blog's smooth scroll, custom scrollbar, and ScrollTrigger wiring. */
 export default function BlogApp() {
-  /* Any /blog/<slug> opens the reader; the article scene validates the
-     slug itself (its body loads on demand) and reports back via
-     onNotFound when the slug does not exist — the unknown-slug fallback
-     back to the index is preserved, just async now. */
-  const [article, setArticle] = useState<string | null>(() => {
-    const slug = getSlug(location.pathname.replace(/\/+$/, ""));
-    return slug ?? null;
-  });
+  const [view, setView] = useState<BlogView>(() =>
+    parseView(location.pathname),
+  );
   const lenisRef = useRef<Lenis | null>(null);
 
   /* The main site's initLanding targets deck effects only, so the blog wires
@@ -63,6 +79,15 @@ export default function BlogApp() {
       smooth?.destroy();
     };
   }, []);
+
+  /* An unknown /blog/topic/<id> is normalized back to the index and the
+     URL cleaned up. */
+  useEffect(() => {
+    if (view.kind === "topic" && !topicById.has(view.id)) {
+      setView({ kind: "index" });
+      history.replaceState(null, "", BLOG);
+    }
+  }, [view]);
 
   const scrollTop = useCallback(() => {
     const lenis = lenisRef.current;
@@ -91,10 +116,10 @@ export default function BlogApp() {
     } else window.scrollTo(0, y);
   }, []);
 
-  /* Index → article pushes an entry so Back returns to the index. */
+  /* Index / topic page → article pushes an entry so Back returns. */
   const openArticle = useCallback(
     (slug: string) => {
-      setArticle(slug);
+      setView({ kind: "article", slug });
       history.pushState({ __blogArticle: slug }, "", `${BLOG}/${slug}`);
       scrollTop();
     },
@@ -105,8 +130,18 @@ export default function BlogApp() {
      and JOURNAL always pops back to the index. */
   const openArticleReplace = useCallback(
     (slug: string) => {
-      setArticle(slug);
+      setView({ kind: "article", slug });
       history.replaceState({ __blogArticle: slug }, "", `${BLOG}/${slug}`);
+      scrollTop();
+    },
+    [scrollTop],
+  );
+
+  /* Index → 专题 page pushes an entry so Back returns to the directory. */
+  const openTopic = useCallback(
+    (id: string) => {
+      setView({ kind: "topic", id });
+      history.pushState({ __blogTopic: id }, "", `${BLOG}/topic/${id}`);
       scrollTop();
     },
     [scrollTop],
@@ -114,7 +149,14 @@ export default function BlogApp() {
 
   /* Close the essay back to the /blog index. */
   const closeArticle = useCallback(() => {
-    setArticle(null);
+    setView({ kind: "index" });
+    history.replaceState(null, "", BLOG);
+    scrollTop();
+  }, [scrollTop]);
+
+  /* Close the topic page back to the /blog index. */
+  const closeTopic = useCallback(() => {
+    setView({ kind: "index" });
     history.replaceState(null, "", BLOG);
     scrollTop();
   }, [scrollTop]);
@@ -123,17 +165,17 @@ export default function BlogApp() {
      an unknown /blog/<slug> falls back to the index, same as before, only
      validated asynchronously now. */
   const closeNotFound = useCallback(() => {
-    setArticle(null);
+    setView({ kind: "index" });
     history.replaceState(null, "", BLOG);
     scrollTop();
   }, [scrollTop]);
 
-  /* Browser Back/Forward between the index and essays. The reader
-     validates the slug on its own. */
+  /* Browser Back/Forward across the index, topic pages and essays. The
+     reader validates its slug on its own; unknown topic ids normalize in
+     the effect above. */
   useEffect(() => {
     const onPop = () => {
-      const slug = getSlug(location.pathname.replace(/\/+$/, ""));
-      setArticle(slug);
+      setView(parseView(location.pathname));
       scrollTop();
     };
     window.addEventListener("popstate", onPop);
@@ -142,19 +184,21 @@ export default function BlogApp() {
 
   return (
     <BlogPrefsProvider>
-      {article !== null ? (
+      {view.kind === "article" ? (
         <ArticleScene
-          slug={article}
+          slug={view.slug}
           onClose={closeArticle}
           onOpen={openArticleReplace}
           onNotFound={closeNotFound}
           scrollTo={scrollToY}
           scrollToImmediate={scrollToImmediate}
         />
+      ) : view.kind === "topic" ? (
+        <TopicScene topicId={view.id} onClose={closeTopic} onOpen={openArticle} />
       ) : (
-        <BlogIndexScene onOpen={openArticle} />
+        <BlogIndexScene onOpen={openArticle} onOpenTopic={openTopic} />
       )}
-      <BlogTopBar autoHide={article !== null} />
+      <BlogTopBar autoHide={view.kind === "article"} />
       <BackToTop scrollTo={scrollToY} />
       <Scrollbar />
       <LoadingOverlay />

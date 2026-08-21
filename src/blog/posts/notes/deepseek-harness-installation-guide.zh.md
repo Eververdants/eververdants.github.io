@@ -5,6 +5,7 @@ category: 教程
 date: 2026.08.20
 excerpt: 一篇面向完全零基础用户的 DeepSeek Harness 安装教程，从环境配置到首次运行，每一步都有详细说明。
 tags: [DeepSeek, AI, 教程, 入门]
+topics: [tech]
 sources:
   - DeepSeek Harness 官网|https://www.deepseek.com/harness
   - DeepSeek Harness GitHub|https://github.com/deepseek-ai/deepseek-harness

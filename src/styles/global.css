@@ -37,6 +37,9 @@
   --accent-hover: #0a5f68;
   /* accent-tinted surfaces (badges, hover washes) — auto-adapts to theme */
   --accent-soft: color-mix(in srgb, var(--accent) 8%, transparent);
+  /* 专题 hero — the giant folio numeral stamped on the color slab reads
+     in the page's surface colour in BOTH themes (light: 米白, dark: 暖白) */
+  --folio: #f7f5ef;
   /* quiet card — refined list items, still editorial, never loud */
   --card-bg: #fffdf7;
   --card-border: #e2dfd6;
@@ -94,6 +97,8 @@
   /* accent — lifted for contrast on dark */
   --accent: #3fb4c0;
   --accent-hover: #5cc6d1;
+  /* 专题 hero folio — warm paper white in dark mode too */
+  --folio: #eae7de;
   /* accent-soft adapts automatically via color-mix; no dark override needed */
   /* quiet card — warm ink surfaces, hairline borders, faint lift */
   --card-bg: #1c1b17;
@@ -1385,3 +1390,246 @@ html.intro-lock {
     display: none;
   }
 }
+
+/* ---- 专题 hero band: scrapbook color-block collage ----
+   The topic bands on the blog index decorate themselves like a journal
+   page: placeholder "photos" (pure color blocks for now — a future `img`
+   swaps the block for a real lazy-loaded photo), washi tape with torn
+   edges, Fraunces captions and a few sticker dots. Everything is themed
+   through var(--topic) (set inline per band) + the shared surface/ink
+   tokens, so light/dark just works.
+
+   The art mounts lazily (TopicArt gates it on an IntersectionObserver),
+   so entering the blog never paints — or fetches — every topic's decor
+   at once. */
+
+.topic-band {
+  /* subtle paper wash tinted by the topic's accent */
+  background: color-mix(in srgb, var(--topic, var(--accent)) 7%, var(--bg));
+}
+
+/* the polaroid frame — paper card + inner color block + bottom caption
+   strip; the whole tile sits slightly rotated in the collage. Position
+   (absolute grid cell, flex item, …) is set by the caller. */
+.scrap-photo {
+  padding: 9px 9px 30px;
+  border-radius: 3px;
+  background: var(--card-bg);
+  box-shadow:
+    0 1px 2px rgba(20, 20, 20, 0.06),
+    0 10px 26px -14px rgba(20, 20, 20, 0.18);
+  border: 1px solid var(--border-faint);
+  backface-visibility: hidden;
+  flex: none;
+}
+[data-theme="dark"] .scrap-photo {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04),
+    0 12px 28px -14px rgba(0, 0, 0, 0.7);
+}
+
+/* the color block standing in for a photograph */
+.scrap-block {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--topic, var(--accent)) 78%, var(--bg)) 0%,
+    color-mix(in srgb, var(--topic, var(--accent)) 46%, var(--bg)) 100%
+  );
+  /* faint "grain" so the block reads as paper, not flat color */
+  background-image:
+    radial-gradient(
+      color-mix(in srgb, var(--topic, var(--accent)) 22%, transparent) 1px,
+      transparent 1.5px
+    ),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--topic, var(--accent)) 78%, var(--bg)) 0%,
+      color-mix(in srgb, var(--topic, var(--accent)) 46%, var(--bg)) 100%
+    );
+  background-size:
+    14px 14px,
+    100% 100%;
+}
+/* real photo path (future) — keeps the same frame, lazy-loads separately */
+.scrap-block img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* washi tape — translucent strip with torn (zigzag) short edges */
+.scrap-tape {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 58px;
+  height: 21px;
+  transform: translateX(-50%) rotate(-2deg);
+  background: color-mix(in srgb, var(--topic, var(--accent)) 58%, transparent);
+  opacity: 0.9;
+  clip-path: polygon(
+    0 100%, 2.5% 60%, 5% 100%, 7.5% 55%, 10% 100%, 12.5% 62%, 15% 100%,
+    17.5% 55%, 20% 100%, 22.5% 60%, 25% 100%, 27.5% 55%, 30% 100%,
+    32.5% 62%, 35% 100%, 37.5% 55%, 40% 100%, 42.5% 60%, 45% 100%,
+    47.5% 55%, 50% 100%, 52.5% 62%, 55% 100%, 57.5% 55%, 60% 100%,
+    62.5% 60%, 65% 100%, 67.5% 55%, 70% 100%, 72.5% 62%, 75% 100%,
+    77.5% 55%, 80% 100%, 82.5% 60%, 85% 100%, 87.5% 55%, 90% 100%,
+    92.5% 62%, 95% 100%, 97.5% 55%, 100% 100%
+  );
+}
+
+/* polaroid caption — handwritten-ish Fraunces italic on the white strip */
+.scrap-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 7px;
+  text-align: center;
+  font-family: var(--font-fraunces);
+  font-style: italic;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 4px;
+}
+
+/* sticker dots — small colored circles scattered over the collage */
+.scrap-dot {
+  position: absolute;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--topic, var(--accent)) 55%, var(--bg));
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--topic, var(--accent)) 25%, transparent);
+}
+
+/* a dashed "cut here" divider — scrapbook scissors line */
+.scrap-cut {
+  border: 0;
+  border-top: 1.5px dashed
+    color-mix(in srgb, var(--topic, var(--accent)) 38%, var(--border));
+  opacity: 0.75;
+}
+
+/* giant watermark stamp behind the band copy */
+.topic-stamp {
+  color: color-mix(in srgb, var(--topic, var(--accent)) 13%, transparent);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* lazy-gated art entrance — applied when the collage mounts on scroll.
+   `backwards` (not `both`): the `from` state (hidden) holds during the
+   stagger delay, but after the animation finishes the elements return to
+   their NATURAL inline styles — the per-photo rotate must survive. */
+@keyframes scrapIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.scrap-in {
+  animation: scrapIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scrap-in {
+    animation: none;
+  }
+}
+
+/* ---- 专题 hero: magazine-cover impact ----
+   A big tilted color slab bleeding off the top-right (the topic's accent
+   with the same paper-grain as the scrap blocks), a giant folio numeral
+   stamped over it in the page's surface colour, and a huge Fraunces
+   title — the visual weight that makes each topic page land hard. */
+
+.topic-blob {
+  position: absolute;
+  background:
+    radial-gradient(
+      color-mix(in srgb, var(--topic, var(--accent)) 30%, transparent) 1px,
+      transparent 1.5px
+    ),
+    linear-gradient(
+      150deg,
+      color-mix(in srgb, var(--topic, var(--accent)) 88%, var(--bg)) 0%,
+      color-mix(in srgb, var(--topic, var(--accent)) 46%, var(--bg)) 100%
+    );
+  background-size:
+    16px 16px,
+    100% 100%;
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--topic, var(--accent)) 22%, transparent);
+}
+
+/* the giant folio numeral — surface-coloured so it punches out of the slab */
+.topic-folio {
+  font-family: var(--font-fraunces);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 0.8;
+  color: var(--folio);
+  user-select: none;
+  pointer-events: none;
+  text-shadow: 0 1px 0
+    color-mix(in srgb, var(--topic, var(--accent)) 18%, transparent);
+}
+
+/* hero entrance — the slab slides in, the title rises */
+@keyframes heroRise {
+  from {
+    opacity: 0;
+    transform: translateY(34px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes heroSweep {
+  from {
+    opacity: 0;
+    transform: translateX(70px) rotate(var(--blob-rotate, 8deg)) scale(1.06);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) rotate(var(--blob-rotate, 8deg)) scale(1);
+  }
+}
+@keyframes heroStamp {
+  from {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.hero-rise {
+  animation: heroRise 0.75s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.hero-sweep {
+  animation: heroSweep 0.9s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.hero-stamp {
+  animation: heroStamp 0.8s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise,
+  .hero-sweep,
+  .hero-stamp {
+    animation: none;
+  }
+}
+

@@ -5,6 +5,7 @@ category: TUTORIALS
 date: 2026.08.20
 excerpt: A DeepSeek Harness installation tutorial designed for absolute beginners, covering everything from environment setup to the first run, with detailed instructions at every step.
 tags: [DeepSeek, AI, Tutorial, Beginner]
+topics: [tech]
 sources:
   - DeepSeek Harness Official Website|https://www.deepseek.com/harness
   - DeepSeek Harness GitHub|https://github.com/deepseek-ai/deepseek-harness

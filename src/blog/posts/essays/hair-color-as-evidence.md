@@ -5,6 +5,7 @@ category: ESSAYS
 date: 2026.08.21
 excerpt: From Zheng Linghua to Chen Nuo, the pink-haired girl who got into graduate school died, while the blue-haired girl who was admitted through a guaranteed pathway was accused of "capital manipulation." Sitting in the defendant's seat is every girl who refuses to live according to a standardized template.
 tags: [Internet Culture, Cyberbullying, Gender, Social Commentary]
+topics: [society]
 ---
 
 On August 18, 2026, a girl from Chaoshan named Chen Nuo posted a video on Bilibili. She had been guaranteed admission to Central South University, had blue hair, and was smiling brightly. The video received 3.19 million views and 1,109 danmaku comments.

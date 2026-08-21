@@ -120,7 +120,12 @@ function buildBlogIndex(): BlogIndex {
   }
   for (const [slug, raw] of Object.entries(zhRaw)) {
     const en = posts.en[slug];
-    posts.zh[slug] = parsePostMeta(raw, "zh", en ? en.tags : null);
+    posts.zh[slug] = parsePostMeta(
+      raw,
+      "zh",
+      en ? en.tags : null,
+      en ? en.topics : null,
+    );
   }
   return { posts, paths, search };
 }

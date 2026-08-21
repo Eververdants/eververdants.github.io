@@ -138,18 +138,29 @@ function parseSource(item: string): Source | null {
 
 /* Frontmatter → JournalPost (metadata only — never the body). English
    parses first; its tag strings are the canonical ids the Chinese files
-   map onto. This runs at BUILD TIME (the index generator) so the shipped
-   bundle carries plain data, not parsers. */
+   map onto, and its topics are the canonical topic ids (both language
+   files carry the same ids, so enTopics is only a fallback for a zh file
+   that omits the list). This runs at BUILD TIME (the index generator) so
+   the shipped bundle carries plain data, not parsers. */
 export function parsePostMeta(
   raw: string,
   lang: Lang,
   enTags: string[] | null = null,
+  enTopics: string[] | null = null,
 ): JournalPost {
   const { meta, body } = parseFrontmatter(raw);
   const str = (k: string) =>
     typeof meta[k] === "string" ? (meta[k] as string) : "";
   const category = str("category");
   const { tags, tagLabels } = parseTags(meta, lang, enTags);
+  const topics =
+    lang === "en" || enTopics === null
+      ? (Array.isArray(meta.topics) ? (meta.topics as string[]) : []).filter(
+          (t) => typeof t === "string" && t.length > 0,
+        )
+      : (Array.isArray(meta.topics) ? (meta.topics as string[]) : []).map(
+          (_, i) => enTopics[i] ?? "",
+        ).filter(Boolean);
   return {
     slug: str("slug"),
     title: str("title"),
@@ -160,6 +171,7 @@ export function parsePostMeta(
     excerpt: str("excerpt"),
     tags,
     tagLabels,
+    topics,
     author: str("author") || undefined,
     sources: (Array.isArray(meta.sources) ? (meta.sources as string[]) : [])
       .map(parseSource)

@@ -1,42 +1,56 @@
-import { useEffect, useRef, useState } from "react";
-import { journal, journalZh, type JournalPost } from "../../data/journal";
-import { sections, type BlogSection } from "../../data/sections";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { journal, journalZh, topics, type JournalPost } from "../../data/journal";
 import { getDeck, searchPosts } from "../../data/articles";
 import { initBlogIndex } from "../../effects/animations/blogIndex";
 import { ui, useBlogPrefs } from "../prefs";
-import Highlight from "./Highlight";
+import PostList from "./PostList";
 
-/* Blog sub-site — the full essay list at /blog, filed by COLUMN (the
-   editorial sections from data/sections.ts), browsable, searchable and
-   filterable by tag. Opens with a full-screen hero on the milk-white grid
-   (centered BLOG masthead with a mount entrance), then scrolls into the
-   functional list.
+/* Blog sub-site INDEX — the journal's 专题 (topic) directory + the full
+   essay archive at /blog.
 
-   The list is grouped by section: each column gets an editorial header —
-   a Fraunces italic title, an accent glyph, a running folio number and a
-   one-line manifesto — followed by its essays. The column switcher above
-   the fold narrows the view to a single column (ALL regroups everything);
-   search and tag filters combine with it via AND. Switching columns, tags
-   or language re-keys the list so every group rises in with a staggered
-   fade (animate-fade-up). Deliberately light against the main site's
-   cinematic selected-blog. Language and theme come from the blog prefs
-   context; every color is a theme token (var(--x)), every label a ui dict
-   entry. */
+   Every topic is its own PAGE (/blog/topic/<id>, TopicScene) with its own
+   hero screen, slogan and scrapbook collage — this index is the table of
+   contents that leads there: one editorial row per topic (glyph, Fraunces
+   name, slogan, post count · latest date, a mini taped color card) with a
+   hairline between rows. Clicking a row opens the topic page in-app.
+
+   Below the fold the whole journal runs as ALL POSTS (newest first, plain
+   editorial rows — no cards): the directory gives the themed doors in,
+   the list gives the archive. FIND (archive search) replaces both with a
+   flat chronological results list; TAGS narrows the ALL POSTS list (the
+   directory stays as is). Language and theme come from the blog prefs
+   context; every color is a theme token (var(--x)), every label a ui
+   dict entry. */
+
+const byDateDesc = (a: JournalPost, b: JournalPost) =>
+  b.date.localeCompare(a.date);
+
+/* Topics that hold at least one post of the pool, newest post first (so
+   the freshest feature leads the directory). */
+function topicDirectory(pool: JournalPost[]) {
+  return topics
+    .map((topic) => ({
+      topic,
+      posts: pool
+        .filter((p) => p.topics.includes(topic.id))
+        .sort(byDateDesc),
+    }))
+    .filter((g) => g.posts.length > 0)
+    .sort((a, b) => b.posts[0].date.localeCompare(a.posts[0].date));
+}
 
 export default function BlogIndexScene({
   onOpen,
+  onOpenTopic,
 }: {
   onOpen: (slug: string) => void;
+  onOpenTopic: (id: string) => void;
 }) {
   const { lang } = useBlogPrefs();
   const t = ui[lang];
   const j = lang === "zh" ? journalZh : journal;
-  /* deck is hoisted above the tag state: the deep-link initializer below
-     validates ?tag= against the deck's real tag ids. */
   const deck = getDeck(lang);
-  /* Tag pills pair a language-independent id with the current language's
-     label (articles.ts: English tag strings are the ids, translations
-     provide the labels). Filtering keys on id, display on label. */
+  const directory = topicDirectory(deck);
   const tagOptions = Array.from(
     deck.reduce((m, p) => {
       p.tags.forEach((id, i) => {
@@ -45,10 +59,6 @@ export default function BlogIndexScene({
       return m;
     }, new Map<string, string>()),
   ).map(([id, label]) => ({ id, label }));
-  const [activeSection, setActiveSection] = useState<string | null>(null);
-  /* Deep-link support: /blog?tag=<id> opens the index with that tag
-     already filtered (the article footer's tag pills link here). The id is
-     language-independent, so the same URL filters in both languages. */
   const [activeTag, setActiveTag] = useState<string | null>(() => {
     const q = new URLSearchParams(location.search).get("tag");
     return q && deck.some((p) => p.tags.includes(q)) ? q : null;
@@ -59,9 +69,7 @@ export default function BlogIndexScene({
   const searching = terms.length > 0;
 
   /* Full-text search fetches its body index chunk on first query — deferred
-     with a short debounce so typing never fires a request per keystroke.
-     The previous result set stays visible until the new one lands, so the
-     list never flashes empty; null marks the first query still loading. */
+     with a short debounce so typing never fires a request per keystroke. */
   useEffect(() => {
     if (!searching) {
       setResults(null);
@@ -83,12 +91,9 @@ export default function BlogIndexScene({
   const tagFiltered = activeTag
     ? searched.filter((p) => p.tags.includes(activeTag))
     : searched;
-
-  /* The stable, language-independent section key resolved at parse time
-     (articles.ts sectionIdOf). Grouping never re-matches the localized
-     category against the reader's current UI language, so switching EN/中
-     cannot re-file or drop posts. */
-  const sectionOf = (post: JournalPost): string | null => post.sectionId;
+  const rootRef = useRef<HTMLElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const kbdHint = /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "CTRL K";
 
   /* Tag pills keep the ?tag= deep link in sync so a filtered view is
      shareable and survives refresh. */
@@ -100,27 +105,7 @@ export default function BlogIndexScene({
     history.replaceState(null, "", u.pathname + u.search);
   };
 
-  /* Columns are always shown in the curated directory order, each carrying
-     its own (filtered) posts; empty columns drop out entirely. */
-  const groups = sections
-    .map((section, i) => ({
-      section,
-      index: i,
-      posts: tagFiltered.filter((p) => sectionOf(p) === section.id),
-    }))
-    .filter((g) => g.posts.length > 0);
-
-  const viewGroups = activeSection
-    ? groups.filter((g) => g.section.id === activeSection)
-    : groups;
-  const empty = viewGroups.length === 0;
-  const rootRef = useRef<HTMLElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
-  const kbdHint = /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "CTRL K";
-
-  /* The hero's entrance + scroll-hint exit are owned here, not the global
-     coordinator: this scene mounts after App init, so initGsap already ran
-     for the main site. Scoped to this section, reverted on unmount. */
+  /* The hero's entrance + scroll-hint exit are owned here. */
   useEffect(() => {
     const prefersReduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -140,13 +125,7 @@ export default function BlogIndexScene({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  /* Re-keying the list container replays the staggered entrance on every
-     section/tag/search-mode/language change — a cheap, dependency-free
-     swap. The query text itself is deliberately left out so typing inside
-     a search re-filters in place instead of flashing the list. */
-  const viewKey = `${activeSection ?? "all"}:${activeTag ?? "all"}:${
-    searching ? "search" : "browse"
-  }:${lang}`;
+  const viewKey = `${activeTag ?? "all"}:${searching ? "search" : "browse"}:${lang}`;
 
   return (
     <section
@@ -184,8 +163,6 @@ export default function BlogIndexScene({
           {j.cover.subtitle}
         </p>
 
-        {/* back to the main site — a real link so the shared site-nav
-            interceptor can cover the swap with the LOADING overlay */}
         <a
           href="/"
           data-blog-in
@@ -200,7 +177,6 @@ export default function BlogIndexScene({
           </span>
         </a>
 
-        {/* scroll hint — fades out as the hero leaves the first viewport */}
         <div
           data-blog-hint
           className="absolute bottom-[clamp(22px,4.5vh,40px)] left-1/2 flex -translate-x-1/2 flex-col items-center gap-3"
@@ -215,13 +191,9 @@ export default function BlogIndexScene({
         </div>
       </div>
 
-      {/* ---- below the fold: FIND → COLUMNS → TAGS → grouped list ----
-         Search leads as the first tool (goal-driven: "find something");
-         the columns and tags follow as the browse structure. Each zone gets
-         its own editorial overline so nothing floats between two pill rows. */}
+      {/* ---- below the fold: FIND → TOPICS directory → TAGS ---- */}
       <div className="mx-auto max-w-[860px] px-[clamp(16px,4vw,40px)] pb-[clamp(80px,14vh,160px)]">
-        {/* FIND — full-width archive search; the live result count sits in
-            the overline row, updating without re-keying the list */}
+        {/* FIND — full-width archive search */}
         <div>
           <div className="flex items-center gap-3">
             <p className="shrink-0 text-[10px] font-semibold tracking-[0.34em] text-[var(--fainter)]">
@@ -275,72 +247,10 @@ export default function BlogIndexScene({
           </div>
         </div>
 
-        {/* COLUMNS — the journal's filing system */}
-        <div className="mt-[clamp(36px,6vh,56px)]">
-          <div className="flex items-center gap-3">
-            <p className="shrink-0 text-[10px] font-semibold tracking-[0.34em] text-[var(--fainter)]">
-              {t.columns}
-            </p>
-            <span aria-hidden className="h-px flex-1 bg-[var(--border)]" />
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              onClick={() => setActiveSection(null)}
-              aria-pressed={activeSection === null}
-              className={`inline-flex items-baseline gap-2 rounded-full border px-[14px] py-[7px] text-[10px] font-semibold tracking-[0.22em] transition-all duration-300 ${
-                activeSection === null
-                  ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
-                  : "border-[var(--border)] text-[var(--faint)] hover:border-[var(--border-strong)] hover:text-[var(--muted)]"
-              }`}
-            >
-              {t.all}
-              <span
-                className={`text-[9px] tabular-nums tracking-[0.18em] ${
-                  activeSection === null
-                    ? "text-[var(--accent)]/70"
-                    : "text-[var(--faintest)]"
-                }`}
-              >
-                {String(deck.length).padStart(2, "0")}
-              </span>
-            </button>
-            {sections.map((s) => {
-              const count = deck.filter((p) => sectionOf(p) === s.id).length;
-              if (count === 0) return null;
-              const on = activeSection === s.id;
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => setActiveSection(on ? null : s.id)}
-                  aria-pressed={on}
-                  className={`inline-flex items-baseline gap-2 rounded-full border px-[14px] py-[7px] text-[10px] font-semibold tracking-[0.22em] transition-all duration-300 ${
-                    on
-                      ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
-                      : "border-[var(--border)] text-[var(--faint)] hover:border-[var(--border-strong)] hover:text-[var(--muted)]"
-                  }`}
-                >
-                  <span
-                    className={`${on ? "" : "text-[var(--fainter)]"} text-[11px] leading-none`}
-                  >
-                    {s.symbol}
-                  </span>
-                  {s.name[lang]}
-                  <span
-                    className={`text-[9px] tabular-nums tracking-[0.18em] ${
-                      on ? "text-[var(--accent)]/70" : "text-[var(--faintest)]"
-                    }`}
-                  >
-                    {String(count).padStart(2, "0")}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* TAGS — cross-cutting filter, AND-combined with search + column */}
+        {/* TAGS — cross-cutting filter; activating one narrows the ALL
+            POSTS list below (the topic directory stays as is) */}
         {tagOptions.length > 0 && (
-          <div className="mt-[clamp(28px,4.5vh,44px)]">
+          <div className="mt-[clamp(36px,6vh,56px)]">
             <div className="flex items-center gap-3">
               <p className="shrink-0 text-[10px] font-semibold tracking-[0.34em] text-[var(--fainter)]">
                 {t.tags}
@@ -375,30 +285,129 @@ export default function BlogIndexScene({
           </div>
         )}
 
-        {/* grouped list — re-keyed to replay the staggered entrance */}
+        {/* TOPICS — the editorial directory: one compact entry per topic
+            page, four across on desktop (two on mobile). Always shown
+            while browsing (a tag filter narrows the ALL POSTS list
+            below, never the directory). Hidden while searching. */}
+        {!searching && directory.length > 0 && (
+          <div className="mt-[clamp(36px,6vh,56px)]">
+            <div className="flex items-center gap-3">
+              <p className="shrink-0 text-[10px] font-semibold tracking-[0.34em] text-[var(--fainter)]">
+                {t.topics}
+              </p>
+              <span aria-hidden className="h-px flex-1 bg-[var(--border)]" />
+            </div>
+            <div className="mt-[clamp(8px,1.5vh,14px)] grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+              {directory.map((g) => (
+                <button
+                  key={g.topic.id}
+                  onClick={() => onOpenTopic(g.topic.id)}
+                  className="group flex min-h-[clamp(96px,13vh,118px)] flex-col gap-3 border border-[var(--border-faint)] bg-[var(--card-bg)] p-[clamp(14px,1.8vw,20px)] text-left shadow-[var(--card-shadow)] transition-all duration-300 hover:-translate-y-[1px] hover:border-[color-mix(in_srgb,var(--topic)_55%,var(--border-strong))] hover:shadow-[var(--card-shadow-hover)] focus-visible:outline-2 focus-visible:outline-[var(--accent)] focus-visible:outline-offset-2"
+                  style={{ "--topic": g.topic.color } as CSSProperties}
+                >
+                  {/* top row — colour dot · glyph · post count */}
+                  <span className="flex items-center justify-between text-[9.5px] tracking-[0.2em] text-[var(--fainter)]">
+                    <span className="flex items-center gap-1.5">
+                      <span
+                        aria-hidden
+                        className="h-[7px] w-[7px] rounded-full"
+                        style={{ backgroundColor: g.topic.color, opacity: 0.8 }}
+                      />
+                      <span>{g.topic.symbol}</span>
+                    </span>
+                    <span className="tabular-nums">
+                      {String(g.posts.length).padStart(2, "0")}
+                    </span>
+                  </span>
+
+                  {/* the topic name */}
+                  <span className="font-fraunces font-medium italic leading-none tracking-[-0.01em] text-[var(--ink)] text-[clamp(19px,1.9vw,24px)] transition-colors group-hover:text-[var(--accent)]">
+                    {g.topic.name[lang]}
+                  </span>
+
+                  {/* bottom row — accent tick · arrow */}
+                  <span className="mt-auto flex items-center justify-between">
+                    <span
+                      aria-hidden
+                      className="h-[3px] w-8 rounded-full"
+                      style={{
+                        backgroundColor:
+                          "color-mix(in srgb, var(--topic) 55%, var(--border))",
+                      }}
+                    />
+                    <span
+                      aria-hidden
+                      className="text-[12px] text-[var(--fainter)] transition-all duration-300 group-hover:translate-x-1 group-hover:text-[var(--accent)]"
+                    >
+                      →
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* content — re-keyed to replay the staggered entrance */}
         <div key={viewKey}>
-          {!empty ? (
-            viewGroups.map((g, i) => (
-              <SectionBlock
-                key={g.section.id}
-                group={g}
-                lang={lang}
-                terms={terms}
-                t={t}
-                onOpen={onOpen}
-                delay={i * 90}
-              />
-            ))
+          {searching ? (
+            /* search mode — a flat chronological list of hits */
+            <div className="mt-[clamp(36px,6vh,56px)]">
+              <div className="flex items-center gap-3">
+                <p className="shrink-0 text-[10px] font-semibold tracking-[0.34em] text-[var(--fainter)]">
+                  {t.find}
+                </p>
+                <span aria-hidden className="h-px flex-1 bg-[var(--border)]" />
+                <span className="shrink-0 text-[10px] tabular-nums tracking-[0.3em] text-[var(--accent)]">
+                  {results === null ? "…" : t.result(tagFiltered.length)}
+                </span>
+              </div>
+              {results === null ? (
+                <p className="py-[clamp(48px,8vh,96px)] text-center text-[13px] tracking-[0.2em] text-[var(--faint)]">
+                  …
+                </p>
+              ) : tagFiltered.length === 0 ? (
+                <p className="py-[clamp(48px,8vh,96px)] text-center text-[13px] tracking-[0.2em] text-[var(--faint)]">
+                  {t.noMatch}
+                </p>
+              ) : (
+                <PostList
+                  posts={[...tagFiltered].sort(byDateDesc)}
+                  terms={terms}
+                  onOpen={onOpen}
+                  className="mt-[clamp(20px,3vh,28px)]"
+                />
+              )}
+            </div>
           ) : (
-            <p className="py-[clamp(48px,8vh,96px)] text-center text-[13px] tracking-[0.2em] text-[var(--faint)]">
-              {searching && results === null
-                ? "…"
-                : searching
-                  ? t.noMatch
-                  : activeTag
-                    ? t.noTag
-                    : t.noSection}
-            </p>
+            /* ALL POSTS — the whole journal, newest first. A tag filter
+                narrows this list (the directory above stays as is). */
+            <div className="mt-[clamp(36px,6vh,56px)]">
+              <div className="flex items-center gap-3">
+                <p className="shrink-0 text-[10px] font-semibold tracking-[0.34em] text-[var(--fainter)]">
+                  {t.allPosts}
+                </p>
+                <span aria-hidden className="h-px flex-1 bg-[var(--border)]" />
+                <span className="shrink-0 text-[10px] tabular-nums tracking-[0.3em] text-[var(--accent)]">
+                  {activeTag
+                    ? `${(tagOptions.find((o) => o.id === activeTag)?.label ?? "").toUpperCase()} · `
+                    : ""}
+                  {t.result(tagFiltered.length)}
+                </span>
+              </div>
+              {tagFiltered.length === 0 ? (
+                <p className="py-[clamp(48px,8vh,96px)] text-center text-[13px] tracking-[0.2em] text-[var(--faint)]">
+                  {activeTag ? t.noTag : t.noSection}
+                </p>
+              ) : (
+                <PostList
+                  posts={[...tagFiltered].sort(byDateDesc)}
+                  terms={terms}
+                  onOpen={onOpen}
+                  className="mt-[clamp(20px,3vh,28px)]"
+                />
+              )}
+            </div>
           )}
 
           <p className="mt-[clamp(48px,8vh,96px)] text-center text-[11px] tracking-[0.3em] text-[var(--faintest)]">
@@ -406,112 +415,6 @@ export default function BlogIndexScene({
           </p>
         </div>
       </div>
-    </section>
-  );
-}
-
-/* ---- one editorial column: manifesto header + its essays ---- */
-
-function SectionBlock({
-  group,
-  lang,
-  terms,
-  t,
-  onOpen,
-  delay,
-}: {
-  group: { section: BlogSection; index: number; posts: JournalPost[] };
-  lang: "en" | "zh";
-  terms: string[];
-  t: (typeof ui)["en"] | (typeof ui)["zh"];
-  onOpen: (slug: string) => void;
-  delay: number;
-}) {
-  const { section, index, posts } = group;
-  return (
-    <section
-      className={`animate-fade-up ${
-        index === 0
-          ? "mt-[clamp(36px,6vh,64px)]"
-          : "mt-[clamp(64px,10vh,110px)]"
-      }`}
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      {/* column head — a file-folder side-tab: folio, glyph, manifesto */}
-      <header className="flex items-end justify-between gap-6 border-b border-[var(--border)] pb-[clamp(18px,3vh,28px)]">
-        <div className="min-w-0">
-          <p className="flex items-center gap-2.5 text-[10px] font-semibold tracking-[0.34em] text-[var(--fainter)]">
-            {t.column}
-            <span aria-hidden className="h-px w-6 bg-[var(--border-strong)]" />
-            <span className="font-fraunces font-medium italic tracking-[0.1em] text-[var(--muted)]">
-              {String(index + 1).padStart(2, "0")}
-            </span>
-          </p>
-          <h2 className="mt-3 font-fraunces font-medium italic leading-[0.95] tracking-[-0.01em] text-[var(--ink)] text-[clamp(30px,4.6vw,54px)]">
-            <span className="text-[var(--accent)]">{section.symbol} </span>
-            {section.name[lang]}
-          </h2>
-          <p className="mt-3 max-w-[56ch] text-[13px] leading-[1.7] text-[var(--muted-2)]">
-            {section.tagline[lang]}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-col items-end justify-end gap-3 self-stretch border-l border-[var(--border-faint)] pl-[clamp(14px,2.4vw,24px)]">
-          <span
-            aria-hidden
-            className="font-fraunces italic leading-none text-[var(--faint)] text-[clamp(20px,2.6vw,32px)]"
-          >
-            {section.symbol}
-          </span>
-          <span className="text-[10px] tracking-[0.3em] text-[var(--fainter)]">
-            {String(posts.length).padStart(2, "0")}{" "}
-            <span className="text-[var(--faintest)]">{t.posts}</span>
-          </span>
-        </div>
-      </header>
-
-      <ul className="mt-[clamp(20px,3vh,28px)] flex flex-col gap-4">
-        {posts.map((post) => (
-          <li key={post.slug}>
-            <button
-              onClick={() => onOpen(post.slug)}
-              className="group block w-full rounded-[var(--radius-card)] border border-[var(--card-border)] bg-[var(--card-bg)] p-[clamp(20px,3vw,30px)] text-left shadow-[var(--card-shadow)] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-[2px] hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--card-border))] hover:shadow-[var(--card-shadow-hover)] focus-visible:outline-2 focus-visible:outline-[var(--accent)] focus-visible:outline-offset-2"
-            >
-              <div className="flex items-center justify-between gap-4">
-                <span className="shrink-0 text-[10px] font-medium tracking-[0.2em] text-[var(--fainter)]">
-                  {post.date}
-                </span>
-                <span className="shrink-0 rounded-full border border-[color-mix(in_srgb,var(--accent)_35%,transparent)] bg-[var(--accent-soft)] px-2.5 py-[3px] text-[9.5px] font-medium tracking-[0.18em] text-[var(--accent)]">
-                  {section.symbol} {post.category}
-                </span>
-              </div>
-              <h3 className="mt-[14px] font-sans text-[clamp(19px,2vw,26px)] font-bold leading-[1.25] tracking-[-0.01em] text-[var(--ink)] transition-colors group-hover:text-[var(--accent)]">
-                <Highlight
-                  text={post.title.split("\n").join(" ")}
-                  terms={terms}
-                />
-              </h3>
-              <p className="mt-[10px] max-w-[62ch] text-[clamp(13.5px,1.1vw,15px)] leading-[1.75] text-[var(--muted-2)] line-clamp-2">
-                <Highlight text={post.excerpt} terms={terms} />
-              </p>
-              <div className="mt-[16px] flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap gap-2">
-                  {post.tagLabels.map((label, i) => (
-                    <span
-                      key={post.tags[i] ?? label}
-                      className="rounded-full border border-[var(--border-faint)] bg-[var(--chip)] px-2.5 py-0.5 text-[9px] font-medium tracking-[0.18em] text-[var(--faint)]"
-                    >
-                      {label.toUpperCase()}
-                    </span>
-                  ))}
-                </div>
-                <span className="shrink-0 text-[10px] tracking-[0.16em] text-[var(--fainter)] opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                  {post.read} ↗
-                </span>
-              </div>
-            </button>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }
