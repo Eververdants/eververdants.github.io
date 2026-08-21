@@ -2,17 +2,25 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type Lenis from "lenis";
 import ArticleScene from "./components/ArticleScene";
 import BackToTop from "./components/BackToTop";
-import BlogControls from "./components/BlogControls";
 import BlogIndexScene from "./components/BlogIndexScene";
 import LoadingOverlay from "../components/LoadingOverlay";
 import Scrollbar from "../components/Scrollbar";
+import GlassTopBar from "../components/GlassTopBar";
 import { initScrollbar } from "../effects/scrollbar";
 import { initScrollTriggerGlue } from "../effects/scrollTriggerGlue";
 import { initSiteNavIntercept } from "../effects/siteNav";
 import { initSmoothScroll } from "../effects/smoothScroll";
-import { BlogPrefsProvider } from "./prefs";
+import { BlogPrefsProvider, useBlogPrefs } from "./prefs";
 
 const BLOG = "/blog";
+
+/* The glass top bar, fed by the blog's own prefs provider. Active is always
+   "blog" on this sub-site (index + reader are both the Blog section). In the
+   article reader it auto-hides on scroll for an immersive read. */
+function BlogTopBar({ autoHide = false }: { autoHide?: boolean }) {
+  const prefs = useBlogPrefs();
+  return <GlassTopBar prefs={prefs} active="blog" autoHide={autoHide} />;
+}
 
 const getSlug = (p: string) =>
   p.startsWith(BLOG + "/")
@@ -65,8 +73,22 @@ export default function BlogApp() {
   /* Smooth scroll to any offset (TOC jumps, back-to-top) via lenis. */
   const scrollToY = useCallback((y: number) => {
     const lenis = lenisRef.current;
-    if (lenis) lenis.scrollTo(y);
-    else window.scrollTo(0, y);
+    if (lenis) {
+      // lenis caches its max-scroll limit — a freshly loaded article body
+      // changed the page height, so re-measure before the clamp applies.
+      lenis.resize();
+      lenis.scrollTo(y);
+    } else window.scrollTo(0, y);
+  }, []);
+
+  /* Instant scroll — used to restore the reader's place after a language
+     swap has replaced the article body (no animation, no chase). */
+  const scrollToImmediate = useCallback((y: number) => {
+    const lenis = lenisRef.current;
+    if (lenis) {
+      lenis.resize();
+      lenis.scrollTo(y, { immediate: true });
+    } else window.scrollTo(0, y);
   }, []);
 
   /* Index → article pushes an entry so Back returns to the index. */
@@ -127,11 +149,12 @@ export default function BlogApp() {
           onOpen={openArticleReplace}
           onNotFound={closeNotFound}
           scrollTo={scrollToY}
+          scrollToImmediate={scrollToImmediate}
         />
       ) : (
         <BlogIndexScene onOpen={openArticle} />
       )}
-      <BlogControls />
+      <BlogTopBar autoHide={article !== null} />
       <BackToTop scrollTo={scrollToY} />
       <Scrollbar />
       <LoadingOverlay />

@@ -12,6 +12,77 @@ export function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
+/* ---- fenced code syntax highlighting ----
+   A dependency-free tokenizer that colors code by wrapping tokens in
+   semantic spans (.tok-kw/.tok-str/.tok-fn/…), styled by global.css. Safe
+   by construction: the raw text is split into tokens and each token is
+   escaped individually before wrapping, so no markup can leak through.
+   One merged grammar covers the languages the journal actually fences
+   (shell, python, plus the C-like family) — a word that is a keyword
+   anywhere reads as a keyword everywhere; harmless over-coloring beats
+   pulling in a highlighter dependency. */
+
+const HL_WORDS = new Set(
+  (
+    "if then else elif fi for while do done case esac in return break continue function select " +
+    "local readonly export unset set shift trap source eval exec declare typeset alias true false test exit call wait jobs bg fg kill read " +
+    "def class async await with try except finally raise assert pass lambda yield global nonlocal del not and or is from import as " +
+    "const let var typeof instanceof of new this super static extends get set interface type enum implements public private protected " +
+    "namespace declare abstract keyof satisfies infer match"
+  ).split(/\s+/),
+);
+
+const HL_TYPES = new Set(
+  (
+    "str int float bool list dict set tuple bytes object number string boolean bigint symbol never unknown any undefined null " +
+    "None True False"
+  ).split(/\s+/),
+);
+
+const HL_BUILTINS = new Set(
+  (
+    "print len range enumerate zip map filter sorted reversed sum min max abs round open input isinstance issubclass super self " +
+    "echo printf cd pwd ls mkdir rmdir cp mv cat grep sed awk curl wget git npm pnpm yarn node python pip pip3 docker docker-compose " +
+    "sudo apt apt-get brew chmod chown tar ssh scp find xargs sort uniq wc head tail cut tr tee env touch"
+  ).split(/\s+/),
+);
+
+const HL_RE =
+  /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b(?:0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\b)|(\$\{?[A-Za-z_][A-Za-z0-9_]*\}?)|([A-Za-z_][A-Za-z0-9_]*)|([^\sA-Za-z0-9_])/g;
+
+function classifyId(word: string, code: string, after: number): string {
+  if (HL_WORDS.has(word)) return "kw";
+  if (HL_TYPES.has(word)) return "type";
+  if (HL_BUILTINS.has(word) || /^\s*\(/.test(code.slice(after))) return "fn";
+  return "";
+}
+
+export function highlightCode(code: string): string {
+  const out: string[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  HL_RE.lastIndex = 0;
+  while ((m = HL_RE.exec(code))) {
+    const i = m.index;
+    if (i > last) out.push(escapeHtml(code.slice(last, i)));
+    const [, com, str, num, shvar, id] = m;
+    let cls = "";
+    if (com) cls = "com";
+    else if (str) cls = "str";
+    else if (num) cls = "num";
+    else if (shvar) cls = "var";
+    else if (id) cls = classifyId(id, code, i + m[0].length);
+    out.push(
+      cls
+        ? `<span class="tok-${cls}">${escapeHtml(m[0])}</span>`
+        : escapeHtml(m[0]),
+    );
+    last = i + m[0].length;
+  }
+  if (last < code.length) out.push(escapeHtml(code.slice(last)));
+  return out.join("");
+}
+
 /* Inline marks run on already-escaped text, so interpolated matches are
    safe (raw <, >, &, " were neutralized above). */
 function inline(text: string): string {
@@ -149,8 +220,10 @@ export function renderMarkdown(src: string): string {
     if (/^```/.test(t)) {
       flushPara();
       flushList();
-      // Optional language tag after the fence — rendered as a data-lang
-      // attribute so the reader can badge the block and offer copy.
+      // Optional language tag after the fence — rendered as a header badge
+      // and a data-lang attribute. The block gets a header strip (language
+      // left, the React-injected copy button right) over a horizontally
+      // scrollable code body; the body is syntax-highlighted with tokens.
       const lang = t.replace(/^```/, "").trim();
       let code = "";
       i++;
@@ -159,7 +232,12 @@ export function renderMarkdown(src: string): string {
         i++;
       }
       const langAttr = lang ? ` data-lang="${escapeHtml(lang)}"` : "";
-      out.push(`<pre${langAttr}><code>${escapeHtml(code.trim())}</code></pre>`);
+      const langBadge = lang
+        ? `<span class="code-lang">${escapeHtml(lang)}</span>`
+        : "";
+      out.push(
+        `<pre${langAttr} class="code-block"><span class="code-head">${langBadge}</span><code>${highlightCode(code.trim())}</code></pre>`,
+      );
       continue;
     }
 

@@ -10,6 +10,8 @@ import OutroScene from "./components/OutroScene";
 import PortfolioScene from "./components/PortfolioScene";
 import ResumeScene from "./components/ResumeScene";
 import Scrollbar from "./components/Scrollbar";
+import GlassTopBar from "./components/GlassTopBar";
+import { useSharedPrefs } from "./components/useSharedPrefs";
 import { initLanding } from "./effects/landing";
 import { initSiteNavIntercept } from "./effects/siteNav";
 import type { LandingHandle } from "./effects/landing";
@@ -17,6 +19,17 @@ import type { LandingHandle } from "./effects/landing";
 export default function App() {
   const handleRef = useRef<LandingHandle | null>(null);
   const measureRef = useRef<() => void>(() => {});
+  /* Main site is dark by design — keep the bar weightless (transparent, blur
+     only) so it floats over the cinematic canvas. The EN/中 switch stays open
+     for consistency with the sub-sites (the SPA body is still English-only).
+     Theme is LOCKED to dark: we only override the rendered <html> attribute
+     and never persist, so a stored "light" still flows through to the
+     sub-sites untouched. */
+  const prefs = useSharedPrefs();
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = "dark";
+  }, [prefs.theme]);
 
   useEffect(() => {
     const handle = initLanding();
@@ -128,6 +141,7 @@ export default function App() {
     <>
       {/* The dark fluid canvas is the cinematic backdrop for the main site. */}
       <Background />
+      <GlassTopBar prefs={prefs} active="home" transparent lockTheme hideWithHero />
       <main className="relative">
         <HeroScene />
         <ResumeScene />

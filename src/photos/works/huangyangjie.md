@@ -2,7 +2,7 @@
 slug: huangyangjie
 title: A View from Huangyangjie
 titleZh: 黄洋界远眺
-date: 2024-08
+date: 2026-08
 category: LANDSCAPE
 location: Jinggang Mountains, Jiangxi
 locationZh: 江西井冈山

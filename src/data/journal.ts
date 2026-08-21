@@ -78,6 +78,7 @@ export const journal: Journal = {
     caption: "FIELD NOTES · MMXXIV — MMXXVI",
   },
   order: [
+    "deepseek-harness-installation-guide",
     "stone-and-egg-three-classics",
     "get-the-direction-right-first",
     "little-prince-and-the-baobabs",
@@ -99,6 +100,7 @@ export const journalZh: Journal = {
     caption: "田野札记 · 二〇二四 — 二〇二六",
   },
   order: [
+    "deepseek-harness-installation-guide",
     "stone-and-egg-three-classics",
     "get-the-direction-right-first",
     "little-prince-and-the-baobabs",

@@ -31,7 +31,6 @@ import { fileURLToPath } from "node:url";
 const SITE = "https://eververdants.github.io";
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const PORT = 4174;
-const DEBUG_PORT = 9228;
 
 const CHROME_CANDIDATES = [
   "C:/Program Files/Google/Chrome/Application/chrome.exe",
@@ -183,11 +182,16 @@ function startServer() {
    its value (string) ---- */
 async function renderWithChrome(chromePath, url, expr, waitMs = 15000) {
   const profile = join(tmpdir(), `hermes-prerender-${Date.now()}`);
+  /* Per-render debug port: chrome.kill() on Windows leaves renderer children
+     that keep the old port bound for a while. A fixed port made the next
+     render's Chrome fail to attach, hanging/crashing the whole prerender.
+     Randomising avoids the collision entirely. */
+  const debugPort = 9228 + Math.floor(Math.random() * 100);
   const chrome = spawn(
     chromePath,
     [
       "--headless=new",
-      `--remote-debugging-port=${DEBUG_PORT}`,
+      `--remote-debugging-port=${debugPort}`,
       `--user-data-dir=${profile}`,
       "--no-first-run",
       "--no-default-browser-check",
@@ -199,11 +203,17 @@ async function renderWithChrome(chromePath, url, expr, waitMs = 15000) {
     ],
     { stdio: "ignore" },
   );
+  /* chrome.kill() on an already-exited process (or a failed spawn) emits an
+     'error' on the ChildProcess; with no listener that's an unhandled 'error'
+     crash. Swallow it — the CDP wait loop below fails fast on its own. */
+  chrome.on("error", () => {});
   try {
     let target = null;
     for (let i = 0; i < 40; i++) {
       try {
-        const r = await fetch(`http://127.0.0.1:${DEBUG_PORT}/json`);
+        const r = await fetch(`http://127.0.0.1:${debugPort}/json`, {
+          signal: AbortSignal.timeout(2000),
+        });
         const list = await r.json();
         target = list.find((t) => t.type === "page");
         if (target) break;
@@ -213,9 +223,27 @@ async function renderWithChrome(chromePath, url, expr, waitMs = 15000) {
     if (!target) throw new Error("CDP target not ready");
     const ws = new WebSocket(target.webSocketDebuggerUrl);
     await new Promise((res, rej) => {
-      ws.onopen = res;
-      ws.onerror = rej;
+      /* Bound the handshake: a zombie renderer that answers the /json
+         probe but never completes the ws upgrade would otherwise hang the
+         whole prerender forever. */
+      const timer = setTimeout(() => {
+        ws.close();
+        rej(new Error("CDP websocket open timeout"));
+      }, 5000);
+      ws.onopen = () => {
+        clearTimeout(timer);
+        res();
+      };
+      ws.onerror = (e) => {
+        clearTimeout(timer);
+        rej(e);
+      };
     });
+    /* A dying renderer can drop the socket mid-render; without a handler
+       Node raises an unhandled 'error' and kills the whole prerender with
+       exit code 1. Swallow it — the wait loop below times out and the
+       per-page try/catch logs a ✗ instead. */
+    ws.onerror = () => {};
     let id = 0;
     const pending = new Map();
     ws.onmessage = (ev) => {

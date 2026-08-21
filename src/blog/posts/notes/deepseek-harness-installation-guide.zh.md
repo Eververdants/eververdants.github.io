@@ -1,7 +1,7 @@
 ---
 slug: deepseek-harness-installation-guide
 title: "DeepSeek Harness 安装教程\n从零开始，手把手教你搭建 AI 智能体"
-category: 技术笔记
+category: 教程
 date: 2026.08.20
 excerpt: 一篇面向完全零基础用户的 DeepSeek Harness 安装教程，从环境配置到首次运行，每一步都有详细说明。
 tags: [DeepSeek, AI, 教程, 入门]
@@ -17,7 +17,7 @@ sources:
 
 先说说我们要装的东西到底是什么。
 
-**DeepSeek Harness**（简称 `dsh`）是 DeepSeek AI 推出的一个开源工具。它的核心理念是**"一切皆插件"**——你可以把它理解为一个"积木框架"，AI 模型是核心，各种能力（读文件、执行命令、联网搜索等）都是可以自由组合的插件。
+**DeepSeek Harness**（简称 `dsh`）是 [DeepSeek AI](https://deepseek.com) 推出的一个开源工具。它的核心理念是**"一切皆插件"**——你可以把它理解为一个"积木框架"，AI 模型是核心，各种能力（读文件、执行命令、联网搜索等）都是可以自由组合的插件。
 
 打个比方：
 
@@ -44,11 +44,11 @@ sources:
 
 ## 第一步：安装 Node.js
 
-DeepSeek Harness 是用 JavaScript 写的，需要 Node.js 来运行。别担心，Node.js 的安装非常简单。
+DeepSeek Harness 是用 TypeScript 写的，需要 Node.js 来运行。别担心，Node.js 的安装非常简单。
 
 ### 1.1 下载 Node.js
 
-1. 打开浏览器，访问 Node.js 官网：https://nodejs.org/
+1. 打开浏览器，访问 [Node.js 官网](https://nodejs.org/)
 2. 你会看到两个下载按钮，选择左边的 **LTS（长期支持版）**
 3. 点击后会自动开始下载，等待下载完成
 
@@ -81,6 +81,7 @@ node --version
 
 > **如果提示"不是内部或外部命令"怎么办？**
 > 这说明 Node.js 没有被正确添加到系统路径。解决方法：
+>
 > 1. 关闭当前的命令提示符窗口
 > 2. 重新打开一个新的命令提示符
 > 3. 如果还是不行，尝试重启电脑后再试
@@ -93,7 +94,7 @@ DeepSeek Harness 需要一个 API Key 来调用 DeepSeek 的 AI 模型。这个 
 
 ### 2.1 注册 DeepSeek 账号
 
-1. 打开浏览器，访问 DeepSeek 开放平台：https://platform.deepseek.com/
+1. 打开浏览器，访问 [DeepSeek 开放平台](https://platform.deepseek.com/)
 2. 点击页面上的 **"注册"** 按钮
 3. 输入你的手机号码
 4. 点击"获取验证码"，然后输入收到的短信验证码
@@ -119,11 +120,34 @@ DeepSeek Harness 需要一个 API Key 来调用 DeepSeek 的 AI 模型。这个 
 
 > **小提示：** 可以把 Key 保存在手机备忘录或者电脑的记事本里，但不要分享给别人。
 
-### 2.4 了解费用情况
+### 2.4 了解模型和费用
 
-- **新用户福利**：注册后 DeepSeek 会赠送一定的免费额度，足够你学习和测试使用
-- **按量计费**：用完赠送额度后需要充值，价格很便宜
-- **查看余额**：在控制台首页可以看到剩余余额和使用量
+DeepSeek 目前提供两个主力模型：
+
+| 模型                  | 特点             | 适合场景           |
+| --------------------- | ---------------- | ------------------ |
+| **DeepSeek-V4-Flash** | 速度快、价格便宜 | 日常使用、学习测试 |
+| **DeepSeek-V4-Pro**   | 能力更强、更智能 | 复杂任务、专业开发 |
+
+#### API 接口地址
+
+- **OpenAI 格式**：`https://api.deepseek.com`
+- **Anthropic 格式**：`https://api.deepseek.com/anthropic`
+
+#### 价格详情
+
+| 计费项                           | DeepSeek-V4-Flash   | DeepSeek-V4-Pro     |
+| -------------------------------- | ------------------- | ------------------- |
+| **输入（缓存命中）- 空闲时段**   | 0.05 元/百万 tokens | 0.15 元/百万 tokens |
+| **输入（缓存命中）- 高峰时段**   | 0.10 元/百万 tokens | 0.30 元/百万 tokens |
+| **输入（缓存未命中）- 空闲时段** | 1.5 元/百万 tokens  | 4.5 元/百万 tokens  |
+| **输入（缓存未命中）- 高峰时段** | 3.0 元/百万 tokens  | 9.0 元/百万 tokens  |
+| **输出 - 空闲时段**              | 4.5 元/百万 tokens  | 13.5 元/百万 tokens |
+| **输出 - 高峰时段**              | 9.0 元/百万 tokens  | 27.0 元/百万 tokens |
+
+> **省钱小技巧：** 尽量在空闲时段（非高峰期）使用，价格会便宜一半。
+>
+> **高峰时段为北京时间 9:00 - 12:00、14:00 - 18:00**，其余时间为空闲时段。
 
 ---
 
@@ -161,7 +185,7 @@ npx @deepseek-ai/dsh web
 
 Git 是一个版本控制工具，用来下载源码。
 
-1. 访问官网：https://git-scm.com/
+1. 访问 [Git 官网](https://git-scm.com/)
 2. 下载对应你系统的版本（Windows 用户选择 Windows）
 3. 安装时保持默认选项，一路 Next 即可
 
@@ -216,7 +240,7 @@ pnpm dsh web
 
 如果还没安装 Python：
 
-1. 访问官网：https://www.python.org/downloads/
+1. 访问 [Python 官网](https://www.python.org/downloads/)
 2. 下载最新版本
 3. **安装时一定要勾选 "Add Python to PATH"**
 4. 完成安装
@@ -264,14 +288,19 @@ python test.py
 
 DeepSeek Harness 提供四种模式：
 
-| 模式 | 适合谁 | 特点 |
-|------|--------|------|
-| **标准模式** | 普通用户 | 功能最全，推荐新手使用 |
-| **PTC 模式** | 开发者 | 可以用代码组合多步操作 |
+| 模式         | 适合谁   | 特点                     |
+| ------------ | -------- | ------------------------ |
+| **标准模式** | 普通用户 | 功能最全，推荐新手使用   |
+| **PTC 模式** | 开发者   | 可以用代码组合多步操作   |
 | **极简模式** | 测试人员 | 只保留基础功能，用于测试 |
-| **创造模式** | 开发者 | 可以创建自定义的 Agent |
+| **创造模式** | 开发者   | 可以创建自定义的 Agent   |
 
 **新手建议选择"标准模式"。**
+
+> **关于模型选择的建议：**
+>
+> - 如果你使用 **DeepSeek-V4-Flash**，推荐用**标准模式**，体验更完整
+> - 如果你使用 **DeepSeek-V4-Pro**，建议用**极简模式**。因为 V4-Pro 在后训练阶段存在一定的过拟合问题，极简模式下只提供 bash 和文件编辑两个基础工具，反而能让模型更好地发挥推理能力
 
 ### 4.3 开始使用
 
@@ -293,6 +322,7 @@ DeepSeek Harness 提供四种模式：
 **可能原因：** 软件没有正确安装，或者没有添加到系统环境变量。
 
 **解决方法：**
+
 1. 重新安装 Node.js / Python / Git
 2. 安装完成后关闭并重新打开命令提示符
 3. 如果还是不行，重启电脑后再试
@@ -303,9 +333,9 @@ DeepSeek Harness 提供四种模式：
 
 **解决方法：**
 
-**方法一：使用 Watt Toolkit（原 Steam++）**
+**方法一：使用 [Watt Toolkit](https://steampp.net/)（原 Steam++）**
 
-1. 访问 https://steampp.net/ 下载安装
+1. 访问 [Watt Toolkit 官网](https://steampp.net/) 下载安装
 2. 打开软件，找到"网络加速"
 3. 勾选 GitHub 和 npm 的加速选项
 4. 点击"一键加速"
@@ -334,6 +364,7 @@ npx @deepseek-ai/dsh web --port 3081
 ### 问题 4：API Key 无效
 
 **检查：**
+
 1. API Key 是否正确复制（没有多余空格）
 2. 账户余额是否充足
 
@@ -353,9 +384,10 @@ http://127.0.0.1:3080
 
 ### 官方资源
 
-- 官方文档：https://www.deepseek.com/harness
-- GitHub 仓库：https://github.com/deepseek-ai/deepseek-harness
-- API 文档：https://platform.deepseek.com/api-docs
+- [DeepSeek Harness 官网](https://www.deepseek.com/harness)
+- [GitHub 仓库](https://github.com/deepseek-ai/deepseek-harness)
+- [API 文档](https://platform.deepseek.com/api-docs)
+- [DeepSeek 开放平台](https://platform.deepseek.com/)
 
 ### 插件探索
 
@@ -367,8 +399,8 @@ DeepSeek Harness 的强大之处在于插件系统。你可以：
 
 ### 参与社区
 
-- 在 GitHub 上提交问题和建议
-- 加入官方社区（企微群、Discord）
+- 在 [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions) 上提交问题和建议
+- 加入官方社区（企微群、[Discord](https://discord.gg/Ycq5dCaS4)）
 - 关注微信公众号获取最新动态
 
 ---
@@ -386,6 +418,6 @@ DeepSeek Harness 的强大之处在于插件系统。你可以：
 
 接下来，你可以尽情探索 AI 智能体的世界，让它帮你完成各种任务。
 
-如果在使用过程中遇到问题，欢迎在评论区留言，或者到 GitHub Discussions 提问。
+如果在使用过程中遇到问题，欢迎在评论区留言，或者到 [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions) 提问。
 
 **祝你玩得开心！**

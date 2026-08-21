@@ -1,3 +1,12 @@
+@import "tailwindcss/theme" layer(theme);
+/* NOTE: utilities are intentionally imported WITHOUT a layer. The hand-written
+   `* { margin:0; padding:0 }` reset below is unlayered, and unlayered author
+   styles beat anything inside @layer — so a layered `.px-[…]` utility would be
+   overridden by that reset and the topbar would lose its horizontal padding.
+   Importing utilities unlayered lets the class (specificity 0,1,0) win over `*`
+   (0,0,0). */
+@import "tailwindcss/utilities";
+@source "./main.ts";
 /* ============================================================
    WORKS INDEX · Eververdants 作品索引
    排版语言与 /blog/ 完全一致：

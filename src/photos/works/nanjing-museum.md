@@ -2,7 +2,7 @@
 slug: nanjing-museum
 title: Plaque, Nanjing Museum
 titleZh: 南京博物院
-date: 2024-08
+date: 2026-07
 category: ARCHITECTURE
 location: Nanjing, Jiangsu
 locationZh: 江苏南京

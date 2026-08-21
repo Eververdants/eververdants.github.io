@@ -68,31 +68,110 @@ function scrollTop() {
   else window.scrollTo(0, 0);
 }
 
-/* ================= 控制簇 ================= */
-function renderControls() {
-  const el = document.getElementById("controls")!;
+/* ================= 顶部玻璃栏（纯 Tailwind，与 React 子站 GlassTopBar 同款） ================= */
+const TOP_NAV = [
+  { id: "home", href: "/", en: "Home", zh: "首页" },
+  { id: "blog", href: "/blog", en: "Blog", zh: "博客" },
+  { id: "works", href: "/projects", en: "Works", zh: "作品" },
+  { id: "photos", href: "/photos", en: "Photographs", zh: "摄影集" },
+];
+
+let menuOpen = false;
+
+function renderTopBar() {
+  const el = document.getElementById("topbar")!;
   const { lang, theme } = readPrefs();
-  el.innerHTML = `
-    <div class="controls__cap">
-      <div class="lang-pair" aria-label="Language">
-        <span class="lang-underline" style="transform:translateX(${lang === "zh" ? "100%" : "0"})"></span>
-        <button class="lang-btn" data-lang="en" aria-pressed="${lang === "en"}" title="English">EN</button>
-        <button class="lang-btn" data-lang="zh" aria-pressed="${lang === "zh"}" title="中文">中</button>
-      </div>
-      <span class="controls__divider" aria-hidden="true"></span>
-      <button class="theme-btn" id="theme-btn" type="button" aria-label="${theme === "light" ? t().themeDark : t().themeLight}" title="${theme === "light" ? "Dark" : "Light"}">
-        <span class="theme-icon ${theme === "dark" ? "is-off" : "is-on"}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M18.7 5.3L17 7M7 17l-1.7 1.7"/></svg>
-        </span>
-        <span class="theme-icon ${theme === "dark" ? "is-on" : "is-off"}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 14.2A8.3 8.3 0 0 1 9.8 3.8a8.3 8.3 0 1 0 10.4 10.4Z"/></svg>
-        </span>
-      </button>
+
+  /* Pure-Tailwind surface (no hand CSS, no gradients). Sub-sites keep a
+     tinted glass; the main site passes transparent. Projects is a sub-site. */
+  const surface =
+    "bg-[color-mix(in_srgb,var(--bg)_60%,transparent)] border-[color-mix(in_srgb,var(--ink)_18%,transparent)]";
+  const barClass = [
+    "fixed",
+    "left-[clamp(12px,2vw,24px)]",
+    "right-[clamp(12px,2vw,24px)]",
+    "top-[clamp(12px,2vh,24px)]",
+    "z-[60]",
+    "flex",
+    "items-center",
+    "justify-between",
+    "h-16",
+    "px-[clamp(18px,2.4vw,28px)]",
+    "rounded-[20px]",
+    "border",
+    "backdrop-blur-lg",
+    "backdrop-saturate-150",
+    "text-[var(--ink)]",
+    "transition-colors",
+    "duration-300",
+    surface,
+    "max-[760px]:h-14",
+    "max-[760px]:px-[18px]",
+    "max-[760px]:rounded-[18px]",
+  ].join(" ");
+
+  const navItem = (menu: boolean) =>
+    TOP_NAV.map((item) => {
+      const active = item.id === "works";
+      const activeClass = active ? "opacity-100 text-[var(--accent)]" : "";
+      if (menu) {
+        return `<a href="${item.href}" class="flex h-[46px] items-center pl-4 font-medium text-[16px] text-[var(--ink)] opacity-[0.78] transition hover:opacity-100 ${activeClass}"${active ? ' aria-current="page"' : ""}><span>${lang === "zh" ? item.zh : item.en}</span></a>`;
+      }
+      const under = `<span aria-hidden="true" class="absolute left-0 right-0 -bottom-[7px] h-[2px] rounded-full bg-[var(--accent)] origin-center transition-transform duration-300 ease-out ${active ? "scale-x-100" : "scale-x-0"}"></span>`;
+      return `<a href="${item.href}" class="relative inline-flex items-center font-medium text-[15px] opacity-60 transition hover:opacity-100 ${activeClass}"${active ? ' aria-current="page"' : ""}><span>${lang === "zh" ? item.zh : item.en}</span>${under}</a>`;
+    }).join("");
+
+  const langUnderline = `absolute bottom-[2px] left-0 h-[2px] w-7 rounded-full bg-[var(--accent)] transition-transform duration-300 ease-out ${lang === "zh" ? "translate-x-full" : "translate-x-0"}`;
+  const langHtml = `
+    <div class="relative flex items-stretch" role="group" aria-label="Language">
+      <span aria-hidden="true" class="${langUnderline}"></span>
+      <button class="relative z-10 w-7 border-0 cursor-pointer bg-transparent py-[4px] pb-[6px] font-medium text-[14px] text-[var(--ink)] opacity-50 transition hover:opacity-[0.85] ${lang === "en" ? "opacity-100" : ""}" data-lang="en" aria-pressed="${lang === "en"}" title="English">EN</button>
+      <button class="relative z-10 w-7 border-0 cursor-pointer bg-transparent py-[4px] pb-[6px] font-medium text-[14px] text-[var(--ink)] opacity-50 transition hover:opacity-[0.85] ${lang === "zh" ? "opacity-100" : ""}" data-lang="zh" aria-pressed="${lang === "zh"}" title="中文">中</button>
     </div>`;
 
-  el.querySelectorAll(".lang-btn").forEach((b) => {
+  const themeIconHtml = (tm: string) => `
+    <span class="absolute inset-0 grid place-items-center transition duration-500 ${tm === "light" ? "rotate-0 scale-100 opacity-100" : "-rotate-[120deg] scale-50 opacity-0"}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" class="h-5 w-5"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M18.7 5.3L17 7M7 17l-1.7 1.7"/></svg>
+    </span>
+    <span class="absolute inset-0 grid place-items-center transition duration-500 ${tm === "dark" ? "rotate-0 scale-100 opacity-100" : "-rotate-[120deg] scale-50 opacity-0"}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="M20.2 14.2A8.3 8.3 0 0 1 9.8 3.8a8.3 8.3 0 1 0 10.4 10.4Z"/></svg>
+    </span>`;
+
+  const themeHtml = `<button class="relative grid h-9 w-9 cursor-pointer place-items-center border-0 bg-transparent text-[var(--ink)] opacity-70 transition hover:opacity-100" id="gtb-theme" type="button" aria-label="${theme === "light" ? t().themeDark : t().themeLight}" title="Theme">${themeIconHtml(theme)}</button>`;
+
+  const menuBase = `max-[760px]:absolute max-[760px]:left-0 max-[760px]:right-0 max-[760px]:top-[calc(100%+10px)] max-[760px]:rounded-[18px] max-[760px]:border max-[760px]:p-[10px] max-[760px]:backdrop-blur-lg max-[760px]:backdrop-saturate-150 max-[760px]:shadow-lg ${surface} max-[760px]:border-[color-mix(in_srgb,var(--ink)_16%,transparent)]`;
+  const menuState = menuOpen ? "max-[760px]:block" : "max-[760px]:hidden";
+
+  el.className = barClass;
+  el.innerHTML = `
+    <a class="inline-flex items-center gap-[10px] no-underline text-[var(--ink)]" href="/" aria-label="Eververdants — home">
+      <img src="/assets/avatar.webp" alt="Eververdants" class="h-8 w-8 rounded-full object-cover max-[760px]:h-7 max-[760px]:w-7"/>
+      <span class="font-['Fraunces',serif] font-semibold text-[19px] tracking-[0.12em]">EVERVERDANTS</span>
+    </a>
+    <div class="flex items-center gap-[clamp(20px,3vw,40px)] max-[760px]:hidden">
+      <nav class="flex items-center gap-[clamp(18px,2.4vw,30px)]" aria-label="Primary">${navItem(false)}</nav>
+      <div class="flex items-center gap-[clamp(16px,2vw,26px)]">
+        ${langHtml}
+        <span class="block h-5 w-px bg-[var(--ink)] opacity-[0.16]" aria-hidden="true"></span>
+        ${themeHtml}
+      </div>
+    </div>
+    <button class="hidden h-9 w-9 cursor-pointer place-items-center border-0 bg-transparent text-[var(--ink)] max-[760px]:grid" type="button" aria-label="${menuOpen ? "Close menu" : "Open menu"}" aria-expanded="${menuOpen}" data-burger>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" class="h-5 w-5">${menuOpen ? '<path d="M6 6l12 12M18 6L6 18"/>' : '<path d="M4 7h16M4 12h16M4 17h16"/>'}</svg>
+    </button>
+    <div class="hidden ${menuState} ${menuBase}" role="dialog" aria-label="Menu" data-menu>
+      <nav class="max-[760px]:relative max-[760px]:flex max-[760px]:flex-col" aria-label="Primary">${navItem(true)}</nav>
+      <span class="hidden max-[760px]:block max-[760px]:mx-2 max-[760px]:my-1 max-[760px]:h-px max-[760px]:bg-[var(--ink)] max-[760px]:opacity-10" aria-hidden="true"></span>
+      <div class="hidden max-[760px]:flex max-[760px]:items-center max-[760px]:gap-4 max-[760px]:px-4 max-[760px]:pb-1 max-[760px]:relative">
+        <div class="max-[760px]:mr-auto">${langHtml}</div>
+        ${themeHtml}
+      </div>
+    </div>`;
+
+  /* 语言切换：刷新整页渲染（重渲染会重建 #topbar） */
+  el.querySelectorAll("[data-lang]").forEach((b) => {
     b.addEventListener("click", () => {
-      const next: Lang = (b as HTMLElement).dataset.lang as Lang;
+      const next = (b as HTMLElement).dataset.lang as Lang;
       if (next === document.documentElement.lang) return;
       persistLang(next);
       const y = window.scrollY;
@@ -104,21 +183,30 @@ function renderControls() {
     });
   });
 
-  const btn = el.querySelector("#theme-btn") as HTMLButtonElement;
-  btn.addEventListener("click", () => {
+  /* 主题切换：普通过渡（只换图标，不重渲染，菜单保持展开） */
+  const tbtn = el.querySelector("#gtb-theme") as HTMLButtonElement;
+  tbtn.addEventListener("click", () => {
     const next =
       document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     themeFlip(() => persistTheme(next));
-    // 图标状态跟随
-    btn.querySelectorAll(".theme-icon").forEach((i, k) => {
-      const on = (k === 0) === (next === "light");
-      i.classList.toggle("is-on", on);
-      i.classList.toggle("is-off", !on);
-    });
-    btn.setAttribute(
+    tbtn.innerHTML = themeIconHtml(next);
+    tbtn.setAttribute(
       "aria-label",
       next === "light" ? t().themeDark : t().themeLight,
     );
+  });
+
+  /* 汉堡菜单：展开 / 收起（重渲染顶部栏以跟随状态） */
+  const burger = el.querySelector("[data-burger]") as HTMLButtonElement;
+  burger.addEventListener("click", () => {
+    menuOpen = !menuOpen;
+    renderTopBar();
+  });
+  el.querySelectorAll("[data-menu] a").forEach((a) => {
+    a.addEventListener("click", () => {
+      menuOpen = false;
+      renderTopBar();
+    });
   });
 }
 
@@ -472,10 +560,11 @@ function initReveal() {
 
 /* ================= 整体渲染 ================= */
 function render() {
+  menuOpen = false;
   const app = document.getElementById("app")!;
   app.innerHTML = `
     <div class="bg-grid" aria-hidden="true"></div>
-    <div id="controls" class="controls"></div>
+    <header id="topbar" role="banner"></header>
     <main>
       <section id="hero" class="hero"></section>
       <section id="featured" class="section"></section>
@@ -497,7 +586,7 @@ function render() {
 
   document.getElementById("index-overline")!.textContent = t().indexOverline;
   document.getElementById("index-title")!.textContent = t().indexTitle;
-  renderControls();
+  renderTopBar();
   renderHero();
   renderFeatured();
   renderToolbar();

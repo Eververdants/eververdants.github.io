@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Lenis from "lenis";
 import type { JournalPost } from "../../data/journal";
 import { journal } from "../../data/journal";
 import { getDeck, loadArticle } from "../../data/articles";
@@ -34,12 +35,14 @@ export default function ArticleScene({
   onOpen,
   onNotFound,
   scrollTo,
+  scrollToImmediate,
 }: {
   slug: string;
   onClose: () => void;
   onOpen: (slug: string) => void;
   onNotFound: () => void;
   scrollTo: (y: number) => void;
+  scrollToImmediate: (y: number) => void;
 }) {
   const { lang } = useBlogPrefs();
   const t = ui[lang];
@@ -47,7 +50,30 @@ export default function ArticleScene({
   const progressRef = useRef<HTMLDivElement>(null);
   const tocNavRef = useRef<HTMLDivElement>(null);
   const tocIndicatorRef = useRef<HTMLSpanElement>(null);
+  const tocScrollbarRef = useRef<HTMLDivElement>(null);
+  const tocThumbRef = useRef<HTMLDivElement>(null);
   const lightboxRef = useRef<HTMLDialogElement>(null);
+  /* Language swaps keep the reader's place: htmlRef tracks the body
+     currently on screen, restoreRef remembers where the reader was before
+     the body is swapped, so the new-language body lands on the same
+     heading at the same viewport offset. */
+  const htmlRef = useRef<string | null>(null);
+  const restoreRef = useRef<{
+    idx: number;
+    offset: number;
+    fraction: number;
+  } | null>(null);
+  /* TOC auto-follow state */
+  const lastActiveRef = useRef("");
+  const followRafRef = useRef(0);
+  /* Which article the TOC currently belongs to — used to reset the nav's
+     own scroll when a new article replaces the index (a long-index article
+     must never leave the next one scrolled mid-list). */
+  const tocSlugRef = useRef<string | null>(null);
+  /* Animation gating — entrances/reveals run for a fresh article only,
+     never for an in-place language swap (which must not flash). */
+  const prevSlugRef = useRef<string | null>(null);
+  const prevLangRef = useRef(lang);
   const [toc, setToc] = useState<TocItem[]>([]);
   const [lightbox, setLightbox] = useState<{
     src: string;
@@ -77,18 +103,232 @@ export default function ArticleScene({
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
 
+  /* Keep a ref of the body currently on screen — read by the load effect
+     to decide how to swap (fresh load vs in-place language swap). */
+  useEffect(() => {
+    htmlRef.current = html;
+  }, [html]);
+
+  /* Reading-position memory: capture where the reader is (the active
+     heading by INDEX — translations mirror their structure, so the same
+     index lands on the same section) before a language swap replaces the
+     body, then restore the same viewport offset once the new body is
+     laid out. Fallback: scroll fraction. */
+  const captureReadingPosition = () => {
+    const heads = root.current?.querySelectorAll<HTMLElement>(
+      ".article-content h2[id], .article-content h3[id]",
+    );
+    const line = window.innerHeight * 0.3;
+    let idx = -1;
+    if (heads) {
+      for (let k = 0; k < heads.length; k++) {
+        if (heads[k].getBoundingClientRect().top <= line) idx = k;
+        else break;
+      }
+    }
+    // Always record the scroll fraction too — the idx/offset pairing is the
+    // primary restore key, but if the other language's heading list differs
+    // in length (translations usually mirror, not always), the fraction is
+    // the honest fallback instead of a bogus 0.
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const fraction = max > 0 ? window.scrollY / max : 0;
+    if (idx >= 0 && heads) {
+      const r = heads[idx].getBoundingClientRect();
+      return { idx, offset: r.top - line, fraction };
+    }
+    return { idx: -1, offset: 0, fraction };
+  };
+
+  const restoreReadingPosition = () => {
+    const cap = restoreRef.current;
+    restoreRef.current = null;
+    if (!cap) return;
+    // Reader was pinned at the very bottom — the fraction is the exact
+    // target. (The languages' heading lists sometimes differ in length, so
+    // an index-anchored restore would land a section short of the footer.)
+    if (cap.fraction >= 0.98) {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      scrollToImmediate(max * cap.fraction);
+      return;
+    }
+    const heads = root.current?.querySelectorAll<HTMLElement>(
+      ".article-content h2[id], .article-content h3[id]",
+    );
+    let y: number;
+    if (heads && heads.length && cap.idx >= 0) {
+      // Clamp to the last heading when the translation has fewer headings —
+      // an out-of-range index must never fall through to the fraction
+      // branch with a stale value (that used to land readers at the top).
+      const target = heads[Math.min(cap.idx, heads.length - 1)];
+      const r = target.getBoundingClientRect();
+      // Put the heading back where it was: same viewport top as before.
+      y = r.top + window.scrollY - window.innerHeight * 0.3 - cap.offset;
+    } else {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      y = max * cap.fraction;
+    }
+    scrollToImmediate(y);
+  };
+
+  /* Smoothly scroll the TOC container so the active entry sits centered
+     (or at least in view) — the same easing language as the page's lenis,
+     applied to the nav's own scrollTop via a small rAF tween. Retargets
+     cleanly if the active entry changes mid-tween. */
+  const followActive = (btn: HTMLButtonElement) => {
+    const nav = tocNavRef.current;
+    if (!nav) return;
+    const nRect = nav.getBoundingClientRect();
+    const bRect = btn.getBoundingClientRect();
+    const pad = 6;
+    if (bRect.top >= nRect.top + pad && bRect.bottom <= nRect.bottom - pad)
+      return; // already visible
+    const target =
+      nav.scrollTop +
+      (bRect.top - nRect.top) -
+      (nRect.height - bRect.height) / 2;
+    const start = nav.scrollTop;
+    const dist = target - start;
+    if (Math.abs(dist) < 1) return;
+    const dur = 260;
+    const t0 = performance.now();
+    if (followRafRef.current) cancelAnimationFrame(followRafRef.current);
+    const ease = (k: number) => 1 - Math.pow(1 - k, 3);
+    const step = (now: number) => {
+      const k = Math.min(1, (now - t0) / dur);
+      nav.scrollTop = start + dist * ease(k);
+      followRafRef.current = k < 1 ? requestAnimationFrame(step) : 0;
+    };
+    followRafRef.current = requestAnimationFrame(step);
+  };
+
+  /* The TOC is its own scroll container with a custom overlay scrollbar
+     (the page's slim bar, applied to the nav's scrollport). Smooth scrolling
+     runs on the same library the page uses — a lenis instance rooted at the
+     nav — so fast flicks get proper velocity easing instead of a hand-rolled
+     lerp's jitter. Lenis's nested-scroll propagation passes the wheel back
+     to the page at the container's ends (scroll chaining), so no manual
+     event juggling is needed. The thumb is draggable, tracks every scrollTop
+     change, and hides entirely when nothing overflows. */
+  useEffect(() => {
+    const nav = tocNavRef.current;
+    const bar = tocScrollbarRef.current;
+    const thumb = tocThumbRef.current;
+    if (!nav || !bar || !thumb) return;
+
+    const updateThumb = () => {
+      const sh = nav.scrollHeight - nav.clientHeight;
+      if (sh <= 0) {
+        bar.classList.remove("has-thumb");
+        return;
+      }
+      bar.classList.add("has-thumb");
+      const track = bar.clientHeight;
+      const h = Math.max(20, (nav.clientHeight / nav.scrollHeight) * track);
+      thumb.style.height = h + "px";
+      thumb.style.top = (nav.scrollTop / sh) * (track - h) + "px";
+    };
+    updateThumb();
+
+    /* smooth wheel scrolling — lenis on the nav as its own scrollport */
+    const tocLenis = new Lenis({
+      wrapper: nav,
+      content: nav,
+      lerp: 0.1,
+      smoothWheel: true,
+      autoRaf: true,
+    });
+
+    /* drag the thumb — direct manipulation; pause the smooth loop while
+       the pointer is down so the two never fight */
+    const onThumbDown = (e: MouseEvent) => {
+      const sh = nav.scrollHeight - nav.clientHeight;
+      if (sh <= 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      tocLenis.stop();
+      const startY = e.clientY;
+      const startTop = parseFloat(thumb.style.top || "0");
+      bar.classList.add("dragging");
+      const onMove = (ev: MouseEvent) => {
+        const track = bar.clientHeight;
+        const max = track - thumb.offsetHeight;
+        const top = Math.max(
+          0,
+          Math.min(max, startTop + (ev.clientY - startY)),
+        );
+        thumb.style.top = top + "px";
+        if (max > 0) nav.scrollTop = (top / max) * sh;
+      };
+      const onUp = () => {
+        bar.classList.remove("dragging");
+        tocLenis.start();
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+      };
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    };
+    thumb.addEventListener("mousedown", onThumbDown);
+
+    /* keep the thumb in sync with any scrollTop change (lenis wheel, drag,
+       or the follow-active tween) and with size changes */
+    nav.addEventListener("scroll", updateThumb, { passive: true });
+    const ro = new ResizeObserver(() => {
+      updateThumb();
+      tocLenis.resize();
+    });
+    ro.observe(nav);
+
+    return () => {
+      nav.removeEventListener("scroll", updateThumb);
+      thumb.removeEventListener("mousedown", onThumbDown);
+      ro.disconnect();
+      tocLenis.destroy();
+    };
+  }, [toc, lang, html]);
+
+  /* Cancel any in-flight TOC follow tween on unmount. */
+  useEffect(() => {
+    return () => {
+      if (followRafRef.current) cancelAnimationFrame(followRafRef.current);
+    };
+  }, []);
+
+  /* Body loading — on demand. A language swap does NOT blank the screen
+     (no skeleton flash, no height collapse): the old-language body stays
+     up while the new one streams in, then swaps in place at the same
+     scroll offset. A slug that has no body in the target language keeps
+     showing what's on screen (graceful) instead of kicking the reader
+     back to the index; a genuinely unknown slug on first load still
+     reports not-found. */
   useEffect(() => {
     let alive = true;
-    setHtml(null);
+    const langChanged = prevLangRef.current !== lang;
+    prevLangRef.current = lang;
+    if (langChanged) {
+      if (htmlRef.current) restoreRef.current = captureReadingPosition();
+    } else {
+      // Fresh article (or retry) — never carry a stale restore forward.
+      restoreRef.current = null;
+    }
     setFailed(false);
     loadArticle(slug, lang)
       .then((a) => {
         if (!alive) return;
         if (!a) {
-          onNotFound();
+          if (!htmlRef.current) onNotFound();
           return;
         }
         setHtml(a.html);
+        if (langChanged && restoreRef.current) {
+          // Two frames: the new body's headings and fonts must settle
+          // before the offset can be restored.
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => {
+              if (alive) restoreReadingPosition();
+            }),
+          );
+        }
       })
       .catch(() => {
         if (alive) setFailed(true);
@@ -104,7 +344,31 @@ export default function ArticleScene({
      at the bottom of the article. Deterministic, no observer timing. Re-runs
      on lang change so the TOC mirrors the active language's headings. */
   useEffect(() => {
-    const content = root.current?.querySelector(".article-content");
+    // A new article replaced the index — clear the OLD index immediately
+    // (it must never linger while the new body streams in — that reads as
+    // "the TOC didn't update"), and start the nav's own scroll from the
+    // top again so a long-index article never leaves the next one scrolled
+    // into the middle or clamped with a stale thumb. The real index lands
+    // with the new body (the html effect below re-runs and fills it).
+    const newArticle = tocSlugRef.current !== slug;
+    if (newArticle) {
+      tocSlugRef.current = slug;
+      const nav = tocNavRef.current;
+      if (nav) nav.scrollTop = 0;
+      // Drop any in-flight follow tween and stale active tracking — the
+      // new article's index gets a clean scroll-spy pass.
+      if (followRafRef.current) {
+        cancelAnimationFrame(followRafRef.current);
+        followRafRef.current = 0;
+      }
+      lastActiveRef.current = "";
+    }
+    // On a fresh article there is nothing to scan yet (the body is still
+    // the previous one) — treat the index as empty instead of rebuilding
+    // it from the old article's headings.
+    const content = newArticle
+      ? null
+      : root.current?.querySelector(".article-content");
     const heads = content
       ? Array.from(content.querySelectorAll<HTMLElement>("h2[id], h3[id]"))
       : [];
@@ -153,6 +417,18 @@ export default function ArticleScene({
           btn.classList.toggle("text-[var(--ink)]", on);
           btn.classList.toggle("is-active", on);
         });
+      // Auto-follow: keep the active entry inside the TOC's scrollable
+      // viewport — as the page scrolls, the rail recenters on the section
+      // being read (only when the active entry actually changes).
+      if (current !== lastActiveRef.current) {
+        lastActiveRef.current = current;
+        const activeEntry = Array.from(
+          tocNavRef.current?.querySelectorAll<HTMLButtonElement>(
+            "button[data-toc-id]",
+          ) ?? [],
+        ).find((b) => b.dataset.tocId === current);
+        if (activeEntry) followActive(activeEntry);
+      }
       // Slide the single rail indicator onto the active entry. The active
       // branch must also restore opacity: the scroll-spy hides the rail when
       // no heading is in view (top of the article), and the inline opacity: 0
@@ -207,7 +483,11 @@ export default function ArticleScene({
           /* clipboard unavailable — no feedback needed */
         }
       });
-      pre.appendChild(btn);
+      // Live in the header strip (language left, button right) so wide
+      // code scrolling underneath never carries the button away.
+      const head = pre.querySelector<HTMLElement>(".code-head");
+      if (head) head.appendChild(btn);
+      else pre.appendChild(btn);
       buttons.push(btn);
     });
     return () => buttons.forEach((b) => b.remove());
@@ -244,9 +524,14 @@ export default function ArticleScene({
   // to the root as a 404 (the same 404.html flow as every unknown URL), so
   // this branch is defensive only.
   /* Mount entrance — the header (back link, title, meta) rises in as the
-     essay opens. Functional, quick, no mask tricks. Replays on lang change
-     as a natural transition between the two language versions. */
+     essay opens. Functional, quick, no mask tricks. Runs once per article
+     (slug change); a language swap swaps the header text in place so the
+     reader's eye never loses the scroll position. */
   useEffect(() => {
+    const first = prevSlugRef.current === null;
+    const slugChanged = prevSlugRef.current !== slug;
+    prevSlugRef.current = slug;
+    if (!first && !slugChanged) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(
         "[data-art-head]",
@@ -267,8 +552,12 @@ export default function ArticleScene({
      as it enters. Subtle and once-only so reading never fights the motion.
      The article mounts after the global coordinator, so these triggers are
      created here, scoped to this root. Re-runs when the on-demand body
-     arrives (html state) — before that there is nothing to reveal. */
+     arrives (html state) — before that there is nothing to reveal. A
+     language swap is skipped entirely (restoreRef is set for exactly that
+     case): the new body lands fully visible at the same scroll offset, so
+     a block fade-in would read as a flash. */
   useEffect(() => {
+    if (restoreRef.current) return;
     const ctx = gsap.context(() => {
       const blocks = gsap.utils.toArray<HTMLElement>(".article-content > *");
       if (!blocks.length) return;
@@ -326,7 +615,10 @@ export default function ArticleScene({
   const jump = (id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
-    scrollTo(el.getBoundingClientRect().top + window.scrollY - 20);
+    /* Clear the fixed top bar (up to ~112px) so a TOC jump never lands a
+       heading underneath it. */
+    const clear = Math.max(88, window.innerHeight * 0.12);
+    scrollTo(el.getBoundingClientRect().top + window.scrollY - clear);
   };
 
   return (
@@ -350,7 +642,7 @@ export default function ArticleScene({
         />
       </div>
 
-      <div className="mx-auto max-w-[1080px] px-[clamp(16px,4vw,40px)] pb-[clamp(80px,14vh,160px)] pt-[clamp(24px,4vh,48px)]">
+      <div className="mx-auto max-w-[1080px] px-[clamp(16px,4vw,40px)] pb-[clamp(80px,14vh,160px)] pt-[clamp(88px,11vh,112px)]">
         {/* top bar: back + meta */}
         <div className="flex flex-wrap items-center justify-between gap-3 text-[11px] tracking-[0.18em] text-[var(--faint)]">
           <button
@@ -405,7 +697,7 @@ export default function ArticleScene({
                 {toc.length}
               </span>
             </summary>
-            <nav className="mt-[10px] flex flex-col gap-[2px] border-l border-[var(--border)] pl-[14px]">
+            <nav className="toc-nav mt-[10px] flex flex-col gap-[2px] border-l border-[var(--border)] pl-[14px]">
               {toc.map((item) => (
                 <button
                   key={item.id}
@@ -466,7 +758,7 @@ export default function ArticleScene({
           {/* table of contents — sticky right rail (desktop only) */}
           {toc.length > 0 && (
             <aside className="hidden lg:block">
-              <div className="sticky top-[24px]">
+              <div className="sticky top-[clamp(88px,11vh,112px)]">
                 <p className="flex items-center justify-between gap-2 text-[10px] font-semibold tracking-[0.3em] text-[var(--fainter)]">
                   {t.onThisPage()}
                   <button
@@ -477,30 +769,39 @@ export default function ArticleScene({
                     ↑ {t.backToTop}
                   </button>
                 </p>
-                <nav
-                  ref={tocNavRef}
-                  className="relative mt-[14px] flex flex-col gap-[6px] border-l border-[var(--border)] pl-[14px]"
-                >
-                  <span
-                    ref={tocIndicatorRef}
-                    aria-hidden
-                    className="toc-indicator"
-                  />
-                  {toc.map((item) => (
-                    <button
-                      key={item.id}
-                      data-toc-id={item.id}
-                      onClick={() => jump(item.id)}
-                      className={`toc-item text-left text-[13px] leading-snug transition-colors hover:text-[var(--ink)] ${
-                        item.level === 3
-                          ? "pl-[12px] text-[var(--faint)]"
-                          : "text-[var(--muted)]"
-                      }`}
-                    >
-                      {item.text}
-                    </button>
-                  ))}
-                </nav>
+                <div className="toc-scroll relative mt-[14px]">
+                  <nav
+                    ref={tocNavRef}
+                    className="toc-nav relative flex flex-col gap-[6px] border-l border-[var(--border)] pl-[14px] pr-[12px]"
+                  >
+                    <span
+                      ref={tocIndicatorRef}
+                      aria-hidden
+                      className="toc-indicator"
+                    />
+                    {toc.map((item) => (
+                      <button
+                        key={item.id}
+                        data-toc-id={item.id}
+                        onClick={() => jump(item.id)}
+                        className={`toc-item text-left text-[13px] leading-snug transition-colors hover:text-[var(--ink)] ${
+                          item.level === 3
+                            ? "pl-[12px] text-[var(--faint)]"
+                            : "text-[var(--muted)]"
+                        }`}
+                      >
+                        {item.text}
+                      </button>
+                    ))}
+                  </nav>
+                  <div
+                    ref={tocScrollbarRef}
+                    className="toc-scrollbar"
+                    aria-hidden="true"
+                  >
+                    <div ref={tocThumbRef} className="toc-scrollbar-thumb" />
+                  </div>
+                </div>
               </div>
             </aside>
           )}

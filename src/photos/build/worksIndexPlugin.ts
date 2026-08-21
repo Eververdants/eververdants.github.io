@@ -15,19 +15,20 @@ function loadAll(): Work[] {
   } catch {
     return [];
   }
+  // Stable load order: alphabetical by filename, so "load order" ties are
+  // deterministic across machines instead of depending on readdir() order.
+  entries.sort();
   const works: Work[] = [];
   for (const name of entries) {
     const raw = readFileSync(join(WORKS_DIR, name), "utf8");
     const w = parseWorkMeta(raw);
     if (w.slug && w.title && w.cover) works.push(w);
   }
-  // Sort: explicit `order` asc, then `date` desc, then slug asc.
+  // Sort: date desc (newest → oldest); equal dates keep load order
+  // (Array.sort is stable, so returning 0 preserves the alphabetical load order).
   works.sort((a, b) => {
-    const ao = a.order ?? Number.POSITIVE_INFINITY;
-    const bo = b.order ?? Number.POSITIVE_INFINITY;
-    if (ao !== bo) return ao - bo;
     if (a.date !== b.date) return a.date < b.date ? 1 : -1;
-    return a.slug.localeCompare(b.slug);
+    return 0;
   });
   return works;
 }

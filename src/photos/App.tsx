@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import type Lenis from "lenis";
-import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { Gallery } from "./components/Gallery";
 import { WorkDetail } from "./components/WorkDetail";
 import { getWork, getWorks } from "./data/works";
 import { PhotosPrefsProvider, usePhotosPrefs } from "./lib/prefs";
 import { applyGallerySeo, applyWorkSeo } from "./lib/seo";
+import GlassTopBar from "../components/GlassTopBar";
 import { initSmoothScroll } from "../effects/smoothScroll";
 import { initScrollbar } from "../effects/scrollbar";
 import Scrollbar from "../components/Scrollbar";
@@ -34,7 +34,8 @@ const routeFromPath = (p: string): Route => {
 const parseRoute = (): Route => routeFromPath(location.pathname);
 
 function Scene() {
-  const { lang } = usePhotosPrefs();
+  const prefs = usePhotosPrefs();
+  const { lang } = prefs;
   const [route, setRoute] = useState<Route>(() => parseRoute());
   const lenisRef = useRef<Lenis | null>(null);
 
@@ -50,9 +51,8 @@ function Scene() {
     lenisRef.current = smooth?.lenis ?? null;
     const barEl = document.getElementById("scrollbar");
     const thumbEl = document.getElementById("scrollbar-thumb");
-    const bar = barEl && thumbEl
-      ? initScrollbar(barEl, thumbEl, lenisRef.current)
-      : null;
+    const bar =
+      barEl && thumbEl ? initScrollbar(barEl, thumbEl, lenisRef.current) : null;
     return () => {
       bar?.destroy();
       smooth?.destroy();
@@ -96,7 +96,7 @@ function Scene() {
      swap routes with pushState (full page loads still work without JS). */
   const onClick = (e: MouseEvent<HTMLDivElement>) => {
     const a = (e.target as HTMLElement).closest?.(
-      'a[href]',
+      "a[href]",
     ) as HTMLAnchorElement | null;
     if (!a) return;
     const href = a.getAttribute("href") || "";
@@ -112,15 +112,21 @@ function Scene() {
   };
 
   return (
-    <div className="shell" onClick={onClick}>
-      <Header />
-      <hr className="hairline" />
-      <main style={{ minHeight: "70vh" }}>
-        {route.name === "gallery" ? <Gallery /> : <WorkDetail slug={route.slug} />}
-      </main>
-      <Footer />
-      <Scrollbar />
-    </div>
+    <>
+      <GlassTopBar prefs={prefs} active="photos" />
+      <div className="shell" onClick={onClick}>
+        <hr className="hairline" />
+        <main style={{ minHeight: "70vh" }}>
+          {route.name === "gallery" ? (
+            <Gallery />
+          ) : (
+            <WorkDetail slug={route.slug} />
+          )}
+        </main>
+        <Footer />
+        <Scrollbar />
+      </div>
+    </>
   );
 }
 

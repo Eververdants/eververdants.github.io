@@ -50,6 +50,14 @@
   --text-leading: 1.9;
   /* inline code ink — lifted for contrast on dark */
   --code-ink: #b45309;
+  /* code syntax tokens (auto-highlighted fenced code) */
+  --tok-kw: #8a5a2b;
+  --tok-str: #557a3c;
+  --tok-num: #b45309;
+  --tok-fn: #0e7a86;
+  --tok-type: #4f5d9c;
+  --tok-com: #9a968b;
+  --tok-var: #a06a2f;
   /* reading progress */
   --progress-track: rgba(0, 0, 0, 0.05);
   --progress-fill: #000000;
@@ -100,6 +108,14 @@
   --text-leading: 1.9;
   /* inline code ink — amber lifted for dark contrast */
   --code-ink: #eab308;
+  /* code syntax tokens — lifted for dark contrast */
+  --tok-kw: #d9a05b;
+  --tok-str: #9cc27a;
+  --tok-num: #eab308;
+  --tok-fn: #3fb4c0;
+  --tok-type: #8ea2e8;
+  --tok-com: #6e685c;
+  --tok-var: #c9996a;
   /* reading progress */
   --progress-track: rgba(255, 255, 255, 0.08);
   --progress-fill: #eae7de;
@@ -581,55 +597,114 @@ html.theme-anim *::after {
   border: 1px solid var(--code-border);
 }
 
+/* Code blocks — a header strip (language badge left, copy button right)
+   over a horizontally scrollable code body. The button lives in flow (not
+   absolute) so it stays put while wide code scrolls underneath, and every
+   token span is colored by the syntax highlighter in markdown.ts. */
 .article-content pre {
   position: relative;
   margin: 0 0 1.5em;
-  padding: clamp(16px, 2.5vw, 28px);
+  padding: 0;
   background: var(--pre-bg);
   border: 1px solid var(--border-faint);
   border-radius: 12px;
-  overflow-x: auto;
+  overflow: hidden;
   font-size: clamp(13px, 0.95vw, 15px);
   box-shadow: var(--card-shadow);
 }
 
-/* Language badge (```lang fence) — absolute, so the block gains headroom */
-.article-content pre[data-lang] {
-  padding-top: clamp(36px, 4.5vw, 44px);
+.article-content .code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 38px;
+  padding: 0 10px 0 16px;
+  border-bottom: 1px solid var(--border-faint);
+  background: color-mix(in srgb, var(--field) 60%, transparent);
 }
 
-.article-content pre[data-lang]::before {
-  content: attr(data-lang);
-  position: absolute;
-  top: 12px;
-  left: 16px;
+.article-content .code-lang {
+  font-family: var(--font-sans);
   font-size: 10px;
-  letter-spacing: 0.16em;
+  font-weight: 600;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--fainter);
 }
 
-/* Copy button — injected per <pre> by ArticleScene; fades in on hover,
-   visible while focused (keyboard) or just-copied. */
+.article-content pre > code {
+  display: block;
+  padding: clamp(14px, 2vw, 22px);
+  overflow-x: auto;
+  background: none;
+  border: none;
+  color: var(--body);
+  line-height: 1.7;
+}
+
+/* slim horizontal scrollbar matching the page's custom scrollbar */
+.article-content pre > code {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+.article-content pre > code::-webkit-scrollbar {
+  height: 6px;
+}
+.article-content pre > code::-webkit-scrollbar-track {
+  background: transparent;
+}
+.article-content pre > code::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+}
+.article-content pre > code::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Syntax token colors — set by the highlighter's semantic spans */
+.article-content .tok-kw {
+  color: var(--tok-kw);
+}
+.article-content .tok-str {
+  color: var(--tok-str);
+}
+.article-content .tok-num {
+  color: var(--tok-num);
+}
+.article-content .tok-fn {
+  color: var(--tok-fn);
+}
+.article-content .tok-type {
+  color: var(--tok-type);
+}
+.article-content .tok-com {
+  color: var(--tok-com);
+}
+.article-content .tok-var {
+  color: var(--tok-var);
+}
+
+/* Copy button — injected into .code-head by ArticleScene. Always quietly
+   visible (0.55), full on hover / focus / just-copied. */
 .code-copy {
-  position: absolute;
-  top: 10px;
-  right: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--field);
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--fainter);
   cursor: pointer;
-  opacity: 0;
+  opacity: 0.55;
   transition:
-    opacity 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
+    opacity 0.18s ease,
+    color 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .code-copy svg {
@@ -638,30 +713,25 @@ html.theme-anim *::after {
 }
 
 .article-content pre:hover .code-copy,
-.article-content pre:focus-within .code-copy,
-.code-copy.code-copied {
-  opacity: 0.85;
+.article-content pre:focus-within .code-copy {
+  opacity: 1;
 }
 
-.code-copy:hover {
+.code-copy:hover,
+.code-copy:focus-visible {
   opacity: 1;
   color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: var(--field);
+  border-color: var(--border);
 }
 
 .code-copy.code-copied {
+  opacity: 1;
   color: var(--accent);
 }
 
 .article-content pre:focus-within {
   border-color: color-mix(in srgb, var(--accent) 40%, var(--border-faint));
-}
-
-.article-content pre code {
-  background: none;
-  border: none;
-  padding: 0;
-  color: var(--body);
 }
 
 /* ---- article references: the source list closing an essay ----
@@ -754,12 +824,18 @@ html.theme-anim *::after {
   background: var(--border-soft);
 }
 
-/* Tables (pipe-table syntax) — hairline grid, field-tinted header, zebra
-   rows, hover wash; wraps in the pre's horizontal scroll habit. */
+/* Tables (pipe-table syntax) — a rounded hairline frame (separate borders
+   so the radius can breathe), field-tinted header, zebra rows, and a hover
+   wash that transitions in on the cells (tr has no box in table layout, so
+   the highlight and its transition live on td). */
 .article-content table {
   width: 100%;
   margin: 0 0 1.5em;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border-faint);
+  border-radius: 12px;
+  overflow: hidden;
   font-size: 0.92em;
   line-height: 1.65;
 }
@@ -767,9 +843,22 @@ html.theme-anim *::after {
 .article-content th,
 .article-content td {
   padding: 10px 14px;
-  border: 1px solid var(--border-faint);
+  border-right: 1px solid var(--border-faint);
+  border-bottom: 1px solid var(--border-faint);
   text-align: left;
   vertical-align: top;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.article-content th:last-child,
+.article-content td:last-child {
+  border-right: none;
+}
+
+.article-content tr:last-child td {
+  border-bottom: none;
 }
 
 .article-content thead th {
@@ -779,11 +868,25 @@ html.theme-anim *::after {
   border-bottom: 1.5px solid var(--border-strong);
 }
 
-.article-content tbody tr:nth-child(even) {
+/* explicit corner rounding — belt & suspenders under overflow: hidden */
+.article-content thead th:first-child {
+  border-top-left-radius: 12px;
+}
+.article-content thead th:last-child {
+  border-top-right-radius: 12px;
+}
+.article-content tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 12px;
+}
+.article-content tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 12px;
+}
+
+.article-content tbody tr:nth-child(even) td {
   background: color-mix(in srgb, var(--field) 55%, transparent);
 }
 
-.article-content tbody tr:hover {
+.article-content tbody tr:hover td {
   background: var(--accent-soft);
 }
 
@@ -807,6 +910,61 @@ html.theme-anim *::after {
   font-size: 11px;
   letter-spacing: 0.12em;
   color: var(--fainter);
+}
+
+/* Desktop TOC — the nav is a self-scrolling container: capped height so a
+   long article never eats the whole viewport. The native scrollbar is
+   hidden; a custom overlay thumb (.toc-scrollbar) replaces it — same slim
+   rounded language as the page's bar, quiet until the TOC is hovered. The
+   scroll-spy auto-follows the active entry into view. */
+.toc-nav {
+  max-height: clamp(220px, 46vh, calc(100dvh - 170px));
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none; /* firefox — the custom thumb takes over */
+}
+.toc-nav::-webkit-scrollbar {
+  display: none;
+}
+
+/* custom overlay scrollbar — 6px bar hugging the nav's right edge, a
+   rounded thumb using the page's scrollbar colors. Hidden until content
+   overflows (JS adds .has-thumb), then quiet at 0.4 and full on hover /
+   focus / while dragging. */
+.toc-scrollbar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 6px;
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none; /* invisible — never block the nav underneath */
+  transition: opacity 0.2s ease;
+}
+.toc-scrollbar.has-thumb {
+  opacity: 0.4;
+  pointer-events: auto;
+}
+.toc-scroll:hover .toc-scrollbar.has-thumb,
+.toc-scroll:focus-within .toc-scrollbar.has-thumb,
+.toc-scrollbar.dragging {
+  opacity: 1;
+}
+.toc-scrollbar-thumb {
+  position: absolute;
+  top: 0;
+  left: 1px;
+  right: 1px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--scrollbar-thumb);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.toc-scrollbar-thumb:hover,
+.toc-scrollbar.dragging .toc-scrollbar-thumb {
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Desktop TOC entries — a short accent hairline grows from the rail on
