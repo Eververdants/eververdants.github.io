@@ -5,7 +5,7 @@ category: NOTES
 date: 2026.07.03
 excerpt: Two methodologies from Mao Zedong's 1941 essay "Reform Our Study"—seeking truth from facts and having a clear target—and how they cut through modern confusion.
 tags: [Mao Zedong, Methodology, Reading Notes]
-topics: [tech]
+topics: [history]
 sources:
   - "Reform Our Study"|Mao Zedong · May 19, 1941, report to the Yan'an cadre conference · Selected Works of Mao Zedong, Vol. III|https://www.qstheory.cn/books/2019-07/31/c_1119479227_2.htm
 ---

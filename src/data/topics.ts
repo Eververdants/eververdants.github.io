@@ -40,8 +40,8 @@ export const topics: BlogTopic[] = [
     symbol: "⌘",
     name: { en: "TECH", zh: "科技" },
     slogan: {
-      en: "Build it, break it, understand it — curiosity is an engineering practice.",
-      zh: "搭起来、拆开看、弄明白——好奇心是一门工程。",
+      en: "Build. Break. Learn. Repeat.",
+      zh: "造。拆。学。再一遍。",
     },
     color: "#3f6fd4",
     photos: [
@@ -55,8 +55,8 @@ export const topics: BlogTopic[] = [
     symbol: "❧",
     name: { en: "LITERATURE", zh: "文学" },
     slogan: {
-      en: "Stories are the oldest technology we own — still running.",
-      zh: "故事是我们拥有过的最古老的技术，至今仍在运行。",
+      en: "Words outlast empires. Use them well.",
+      zh: "文字比帝国更长久。用好它们。",
     },
     color: "#c2572e",
     photos: [
@@ -70,8 +70,8 @@ export const topics: BlogTopic[] = [
     symbol: "✦",
     name: { en: "HISTORY", zh: "历史现场" },
     slogan: {
-      en: "Turn over the stones of the past — the answers keep their shape.",
-      zh: "翻检旧日的石头，答案仍保有原来的形状。",
+      en: "The people write history. Never forget who.",
+      zh: "人民书写历史。别忘了是谁。",
     },
     color: "#8a7d3f",
     photos: [
@@ -85,8 +85,8 @@ export const topics: BlogTopic[] = [
     symbol: "◎",
     name: { en: "OBSERVE", zh: "社会观察" },
     slogan: {
-      en: "Read the present like evidence — carefully, and with doubt.",
-      zh: "把当下当作证物来读：谨慎，且保持怀疑。",
+      en: "Tear off the mask. Then speak.",
+      zh: "撕开面具。然后说话。",
     },
     color: "#0e7a86",
     photos: [

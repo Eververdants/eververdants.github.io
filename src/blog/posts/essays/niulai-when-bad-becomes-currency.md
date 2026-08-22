@@ -5,6 +5,7 @@ category: ESSAYS
 date: 2026.08.20
 excerpt: In the 2026 summer box office season, a crudely produced domestic animated film crossed the 100-million-yuan mark. On Bilibili, videos roasting it have racked up over ten times the views of serious discussions about the film itself. When "being mocked" is more profitable than "being praised," what exactly is happening in Chinese cinema?
 tags: [Film, Internet Culture, Attention Economy, Abstract Culture]
+topics: [society]
 ---
 
 In August 2026, a domestic animated film titled _Niu Lai_ (Here Comes the Bull) quietly hit theaters. It had no blockbuster-style marketing campaign, and calling its production quality "crude" would be an understatement. Yet it surpassed 100 million yuan at the box office—not because it was good.
