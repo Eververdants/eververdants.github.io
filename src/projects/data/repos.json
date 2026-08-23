@@ -2,8 +2,8 @@
   "_meta": {
     "owner": "Eververdants",
     "source": "gh repo list --json",
-    "fetchedAt": "2026-08-23T02:57:25.749Z",
-    "count": 11
+    "fetchedAt": "2026-08-23T23:46:45.041Z",
+    "count": 10
   },
   "repos": [
     {
@@ -17,8 +17,8 @@
       "stars": 1,
       "forks": 0,
       "createdAt": "2025-10-02T05:21:09Z",
-      "updatedAt": "2026-08-23T02:57:24Z",
-      "pushedAt": "2026-08-23T02:56:59Z",
+      "updatedAt": "2026-08-23T23:46:42Z",
+      "pushedAt": "2026-08-23T23:46:32Z",
       "archived": false,
       "fork": false,
       "private": false,
@@ -53,8 +53,8 @@
       "stars": 25,
       "forks": 3,
       "createdAt": "2024-08-05T05:01:55Z",
-      "updatedAt": "2026-08-23T02:01:21Z",
-      "pushedAt": "2026-08-23T02:03:13Z",
+      "updatedAt": "2026-08-23T12:03:20Z",
+      "pushedAt": "2026-08-23T12:03:15Z",
       "archived": false,
       "fork": false,
       "private": false,
@@ -102,28 +102,6 @@
       "thumb": "",
       "blurbEn": "The GitHub profile README — the cover of this very index.",
       "blurbZh": "GitHub 个人主页 README —— 这份作品索引的封面。"
-    },
-    {
-      "name": "aetheris",
-      "fullName": "Eververdants/aetheris",
-      "url": "https://github.com/Eververdants/aetheris",
-      "homepage": "",
-      "description": "Zero-overhead Windows game-optimization service (Rust, ETW-driven, no polling)",
-      "language": "Rust",
-      "topics": [],
-      "stars": 1,
-      "forks": 0,
-      "createdAt": "2026-08-08T13:29:26Z",
-      "updatedAt": "2026-08-10T15:28:05Z",
-      "pushedAt": "2026-08-10T15:23:27Z",
-      "archived": false,
-      "fork": false,
-      "private": false,
-      "featured": false,
-      "tag": "RUST",
-      "thumb": "",
-      "blurbEn": "A zero-overhead Windows game-optimization service — Rust, ETW-driven, no polling.",
-      "blurbZh": "零开销 Windows 游戏优化服务 —— Rust + ETW 事件驱动，无轮询。"
     },
     {
       "name": "video-analytics",
