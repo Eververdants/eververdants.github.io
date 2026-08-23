@@ -26,6 +26,11 @@
       content="https://eververdants.github.io/og-image.png"
     />
     <link rel="icon" href="/favicon.png" type="image/png" />
+    <!-- Self-hosted fonts (mirrored from the shared @font-face below):
+         preload so the index paints with the real face on first paint. -->
+    <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/fraunces-italic-latin.woff2" as="font" type="font/woff2" crossorigin />
     <script>
       /* 防 FOUC + 偏好打通：语言与主题与博客共享同一对 localStorage key
          （blog-lang / blog-theme），切换任一处，两处同时生效。 */

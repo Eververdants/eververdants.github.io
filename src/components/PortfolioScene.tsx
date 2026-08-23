@@ -145,6 +145,8 @@ function Mount({
       <img
         src={src}
         alt={alt}
+        loading="lazy"
+        decoding="async"
         className={
           natural
             ? "max-h-[78vh] max-w-[min(42vw,620px)] h-auto w-auto rounded-[clamp(14px,1.6vw,24px)] object-contain shadow-[0_24px_60px_rgba(0,0,0,0.45)]"

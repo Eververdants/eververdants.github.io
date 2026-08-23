@@ -26,6 +26,8 @@ export default function HeroScene() {
             alt="Eververdants"
             width="1024"
             height="1024"
+            fetchpriority="high"
+            decoding="async"
             data-hero-in
           />
         </div>

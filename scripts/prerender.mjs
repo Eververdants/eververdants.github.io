@@ -26,7 +26,7 @@ import {
   writeFileSync,
   mkdirSync,
   existsSync,
-  rmSync,
+  rm,
 } from "node:fs";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
@@ -288,9 +288,11 @@ async function renderWithChrome(chromePath, url, expr, waitMs = 15000) {
     return value;
   } finally {
     chrome.kill();
-    try {
-      rmSync(profile, { recursive: true, force: true });
-    } catch {}
+    // Best-effort cleanup. rmSync on a Chrome user-data-dir can hard-crash
+    // node on some Windows setups (native crash, uncatchable) and abort the
+    // whole prerender. Use async rm fire-and-forget so a cleanup failure can
+    // never break the build; leftover profiles stay in %TEMP% only.
+    rm(profile, { recursive: true, force: true }).catch(() => {});
   }
 }
 

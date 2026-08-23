@@ -43,6 +43,13 @@
       content="https://eververdants.github.io/og-image.png"
     />
     <link rel="icon" href="/favicon.png" type="image/png" />
+    <!-- Self-hosted fonts: preload so the hero/intro text paints with the
+         real face on first paint (no swap flash, no CLS). Font fetches are
+         always CORS-mode, so crossorigin is required even same-origin. -->
+    <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/fraunces-italic-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" as="image" href="/assets/avatar.webp" fetchpriority="high" />
     <link
       rel="alternate"
       type="application/rss+xml"
