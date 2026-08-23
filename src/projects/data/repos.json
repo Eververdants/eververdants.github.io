@@ -2,8 +2,8 @@
   "_meta": {
     "owner": "Eververdants",
     "source": "gh repo list --json",
-    "fetchedAt": "2026-08-21T07:52:14.155Z",
-    "count": 10
+    "fetchedAt": "2026-08-23T02:57:25.749Z",
+    "count": 11
   },
   "repos": [
     {
@@ -17,8 +17,8 @@
       "stars": 1,
       "forks": 0,
       "createdAt": "2025-10-02T05:21:09Z",
-      "updatedAt": "2026-08-20T04:30:14Z",
-      "pushedAt": "2026-08-21T07:51:59Z",
+      "updatedAt": "2026-08-23T02:57:24Z",
+      "pushedAt": "2026-08-23T02:56:59Z",
       "archived": false,
       "fork": false,
       "private": false,
@@ -53,8 +53,8 @@
       "stars": 25,
       "forks": 3,
       "createdAt": "2024-08-05T05:01:55Z",
-      "updatedAt": "2026-08-21T03:38:17Z",
-      "pushedAt": "2026-08-21T03:37:23Z",
+      "updatedAt": "2026-08-23T02:01:21Z",
+      "pushedAt": "2026-08-23T02:03:13Z",
       "archived": false,
       "fork": false,
       "private": false,
@@ -63,6 +63,23 @@
       "thumb": "/assets/works-etb-save.webp",
       "blurbEn": "A Tauri 2.0 save manager for Escape The Backrooms — full CRUD, multilingual UI, virtual-scrolled item list. The most-starred tool here.",
       "blurbZh": "基于 Tauri 2.0 的《Escape The Backrooms》存档管理器：完整 CRUD、多语言 UI、虚拟滚动列表 —— 本站星标最多的开源工具。"
+    },
+    {
+      "name": "NightmareSaveUnlocker",
+      "fullName": "Eververdants/NightmareSaveUnlocker",
+      "url": "https://github.com/Eververdants/NightmareSaveUnlocker",
+      "homepage": "",
+      "description": "UE4SS Lua mod that unlocks Nightmare difficulty saves in the Escape The Backrooms lobby save list",
+      "language": "Lua",
+      "topics": [],
+      "stars": 1,
+      "forks": 0,
+      "createdAt": "2026-08-22T06:18:16Z",
+      "updatedAt": "2026-08-22T06:35:51Z",
+      "pushedAt": "2026-08-22T06:18:46Z",
+      "archived": false,
+      "fork": false,
+      "private": false
     },
     {
       "name": "Eververdants",
