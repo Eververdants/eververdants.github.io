@@ -895,9 +895,13 @@ export default function ArticleScene({
               </p>
               <div className="mt-3 grid gap-3 sm:grid-cols-3">
                 {related.map((r) => (
-                  <button
+                  <a
                     key={r.slug}
-                    onClick={() => onOpen(r.slug)}
+                    href={`/blog/${r.slug}/`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onOpen(r.slug);
+                    }}
                     className="group rounded-[var(--radius-card)] border border-[var(--border-faint)] bg-[var(--card-bg)] p-4 text-left transition-all duration-300 hover:-translate-y-[1px] hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--border-faint))]"
                   >
                     <p className="line-clamp-2 text-[13px] font-semibold leading-[1.5] text-[var(--ink-2)] transition-colors group-hover:text-[var(--accent)]">
@@ -906,7 +910,7 @@ export default function ArticleScene({
                     <p className="mt-2 text-[10px] tracking-[0.16em] text-[var(--fainter)]">
                       {r.date} · {r.read}
                     </p>
-                  </button>
+                  </a>
                 ))}
               </div>
             </div>
@@ -916,8 +920,12 @@ export default function ArticleScene({
         {/* prev / next */}
         <nav className="mt-[clamp(40px,7vh,64px)] grid gap-4 border-t border-[var(--border)] pt-[clamp(24px,4vh,40px)] sm:grid-cols-2">
           {prev ? (
-            <button
-              onClick={() => onOpen(prev.slug)}
+            <a
+              href={`/blog/${prev.slug}/`}
+              onClick={(e) => {
+                e.preventDefault();
+                onOpen(prev.slug);
+              }}
               className="group text-left"
             >
               <span className="inline-flex items-center gap-1 text-[10px] tracking-[0.3em] text-[var(--fainter)] transition-transform duration-300 group-hover:-translate-x-1">
@@ -926,13 +934,17 @@ export default function ArticleScene({
               <span className="mt-2 block font-medium text-[var(--ink-2)] transition-colors group-hover:text-[var(--accent)]">
                 {prev.title.split("\n").join(" ")}
               </span>
-            </button>
+            </a>
           ) : (
             <span aria-hidden />
           )}
           {next ? (
-            <button
-              onClick={() => onOpen(next.slug)}
+            <a
+              href={`/blog/${next.slug}/`}
+              onClick={(e) => {
+                e.preventDefault();
+                onOpen(next.slug);
+              }}
               className="group text-right sm:col-start-2"
             >
               <span className="inline-flex items-center gap-1 text-[10px] tracking-[0.3em] text-[var(--fainter)] transition-transform duration-300 group-hover:translate-x-1">
@@ -941,7 +953,7 @@ export default function ArticleScene({
               <span className="mt-2 block font-medium text-[var(--ink-2)] transition-colors group-hover:text-[var(--accent)]">
                 {next.title.split("\n").join(" ")}
               </span>
-            </button>
+            </a>
           ) : (
             <span aria-hidden />
           )}

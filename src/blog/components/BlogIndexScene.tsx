@@ -299,9 +299,13 @@ export default function BlogIndexScene({
             </div>
             <div className="mt-[clamp(8px,1.5vh,14px)] grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               {directory.map((g) => (
-                <button
+                <a
                   key={g.topic.id}
-                  onClick={() => onOpenTopic(g.topic.id)}
+                  href={`/blog/topic/${g.topic.id}/`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onOpenTopic(g.topic.id);
+                  }}
                   className="group flex min-h-[clamp(96px,13vh,118px)] flex-col gap-3 border border-[var(--border-faint)] bg-[var(--card-bg)] p-[clamp(14px,1.8vw,20px)] text-left shadow-[var(--card-shadow)] transition-all duration-300 hover:-translate-y-[1px] hover:border-[color-mix(in_srgb,var(--topic)_55%,var(--border-strong))] hover:shadow-[var(--card-shadow-hover)] focus-visible:outline-2 focus-visible:outline-[var(--accent)] focus-visible:outline-offset-2"
                   style={{ "--topic": g.topic.color } as CSSProperties}
                 >
@@ -342,7 +346,7 @@ export default function BlogIndexScene({
                       →
                     </span>
                   </span>
-                </button>
+                </a>
               ))}
             </div>
           </div>

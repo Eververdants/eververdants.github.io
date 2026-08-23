@@ -10,10 +10,10 @@
    - name/slogan: localized hero copy (the slogan is the band's 标语)
    - color: a mid-tone accent used to derive the scrapbook color blocks
      and paper wash via color-mix, so both light and dark themes read it
-   - photos: scrapbook captions for the placeholder blocks — "fig. 01 …
-     night build" reads like a real journal page. A future `img` field can
-     swap a block for a real photo; the lazy-load architecture (TopicArt)
-     is already in place.
+   - photos: scrapbook captions for the polaroids — "fig. 01 … night
+     build" reads like a real journal page. An `img` path (under
+     /assets/) swaps the color block for the real lazy-loaded photo;
+     photos without one keep their tinted color block.
 
    Topics are curated here, ordered for the index. Empty topics (no essay
    claims them) simply don't render. Adding a topic = one entry here +
@@ -30,8 +30,11 @@ export interface BlogTopic {
   slogan: { en: string; zh: string };
   // Mid-tone accent — color blocks and paper wash derive from it.
   color: string;
-  // Scrapbook captions for the placeholder photos (fig. 01 / 02 / 03).
-  photos: { en: string; zh: string }[];
+  // Scrapbook polaroids (fig. 01 / 02 / 03): caption + optional photo.
+  // `img` points at a webp under /assets/; entries without one fall back
+  // to the tinted color block. Photos are generated film-style stills
+  // matched to each caption's scene.
+  photos: { en: string; zh: string; img?: string }[];
 }
 
 export const topics: BlogTopic[] = [

@@ -10,6 +10,12 @@
 //   dist/projects/index.html
 // - renders /photos/ (gallery + every /photos/work/<slug> detail, each with
 //   its own Photograph JSON-LD) into dist/photos/…
+// - renders / (the main landing site) and bakes the fully rendered DOM —
+//   hero <h1>, resume, works, journal sections — into dist/index.html so
+//   crawlers that skip JS see real homepage content instead of an empty
+//   #root (Bing Site Scan flagged "H1 tag missing" for exactly this reason)
+// - renders /blog/ (the index/hub that links every article) into
+//   dist/blog/index.html so crawlers see the full post list without JS
 // - writes dist/blog/<slug>/index.html, dist/sitemap.xml, dist/robots.txt
 //
 // Safety: never fails the build. Missing Chrome / render failure => warn and
@@ -336,12 +342,46 @@ async function renderWork(chromePath, slug) {
   );
 }
 
+/* ---- render the main landing site, capture the whole document ----
+   The built index.html body is an empty #root, so a crawler without JS sees
+   no headings or copy at all on / (Bing Site Scan: "H1 tag missing"). Bake
+   the rendered DOM — hero <h1> included — into dist/index.html; createRoot
+   re-renders over it for real browsers, same as /projects/ + /photos/. */
+async function renderHome(chromePath) {
+  const html = await renderWithChrome(
+    chromePath,
+    `http://127.0.0.1:${PORT}/`,
+    `(() => { const m = document.querySelector('main'); const h = m && m.querySelector('h1'); return m && h && h.textContent.trim() && m.innerHTML.length > 2000 ? document.documentElement.outerHTML : ''; })()`,
+  );
+  const out = join(ROOT, "dist/index.html");
+  writeFileSync(out, html);
+  return out;
+}
+
+/* ---- render the blog index, capture the whole document ----
+   /blog/ is the hub that links every article; without it a crawler that
+   skips JS finds no internal links to the posts at all. Bake it exactly
+   like /projects/ + /photos/. */
+async function renderBlogIndex(chromePath) {
+  const html = await renderWithChrome(
+    chromePath,
+    `http://127.0.0.1:${PORT}/blog/`,
+    `(() => { const links = document.querySelectorAll('a[href^="/blog/"]').length; const h = document.querySelector('h1'); return h && h.textContent.trim() && links >= 2 ? document.documentElement.outerHTML : ''; })()`,
+  );
+  const out = join(ROOT, "dist/blog/index.html");
+  writeFileSync(out, html);
+  return out;
+}
+
 /* ---- build a static shell for one article from the built blog entry's
    index.html template (the article reader lives on the blog sub-site) ---- */
 function buildStatic(post, articleHtml) {
   const url = `${SITE}/blog/${post.slug}/`;
   const dateISO = post.date.replace(/\./g, "-"); // "2026.07.04" -> "2026-07-04" (ISO date)
   let tpl = readFileSync(join(ROOT, "dist/blog/index.html"), "utf8");
+  // Articles are Chinese (JSON-LD says inLanguage: zh-Hans); the blog shell's
+  // lang="en" contradicts the content and weakens the relevance signal.
+  tpl = tpl.replace(/<html lang="en"/, `<html lang="zh-Hans"`);
   tpl = tpl.replace(
     /<title>[\s\S]*?<\/title>/,
     `<title>${esc(post.title)} — Eververdants</title>`,
@@ -505,6 +545,8 @@ async function main() {
   let projectsOk = false;
   let photosOk = false;
   let photosWorksOk = 0;
+  let homeOk = false;
+  let blogIndexOk = false;
   if (chromePath) {
     const server = startServer();
     await sleep(300);
@@ -550,6 +592,22 @@ async function main() {
         console.log(`  ✗ photos/work/${w.slug}: ${e.message}`);
       }
     }
+    try {
+      const out = await renderHome(chromePath);
+      homeOk = true;
+      console.log(`  ✓ / prerendered -> ${out.replace(ROOT, ".")}`);
+    } catch (e) {
+      console.log(`  ✗ /: ${e.message}`);
+    }
+    // Must run AFTER the article loop: buildStatic() reads dist/blog/index.html
+    // as its template, and this overwrites that file with the baked DOM.
+    try {
+      const out = await renderBlogIndex(chromePath);
+      blogIndexOk = true;
+      console.log(`  ✓ /blog/ prerendered -> ${out.replace(ROOT, ".")}`);
+    } catch (e) {
+      console.log(`  ✗ /blog/: ${e.message}`);
+    }
     server.close();
   } else {
     console.log(
@@ -562,7 +620,7 @@ async function main() {
   writeRobots();
   writeRss(posts);
   console.log(
-    `prerender done: ${ok}/${posts.length} articles${projectsOk ? " + /projects/" : ""}${photosOk ? " + /photos/" : ""}${photosWorksOk ? ` + ${photosWorksOk}/${works.length} photo works` : ""} + sitemap.xml + robots.txt + rss.xml`,
+    `prerender done: ${ok}/${posts.length} articles${blogIndexOk ? " + /blog/" : ""}${homeOk ? " + /" : ""}${projectsOk ? " + /projects/" : ""}${photosOk ? " + /photos/" : ""}${photosWorksOk ? ` + ${photosWorksOk}/${works.length} photo works` : ""} + sitemap.xml + robots.txt + rss.xml`,
   );
 }
 

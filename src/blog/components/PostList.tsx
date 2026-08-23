@@ -29,8 +29,16 @@ export default function PostList({
               : "border-b border-[var(--border-faint)]"
           }
         >
-          <button
-            onClick={() => onOpen(post.slug)}
+          {/* A real href keeps every row crawlable (crawlers discover pages
+              through <a>, never button onClick) and makes middle-click /
+              ctrl+click "open in new tab" work; the click handler preserves
+              the in-app SPA swap. */}
+          <a
+            href={`/blog/${post.slug}/`}
+            onClick={(e) => {
+              e.preventDefault();
+              onOpen(post.slug);
+            }}
             className="group block w-full py-[clamp(16px,2.4vh,26px)] text-left transition-colors hover:bg-[color-mix(in_srgb,var(--accent)_3.5%,transparent)] focus-visible:outline-2 focus-visible:outline-[var(--accent)] focus-visible:outline-offset-[-2px]"
           >
             <div className="sm:grid sm:grid-cols-[96px_minmax(0,1fr)_auto] sm:items-baseline sm:gap-x-5">
@@ -73,7 +81,7 @@ export default function PostList({
                 </span>
               </span>
             </div>
-          </button>
+          </a>
         </li>
       ))}
     </ul>

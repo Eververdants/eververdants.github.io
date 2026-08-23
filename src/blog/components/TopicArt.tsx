@@ -2,16 +2,15 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { BlogTopic } from "../../data/journal";
 
 /* 专题手账拼贴 — the scrapbook strip under each topic hero band. Three
-   polaroid placeholders (pure COLOR BLOCKS for now — a future `img` swaps
-   the block for a real lazy-loaded photo), tilted and stacked with washi
-   tape, captions, dots and a star sticker. Read left → right like a
-   journal spread.
+   polaroids tilted and stacked with washi tape, captions, dots and a
+   star sticker. Read left → right like a journal spread. A polaroid with
+   an `img` shows the real photo over its tinted block (the block stays
+   as the loading wash); one without keeps the pure color block.
 
    Lazy gating: the strip mounts only when it approaches the viewport
-   (IntersectionObserver with a ~half-viewport margin) — the same gate
-   that will trigger real photo fetches later: swap
-   <span class="scrap-block"> for <img loading="lazy"> and the fetch
-   happens exactly when the strip scrolls near, never on first paint. */
+   (IntersectionObserver with a ~half-viewport margin) — so the photos'
+   `loading="lazy"` fetches happen exactly when the strip scrolls near,
+   never on first paint. */
 
 /* IO gate — mounts once, disconnects after the first intersection. */
 function useNearViewport<T extends HTMLElement>(marginPx = 480) {
@@ -39,16 +38,19 @@ function useNearViewport<T extends HTMLElement>(marginPx = 480) {
   return { ref, near };
 }
 
-/* One polaroid placeholder — a paper frame, a color block, a tape strip
-   and a caption. `style` carries size; `rotate` tilts the tile. */
+/* One polaroid — a paper frame, a photo (or the tinted color block
+   while it loads / when there is none), a tape strip and a caption.
+   `style` carries size; `rotate` tilts the tile. */
 function ScrapPhoto({
   caption,
+  img,
   rotate,
   delay,
   className,
   style,
 }: {
   caption: string;
+  img?: string;
   rotate: number;
   delay: number;
   className?: string;
@@ -65,9 +67,13 @@ function ScrapPhoto({
     >
       {/* the tape goes on top of the frame's top edge */}
       <span className="scrap-tape" aria-hidden />
-      {/* placeholder color block — a future <img loading="lazy"> lands
-          in the same slot, fetched only when this strip scrolls near */}
-      <span className="scrap-block" aria-hidden />
+      {/* the tinted block doubles as the photo's loading wash; the img
+          is fetched only when this strip scrolls near (lazy + gated) */}
+      <span className="scrap-block" aria-hidden>
+        {img && (
+          <img src={img} alt="" loading="lazy" decoding="async" />
+        )}
+      </span>
       <span className="scrap-caption">{caption}</span>
     </div>
   );
@@ -125,6 +131,7 @@ export default function TopicArt({
           {/* main polaroid — tallest, tilted left */}
           <ScrapPhoto
             caption={cap(0)}
+            img={topic.photos[0]?.img}
             rotate={-2.6}
             delay={0}
             className="h-[92%] w-[36%] max-w-[260px]"
@@ -132,6 +139,7 @@ export default function TopicArt({
           {/* mid — steps down, tilted the other way */}
           <ScrapPhoto
             caption={cap(1)}
+            img={topic.photos[1]?.img}
             rotate={3.4}
             delay={120}
             className="h-[72%] w-[28%] max-w-[200px]"
@@ -139,6 +147,7 @@ export default function TopicArt({
           {/* small — tucked low */}
           <ScrapPhoto
             caption={cap(2)}
+            img={topic.photos[2]?.img}
             rotate={-1.6}
             delay={240}
             className="h-[56%] w-[23%] max-w-[160px]"
