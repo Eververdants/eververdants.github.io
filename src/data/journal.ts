@@ -86,6 +86,7 @@ export const journal: Journal = {
     caption: "FIELD NOTES · MMXXIV — MMXXVI",
   },
   order: [
+    "the-odyssey-defy-the-gods",
     "hair-color-as-evidence",
     "deepseek-harness-installation-guide",
     "stone-and-egg-three-classics",
@@ -109,6 +110,7 @@ export const journalZh: Journal = {
     caption: "田野札记 · 二〇二四 — 二〇二六",
   },
   order: [
+    "the-odyssey-defy-the-gods",
     "hair-color-as-evidence",
     "deepseek-harness-installation-guide",
     "stone-and-egg-three-classics",
