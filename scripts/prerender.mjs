@@ -26,8 +26,8 @@ import {
   writeFileSync,
   mkdirSync,
   existsSync,
-  rm,
 } from "node:fs";
+import { rm } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 import { join, resolve, extname } from "node:path";
