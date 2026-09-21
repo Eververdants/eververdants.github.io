@@ -23,3 +23,11 @@ declare module "virtual:blog-index" {
 declare module "virtual:blog-search-index" {
   export const searchIndex: Record<"en" | "zh", Record<string, string>>;
 }
+
+/* virtual:works-index — photo works metadata parsed at build time from
+   src/photos/works/*.md by worksIndexPlugin, newest first. */
+declare module "virtual:works-index" {
+  import type { Work } from "./photos/data/types";
+
+  export const works: Work[];
+}

@@ -9,6 +9,7 @@
    directives — so the vanilla-TS sub-site can consume it exactly
    like the React ones. Import it FIRST in each entry stylesheet.
    ============================================================ */
+@import "./topbar.css";
 
 /* ---------- palette ----------
    One warm neutral family (never mixing warm and cool greys) with a
