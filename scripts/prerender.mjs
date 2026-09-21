@@ -26,8 +26,8 @@ import {
   writeFileSync,
   mkdirSync,
   existsSync,
-  rm,
 } from "node:fs";
+import { rm } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 import { join, resolve, extname } from "node:path";
@@ -78,10 +78,10 @@ function parsePosts() {
   const posts = new Map();
   for (const file of collectPosts(dir)) {
     const src = readFileSync(file, "utf8");
-    const fm = src.match(/^---\n([\s\S]*?)\n---/);
+    const fm = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
     if (!fm) continue;
     const kv = (key) => {
-      const line = fm[1].match(new RegExp(`^${key}:\\s*(.*)$`, "m"));
+      const line = fm[1].match(new RegExp(`^${key}:[ \t]*(.*)$`, "m"));
       if (!line) return "";
       let v = line[1].trim();
       if (v.startsWith('"')) {
@@ -115,10 +115,10 @@ function parseWorks() {
   for (const name of names) {
     if (!name.endsWith(".md")) continue;
     const src = readFileSync(join(dir, name), "utf8");
-    const fm = src.match(/^---\n([\s\S]*?)\n---/);
+    const fm = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
     if (!fm) continue;
     const kv = (key) => {
-      const line = fm[1].match(new RegExp(`^${key}:\\s*(.*)$`, "m"));
+      const line = fm[1].match(new RegExp(`^${key}:[ \t]*(.*)$`, "m"));
       if (!line) return "";
       return line[1].trim().replace(/^"|"$/g, "");
     };
