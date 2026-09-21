@@ -1,0 +1,216 @@
+/* <site-palette> styles. Imported from tokens.css, so any entry with the
+ * design system also has the palette. Light DOM, prefixed classes — same
+ * reason as the top bar: prerendering cannot serialise a shadow tree. */
+
+.palette {
+  width: 100%;
+  max-width: 620px;
+  margin: clamp(48px, 14vh, 120px) auto auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  overflow: visible;
+}
+
+.palette::backdrop {
+  background: color-mix(in oklab, var(--ink) 42%, transparent);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.palette[open] {
+  animation: paletteIn var(--dur-2) var(--ease-out) both;
+}
+
+@keyframes paletteIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.palette__box {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r-xl);
+  background: var(--glass-fill-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow:
+    var(--glass-shadow-lift),
+    inset 0 1px 0 var(--glass-specular);
+  overflow: hidden;
+}
+
+@supports (corner-shape: squircle) {
+  .palette__box {
+    corner-shape: squircle;
+  }
+}
+
+.palette__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.palette__field svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--faint);
+}
+.palette__field input {
+  flex: 1;
+  min-width: 0;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-lg);
+  color: var(--ink);
+  outline: none;
+}
+.palette__field input::placeholder {
+  color: var(--faintest);
+}
+.palette__field input::-webkit-search-cancel-button {
+  display: none;
+}
+.palette__field kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 4px 6px;
+  border-radius: var(--r-xs);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--fainter);
+}
+
+.palette__results {
+  max-height: min(52vh, 420px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  scrollbar-width: thin;
+}
+.palette__note {
+  margin: 0;
+  padding: 22px 14px;
+  font-size: var(--text-sm);
+  color: var(--faint);
+  text-align: center;
+}
+.palette__group {
+  margin: 10px 8px 4px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--fainter);
+}
+.palette__group:first-child {
+  margin-top: 4px;
+}
+
+.palette__row a {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 4px 14px;
+  padding: 9px 11px;
+  border-radius: var(--r-md);
+  text-decoration: none;
+  color: var(--body);
+  transition: background-color var(--dur-1) var(--ease-out);
+}
+@supports (corner-shape: squircle) {
+  .palette__row a {
+    corner-shape: squircle;
+  }
+}
+.palette__row a:hover,
+.palette__row--on a {
+  background: var(--accent-soft);
+}
+.palette__row--on a {
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+.palette__title {
+  font-size: var(--text-base);
+  font-weight: 550;
+  color: var(--ink);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.palette__side {
+  font-size: var(--text-xs);
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.palette__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  padding: 9px 14px;
+  border-top: 1px solid var(--border-soft);
+  font-size: var(--text-xs);
+  color: var(--faint);
+}
+.palette__foot kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 5px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-2);
+}
+.palette__foot i {
+  font-style: normal;
+  margin-inline-start: 5px;
+}
+
+@media (max-width: 600px) {
+  .palette {
+    max-width: none;
+    margin: 0;
+    height: 100%;
+  }
+  .palette__box {
+    height: 100%;
+    border-radius: 0;
+  }
+  .palette__results {
+    max-height: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .palette[open] {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .palette__box {
+    background: var(--surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .palette::backdrop {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

@@ -14,6 +14,10 @@ declare module "react" {
         search?: boolean;
         compact?: boolean;
       };
+      "site-palette": DetailedHTMLProps<
+        HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
     }
   }
 }

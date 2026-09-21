@@ -8,7 +8,7 @@
  * routes any more. A meta refresh plus a canonical link hands both the reader
  * and the crawler to wherever that content lives now, which is kinder than a
  * 404 and cheaper than a rewrite rule Pages does not support. */
-import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 const SITE = "https://eververdants.github.io";
@@ -39,8 +39,34 @@ function redirectPage(to, label) {
 `;
 }
 
-copyFileSync("dist/index.html", "dist/404.html");
-console.log("copied dist/index.html -> dist/404.html");
+/* GitHub Pages serves 404.html for any path with no file behind it, so it is
+   built from the hub — but it must not masquerade as the homepage. Left alone
+   it carried the hub's rel=canonical, which tells every crawler that an
+   arbitrary wrong URL *is* https://eververdants.github.io/ — a soft-404 and a
+   canonical conflict in one. Strip the canonical, add noindex, and give it a
+   title that says what happened. */
+function makeNotFound() {
+  const hub = readFileSync("dist/index.html", "utf8");
+  const html = hub
+    .replace(/<link rel="canonical"[^>]*>\s*/i, "")
+    .replace(
+      /<meta name="description"[^>]*>\s*/i,
+      '<meta name="description" content="Page not found." />\n    ',
+    )
+    .replace(
+      /<title>[\s\S]*?<\/title>/i,
+      "<title>Page not found — Eververdants</title>",
+    );
+  return html.includes('name="robots"')
+    ? html
+    : html.replace(
+        /<meta name="viewport"/i,
+        '<meta name="robots" content="noindex" />\n    <meta name="viewport"',
+      );
+}
+
+writeFileSync("dist/404.html", makeNotFound());
+console.log("wrote dist/404.html (noindex, canonical stripped)");
 
 for (const r of REDIRECTS) {
   const file = join("dist", r.from.replace(/^\//, ""), "index.html");

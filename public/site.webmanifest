@@ -1,0 +1,32 @@
+{
+  "name": "Eververdants — 万山青未阑",
+  "short_name": "Eververdants",
+  "description": "High-school student and open-source developer. Open-source tools, essays, photography.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "minimal-ui",
+  "background_color": "#f6f4ee",
+  "theme_color": "#f6f4ee",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Blog", "url": "/blog/" },
+    { "name": "Works", "url": "/projects/" },
+    { "name": "Photographs", "url": "/photos/" },
+    { "name": "About", "url": "/about/" }
+  ]
+}

@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { initPrefs } from "./shared/prefs";
 import { defineTopBar } from "./shared/topbar";
+import { definePalette } from "./shared/palette";
 import App from "./hub/App";
 import "./hub/hub.css";
 
@@ -9,5 +10,6 @@ import "./hub/hub.css";
    store the components subscribe to. */
 initPrefs();
 defineTopBar();
+definePalette();
 
 createRoot(document.getElementById("root")!).render(<App />);

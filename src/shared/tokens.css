@@ -10,6 +10,7 @@
    like the React ones. Import it FIRST in each entry stylesheet.
    ============================================================ */
 @import "./topbar.css";
+@import "./palette.css";
 
 /* ---------- palette ----------
    One warm neutral family (never mixing warm and cool greys) with a

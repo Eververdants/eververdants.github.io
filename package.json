@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "vite",
-    "build": "vite build && node scripts/postbuild.mjs && node scripts/prerender.mjs",
+    "dev": "node scripts/build-search-index.mjs && vite",
+    "build": "vite build && node scripts/postbuild.mjs && node scripts/build-search-index.mjs && node scripts/prerender.mjs",
     "sync": "node scripts/fetch-repos.mjs",
     "preview": "vite preview",
     "new-work": "node scripts/new-work.mjs"

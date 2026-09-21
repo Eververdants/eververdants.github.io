@@ -66,7 +66,8 @@ export default function AboutPage() {
 
   return (
     <>
-      <site-topbar active="about" />
+      <site-topbar active="about" search />
+      <site-palette />
 
       <main id="main" className="about">
         <header className="about__hero rise">

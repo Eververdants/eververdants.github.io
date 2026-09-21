@@ -68,6 +68,8 @@ const SHARED_HEAD = [
   `<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141310" />`,
   `<link rel="icon" href="/favicon.svg" type="image/svg+xml" />`,
   `<link rel="icon" href="/favicon.png" type="image/png" />`,
+  `<link rel="apple-touch-icon" href="/apple-touch-icon.png" />`,
+  `<link rel="manifest" href="/site.webmanifest" />`,
   /* Variable fonts: one file covers every weight. crossorigin is required
      even same-origin because font fetches are always CORS-mode. */
   `<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />`,
@@ -76,6 +78,7 @@ const SHARED_HEAD = [
   /* Machine-readable surface that generative engines follow. */
   `<link rel="alternate" type="application/rss+xml" title="Eververdants — Blog" href="https://eververdants.github.io/rss.xml" />`,
   `<link rel="alternate" type="application/json" title="Repositories" href="https://eververdants.github.io/projects.json" />`,
+  `<link rel="search" type="application/json" href="https://eververdants.github.io/search.json" />`,
   `<link rel="llms" href="https://eververdants.github.io/llms.txt" />`,
   `<meta property="og:site_name" content="Eververdants" />`,
   `<meta property="og:image" content="https://eververdants.github.io/og-image.png" />`,

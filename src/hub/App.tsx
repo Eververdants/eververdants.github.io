@@ -118,7 +118,8 @@ export default function Hub() {
 
   return (
     <>
-      <site-topbar active="home" />
+      <site-topbar active="home" search />
+      <site-palette />
 
       <main id="main" className="hub">
         {/* ---------- identity ---------- */}
