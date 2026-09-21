@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="h-full overflow-x-hidden" data-theme="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,9 +8,8 @@
     </title>
     <meta
       name="description"
-      content="Eververdants — high-school student &amp; open-source developer. Open-source tools (Tauri/Rust/Vue), AI × calligraphy &amp; photography, essays on Mao Zedong's Selected Works."
+      content="Eververdants (万山青未阑) — high-school student and open-source developer from Kunshan, Jiangsu. Open-source tools in Tauri/Rust/Vue/TypeScript, essays on Mao Zedong's Selected Works, photography and calligraphy."
     />
-    <meta name="author" content="Eververdants" />
     <meta name="msvalidate.01" content="6E812B9E268DCCB7FC13E8A37E05E18E" />
     <meta
       name="google-site-verification"
@@ -18,50 +17,18 @@
     />
     <link rel="canonical" href="https://eververdants.github.io/" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Eververdants" />
     <meta property="og:title" content="Eververdants" />
     <meta
       property="og:description"
       content="High-school student &amp; open-source developer — open-source tools, AI × calligraphy &amp; photography, essays on Mao Zedong's Selected Works."
     />
     <meta property="og:url" content="https://eververdants.github.io/" />
-    <meta
-      property="og:image"
-      content="https://eververdants.github.io/og-image.png"
-    />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Eververdants" />
-    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Eververdants" />
     <meta
       name="twitter:description"
       content="High-school student &amp; open-source developer — open-source tools, AI × calligraphy &amp; photography, essays on Mao Zedong's Selected Works."
     />
-    <meta
-      name="twitter:image"
-      content="https://eververdants.github.io/og-image.png"
-    />
-    <link rel="icon" href="/favicon.png" type="image/png" />
-    <!-- Self-hosted fonts: preload so the hero/intro text paints with the
-         real face on first paint (no swap flash, no CLS). Font fetches are
-         always CORS-mode, so crossorigin is required even same-origin. -->
-    <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/fraunces-italic-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" as="image" href="/assets/avatar.webp" fetchpriority="high" />
-    <link
-      rel="alternate"
-      type="application/rss+xml"
-      title="Eververdants Blog"
-      href="https://eververdants.github.io/rss.xml"
-    />
-    <link
-      rel="alternate"
-      type="application/json"
-      href="https://eververdants.github.io/projects.json"
-    />
-    <link rel="llms.txt" href="https://eververdants.github.io/llms.txt" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -111,65 +78,9 @@
         }
       }
     </script>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "ItemList",
-        "name": "Eververdants — Selected Projects",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "item": {
-              "@type": "SoftwareSourceCode",
-              "name": "ETBSaveManager",
-              "description": "A Tauri 2.0 save manager for Escape The Backrooms — full CRUD, multilingual UI, virtual-scrolled item list. The most-starred tool here.",
-              "codeRepository": "https://github.com/Eververdants/ETBSaveManager",
-              "programmingLanguage": ["Vue", "TypeScript", "Rust"],
-              "author": { "@type": "Person", "name": "Eververdants" }
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "item": {
-              "@type": "SoftwareSourceCode",
-              "name": "AppAudioRouter",
-              "description": "A Windows audio routing tool — point each application's sound at the device you want, with automatic refresh and route memory across sessions.",
-              "codeRepository": "https://github.com/Eververdants/AppAudioRouter",
-              "programmingLanguage": ["Python"],
-              "author": { "@type": "Person", "name": "Eververdants" }
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 3,
-            "item": {
-              "@type": "SoftwareSourceCode",
-              "name": "ArtText-Studio",
-              "description": "Turn words into shareable visual masterpieces — hundreds of procedurally generated styles, or let AI match the vibe. Code and design in one tool.",
-              "codeRepository": "https://github.com/Eververdants/ArtText-Studio",
-              "programmingLanguage": ["TypeScript", "Canvas"],
-              "author": { "@type": "Person", "name": "Eververdants" }
-            }
-          }
-        ]
-      }
-    </script>
   </head>
-  <body class="bg-black font-sans text-white antialiased">
-    <script>
-      // Incoming side of a main site ↔ blog swap: the outgoing page flags the
-      // navigation in sessionStorage; cover this page with the 米白 loading
-      // screen BEFORE first paint (React hasn't run yet), so the new site
-      // never flashes under it. LoadingOverlay fades it out once mounted.
-      try {
-        if (sessionStorage.getItem("__siteNavFrom")) {
-          sessionStorage.removeItem("__siteNavFrom");
-          document.body.classList.add("nav-loading");
-        }
-      } catch (e) {}
-    </script>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

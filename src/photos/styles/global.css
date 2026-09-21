@@ -4,6 +4,7 @@
    intentionally excluded so the photos design tokens below stay intact. */
 @import "tailwindcss/theme" layer(theme);
 @import "tailwindcss/utilities" layer(utilities);
+@import "../../shared/tokens.css";
 
 /* === Self-hosted fonts === */
 @font-face {

@@ -48,6 +48,63 @@ function subSiteEntryFallbackPlugin() {
   };
 }
 
+/* ---- shared <head> block ------------------------------------------------
+   Every entry needs the same four things: a pre-paint preference script (so
+   nobody flashes the wrong theme or language), the self-hosted font preloads,
+   the icon/manifest set, and the machine-readable links that generative
+   engines follow. Duplicating them across five HTML files is how they drift,
+   so they are injected from here instead — each file keeps only its own
+   title / description / canonical / OG.
+
+   The inline script mirrors src/shared/prefs.ts exactly (same keys, same
+   precedence). Keep the two in step. */
+const HEAD_INIT = `<script>(function(){try{var q=new URLSearchParams(location.search);var t=q.get("theme");t=(t==="dark"||t==="light")?t:localStorage.getItem("blog-theme");if(t===null&&window.matchMedia)t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":null;document.documentElement.dataset.theme=t==="dark"?"dark":"light";var l=q.get("lang");l=(l==="en"||l==="zh")?l:localStorage.getItem("blog-lang");document.documentElement.lang=l==="zh"?"zh-Hans":"en";}catch(e){document.documentElement.dataset.theme="light"}})();</script>`;
+
+const SHARED_HEAD = [
+  HEAD_INIT,
+  `<meta name="author" content="Eververdants" />`,
+  `<meta name="theme-color" content="#f6f4ee" />`,
+  `<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141310" />`,
+  `<link rel="icon" href="/favicon.svg" type="image/svg+xml" />`,
+  `<link rel="icon" href="/favicon.png" type="image/png" />`,
+  /* Variable fonts: one file covers every weight. crossorigin is required
+     even same-origin because font fetches are always CORS-mode. */
+  `<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />`,
+  `<link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />`,
+  `<link rel="preload" href="/fonts/fraunces-italic-latin.woff2" as="font" type="font/woff2" crossorigin />`,
+  /* Machine-readable surface that generative engines follow. */
+  `<link rel="alternate" type="application/rss+xml" title="Eververdants — Blog" href="https://eververdants.github.io/rss.xml" />`,
+  `<link rel="alternate" type="application/json" title="Repositories" href="https://eververdants.github.io/projects.json" />`,
+  `<link rel="llms" href="https://eververdants.github.io/llms.txt" />`,
+  `<meta property="og:site_name" content="Eververdants" />`,
+  `<meta property="og:image" content="https://eververdants.github.io/og-image.png" />`,
+  `<meta property="og:image:width" content="1200" />`,
+  `<meta property="og:image:height" content="630" />`,
+  `<meta property="og:image:alt" content="Eververdants — 万山青未阑" />`,
+  `<meta name="twitter:card" content="summary_large_image" />`,
+  `<meta name="twitter:image" content="https://eververdants.github.io/og-image.png" />`,
+].join("\n    ");
+
+/* Vite's tag-descriptor API cannot inject a raw multi-line block, so the
+   shared head is spliced in as a string. It lands after the viewport meta
+   rather than right after <head>, so `charset` stays the first thing in the
+   document as the HTML spec asks. */
+function sharedHeadPlugin(): Plugin {
+  return {
+    name: "shared-head",
+    transformIndexHtml: {
+      order: "pre",
+      handler(html: string) {
+        const block = `\n    ${SHARED_HEAD}\n    `;
+        const viewport = /<meta name="viewport"[^>]*>/;
+        return viewport.test(html)
+          ? html.replace(viewport, (m) => m + block)
+          : html.replace(/<head>/, `<head>${block}`);
+      },
+    },
+  };
+}
+
 /* ---- build-time blog index — the core of on-demand loading ----
    Scans every markdown file under src/blog/posts (recursively, English
    and *.zh.md translations) at build time and exposes two virtual
@@ -158,6 +215,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    sharedHeadPlugin(),
     subSiteEntryFallbackPlugin(),
     blogIndexPlugin(),
     worksIndexPlugin(),
@@ -166,11 +224,10 @@ export default defineConfig({
     // Modern browsers only (es2022): smaller output, no legacy transforms.
     target: "es2022",
     rollupOptions: {
-      // Four independent SPA entries: the main site at /, the light blog
-      // sub-site at /blog/, the WORKS INDEX at /projects/ and the photo
-      // journal at /photos/. Each gets its own index.html + app bundle; all
-      // deploy together inside one dist/ (GitHub Pages serves them as
-      // subdirectories).
+      // Four independent SPA entries: the navigation hub at /, the blog at
+      // /blog/, the works index at /projects/ and the photo journal at
+      // /photos/. Each gets its own index.html + app bundle; all deploy
+      // together inside one dist/ (GitHub Pages serves them as directories).
       input: {
         main: fileURLToPath(new URL("./index.html", import.meta.url)),
         blog: fileURLToPath(new URL("./blog/index.html", import.meta.url)),
@@ -180,15 +237,13 @@ export default defineConfig({
         photos: fileURLToPath(new URL("./photos/index.html", import.meta.url)),
       },
       output: {
-        // Split heavy deps into stable vendor chunks so content updates
-        // only re-download the small app chunk (cache-friendly on mobile).
+        // Split React into a stable vendor chunk so content updates only
+        // re-download the small app chunk (cache-friendly on mobile).
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
           if (id.includes("react") || id.includes("scheduler"))
             return "vendor-react";
-          if (id.includes("gsap") || id.includes("lenis"))
-            return "vendor-motion";
-          return "vendor-misc";
+          return undefined;
         },
       },
     },

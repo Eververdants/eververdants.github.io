@@ -1,0 +1,160 @@
+/* Site-wide preferences — one implementation for all five entries.
+ *
+ * Language and theme live in the same two localStorage keys the site has
+ * always used (`blog-lang` / `blog-theme`), so a choice made on any page
+ * follows the reader everywhere. Resolution order is:
+ *
+ *   ?lang= / ?theme=  →  localStorage  →  prefers-color-scheme  →  light
+ *
+ * The URL override exists so a link can hand someone a specific language
+ * (and so the prerendered zh article pages can be shared directly).
+ *
+ * Framework-free by design: /projects is deliberately dependency-less
+ * vanilla TS, so this module touches nothing but the DOM. React entries
+ * use the thin `usePrefs` hook in ./prefs-react. */
+
+export type Lang = "en" | "zh";
+export type Theme = "light" | "dark";
+
+export interface Prefs {
+  lang: Lang;
+  theme: Theme;
+}
+
+const LANG_KEY = "blog-lang";
+const THEME_KEY = "blog-theme";
+
+const listeners = new Set<(p: Prefs) => void>();
+
+let current: Prefs | null = null;
+
+function read(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null; /* private mode / disabled storage */
+  }
+}
+
+function write(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* ignore — the preference still applies for this page load */
+  }
+}
+
+function asLang(v: string | null | undefined): Lang | null {
+  return v === "en" || v === "zh" ? v : null;
+}
+
+function asTheme(v: string | null | undefined): Theme | null {
+  return v === "light" || v === "dark" ? v : null;
+}
+
+function urlOverride(): Partial<Prefs> {
+  try {
+    const q = new URLSearchParams(location.search);
+    return { lang: asLang(q.get("lang")) ?? undefined, theme: asTheme(q.get("theme")) ?? undefined };
+  } catch {
+    return {};
+  }
+}
+
+function systemTheme(): Theme {
+  try {
+    return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  } catch {
+    return "light";
+  }
+}
+
+export function resolvePrefs(): Prefs {
+  const ov = urlOverride();
+  return {
+    lang: ov.lang ?? asLang(read(LANG_KEY)) ?? "en",
+    theme:
+      ov.theme ?? asTheme(read(THEME_KEY)) ?? systemTheme(),
+  };
+}
+
+function apply(p: Prefs): void {
+  const root = document.documentElement;
+  root.lang = p.lang === "zh" ? "zh-Hans" : "en";
+  root.dataset.theme = p.theme;
+}
+
+/** Current preferences, computed once per page and then kept in memory. */
+export function getPrefs(): Prefs {
+  if (!current) current = resolvePrefs();
+  return current;
+}
+
+/** Write the attributes before first paint. Called at module scope by every entry. */
+export function initPrefs(): Prefs {
+  current = resolvePrefs();
+  apply(current);
+  return current;
+}
+
+export function setLang(lang: Lang): void {
+  current = { ...getPrefs(), lang };
+  apply(current);
+  write(LANG_KEY, lang);
+  emit();
+}
+
+export function setTheme(theme: Theme): void {
+  current = { ...getPrefs(), theme };
+  apply(current);
+  write(THEME_KEY, theme);
+  emit();
+}
+
+/** Flip the theme through a short colour cross-fade. */
+export function toggleTheme(): void {
+  const next: Theme = getPrefs().theme === "dark" ? "light" : "dark";
+  const reduced = (() => {
+    try {
+      return matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch {
+      return true;
+    }
+  })();
+  if (reduced) {
+    setTheme(next);
+    return;
+  }
+  const root = document.documentElement;
+  root.classList.add("theme-anim");
+  setTheme(next);
+  setTimeout(() => root.classList.remove("theme-anim"), 360);
+}
+
+function emit(): void {
+  const snapshot = getPrefs();
+  for (const fn of listeners) fn(snapshot);
+}
+
+/** Subscribe to preference changes. Returns an unsubscribe function. */
+export function subscribePrefs(fn: (p: Prefs) => void): () => void {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+
+/** Pick between two strings by language. */
+export function pick<T>(lang: Lang, en: T, zh: T): T {
+  return lang === "zh" ? zh : en;
+}
+
+/** Sync the stored preference when another tab changes it. */
+try {
+  addEventListener("storage", (e) => {
+    if (e.key !== LANG_KEY && e.key !== THEME_KEY) return;
+    current = resolvePrefs();
+    apply(current);
+    emit();
+  });
+} catch {
+  /* non-browser context */
+}

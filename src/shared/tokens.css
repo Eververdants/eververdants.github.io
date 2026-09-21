@@ -1,0 +1,527 @@
+/* ============================================================
+   Eververdants — shared design system
+   ------------------------------------------------------------
+   Single source of truth for every entry (hub, /about, /blog,
+   /projects, /photos): palette, materials, corner geometry, the
+   concentric-ring motif, type scale, elevation and motion.
+
+   Plain custom properties + component classes only — no Tailwind
+   directives — so the vanilla-TS sub-site can consume it exactly
+   like the React ones. Import it FIRST in each entry stylesheet.
+   ============================================================ */
+
+/* ---------- palette ----------
+   One warm neutral family (never mixing warm and cool greys) with a
+   single desaturated teal accent. Dark is a warm ink, never #000. */
+:root {
+  color-scheme: light;
+
+  --bg: #f6f4ee;
+  --bg-2: #efece3;
+  --surface: #fffdf8;
+  --surface-2: #f1eee6;
+
+  --ink: #1a1917;
+  --body: #37352f;
+  --muted: #6a665c;
+  --faint: #8d887c;
+
+  --border: #ddd8cc;
+  --border-soft: #e6e2d8;
+  --border-strong: #c8c3b6;
+
+  --accent: #0e7a86;
+  --accent-ink: #0a5f68;
+  --accent-soft: color-mix(in oklab, var(--accent) 9%, transparent);
+  --accent-line: color-mix(in oklab, var(--accent) 34%, transparent);
+
+  /* liquid glass ------------------------------------------------
+     Translucent fill + backdrop blur/saturate, a specular hairline
+     along the top edge (single light source, upper-left), a refracted
+     bottom edge, and hue-matched shadows instead of generic black. */
+  --glass-fill: color-mix(in oklab, var(--surface) 62%, transparent);
+  --glass-fill-strong: color-mix(in oklab, var(--surface) 78%, transparent);
+  --glass-blur: 22px;
+  --glass-saturate: 170%;
+  --glass-border: color-mix(in oklab, var(--ink) 11%, transparent);
+  --glass-specular: color-mix(in oklab, #ffffff 70%, transparent);
+  --glass-refraction: color-mix(in oklab, var(--ink) 6%, transparent);
+  --glass-shadow:
+    0 1px 2px color-mix(in oklab, var(--ink) 6%, transparent),
+    0 14px 34px -16px color-mix(in oklab, var(--ink) 18%, transparent);
+  --glass-shadow-lift:
+    0 2px 4px color-mix(in oklab, var(--ink) 7%, transparent),
+    0 26px 56px -22px color-mix(in oklab, var(--ink) 26%, transparent);
+
+  /* concentric rings --------------------------------------------
+    The site motif: evenly spaced circles on a single centre, faded
+    out radially so they read as a field, not a target. */
+  --ring-color: color-mix(in oklab, var(--ink) 13%, transparent);
+  --ring-gap: 26px;
+  --ring-weight: 1px;
+
+  /* corner geometry ---------------------------------------------
+     Radii vary by nesting depth — softer containers, tighter inner
+     controls. `corner-shape: squircle` (superellipse, continuous
+     curvature) is layered on top where the browser supports it. */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+  --r-2xl: 38px;
+  --r-full: 999px;
+
+  /* type --------------------------------------------------------- */
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Fraunces", Georgia, "Songti SC", serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas,
+    monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: clamp(1.25rem, 1.05rem + 0.9vw, 1.6rem);
+  --text-2xl: clamp(1.6rem, 1.25rem + 1.6vw, 2.3rem);
+  --text-3xl: clamp(2.1rem, 1.5rem + 2.8vw, 3.4rem);
+  --text-display: clamp(2.6rem, 1.6rem + 4.6vw, 5rem);
+
+  --leading-tight: 1.08;
+  --leading-snug: 1.3;
+  --leading-body: 1.75;
+  --leading-read: 1.85;
+
+  --tracking-tight: -0.025em;
+  --tracking-caps: 0.16em;
+
+  /* measure: prose never runs wider than ~68 characters */
+  --measure: 68ch;
+  --shell: 1140px;
+  --shell-narrow: 760px;
+
+  /* elevation / stacking scale — no magic numbers in components */
+  --z-below: -1;
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 40;
+  --z-header: 60;
+  --z-overlay: 80;
+  --z-modal: 90;
+  --z-toast: 100;
+
+  /* motion ------------------------------------------------------- */
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0.05, 0.36, 1);
+
+  --header-clearance: 96px;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #141310;
+  --bg-2: #1b1a16;
+  --surface: #201e1a;
+  --surface-2: #262420;
+
+  --ink: #ece9e0;
+  --body: #c6c1b4;
+  --muted: #9c968a;
+  --faint: #7a7468;
+
+  --border: #302d27;
+  --border-soft: #29261f;
+  --border-strong: #3d392f;
+
+  --accent: #46b7c2;
+  --accent-ink: #6ac9d2;
+  --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
+  --accent-line: color-mix(in oklab, var(--accent) 42%, transparent);
+
+  --glass-fill: color-mix(in oklab, var(--surface) 58%, transparent);
+  --glass-fill-strong: color-mix(in oklab, var(--surface) 74%, transparent);
+  --glass-border: color-mix(in oklab, var(--ink) 13%, transparent);
+  --glass-specular: color-mix(in oklab, #ffffff 13%, transparent);
+  --glass-refraction: color-mix(in oklab, #000000 30%, transparent);
+  --glass-shadow:
+    0 1px 2px color-mix(in oklab, #000000 40%, transparent),
+    0 16px 40px -18px color-mix(in oklab, #000000 70%, transparent);
+  --glass-shadow-lift:
+    0 2px 4px color-mix(in oklab, #000000 45%, transparent),
+    0 28px 60px -24px color-mix(in oklab, #000000 80%, transparent);
+
+  --ring-color: color-mix(in oklab, var(--ink) 11%, transparent);
+}
+
+/* ---------- fonts (self-hosted; Google Fonts is unreachable on CN
+   mobile networks). Inter + Fraunces are variable: one file each. ---------- */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter-latin.woff2") format("woff2-variations");
+}
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 300 600;
+  font-display: swap;
+  src: url("/fonts/fraunces-latin.woff2") format("woff2-variations");
+}
+@font-face {
+  font-family: "Fraunces";
+  font-style: italic;
+  font-weight: 300 500;
+  font-display: swap;
+  src: url("/fonts/fraunces-italic-latin.woff2") format("woff2-variations");
+}
+
+/* ---------- base ---------- */
+html {
+  background: var(--bg);
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--body);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* One brief colour cross-fade on the theme flip (see shared/prefs.ts).
+   Reduced-motion users get an instant switch instead. */
+html.theme-anim,
+html.theme-anim * {
+  transition:
+    background-color var(--dur-3) var(--ease-out),
+    border-color var(--dur-3) var(--ease-out),
+    color var(--dur-3) var(--ease-out),
+    fill var(--dur-3) var(--ease-out) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  html.theme-anim,
+  html.theme-anim * {
+    transition: none !important;
+  }
+}
+
+/* ---------- materials ----------
+   Three weights of the same glass. Cards are translucent; a panel is
+   heavier (modals, palette); a bar is the widest, thinnest sheet. */
+.glass,
+.glass-panel,
+.glass-bar {
+  position: relative;
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(
+    var(--glass-saturate)
+  );
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 -1px 0 var(--glass-refraction);
+}
+
+.glass-panel {
+  background: var(--glass-fill-strong);
+}
+
+.glass-bar {
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 var(--glass-specular);
+}
+
+/* Interactive glass: lift on hover, settle on press. */
+.glass-press {
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out),
+    background-color var(--dur-2) var(--ease-out);
+}
+.glass-press:hover {
+  box-shadow:
+    var(--glass-shadow-lift),
+    inset 0 1px 0 var(--glass-specular),
+    inset 0 -1px 0 var(--glass-refraction);
+  transform: translateY(-2px);
+}
+.glass-press:active {
+  transform: translateY(0) scale(0.994);
+}
+
+/* Edge sheen: a soft specular sweep across the top-left, the direction
+   every shadow in the system is lit from. */
+.glass-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 90% at 12% -10%,
+    color-mix(in oklab, #ffffff 26%, transparent) 0%,
+    transparent 55%
+  );
+  opacity: 0.55;
+  mix-blend-mode: soft-light;
+}
+
+/* ---------- corner geometry ----------
+   Continuous-curvature (superellipse) corners where supported; every
+   browser still gets a sane circular arc of the same radius otherwise. */
+@supports (corner-shape: squircle) {
+  .glass,
+  .glass-panel,
+  .glass-bar,
+  .sq,
+  .sq-sm,
+  .sq-md,
+  .sq-lg,
+  .sq-xl {
+    corner-shape: squircle;
+  }
+}
+
+.sq {
+  border-radius: var(--r-lg);
+}
+.sq-sm {
+  border-radius: var(--r-sm);
+}
+.sq-md {
+  border-radius: var(--r-md);
+}
+.sq-lg {
+  border-radius: var(--r-lg);
+}
+.sq-xl {
+  border-radius: var(--r-xl);
+}
+.sq-2xl {
+  border-radius: var(--r-2xl);
+}
+
+/* ---------- concentric rings ---------- */
+
+/* A ring field: evenly spaced circles on one centre, faded radially so
+   they dissolve before the edge of their container. */
+.ring-field {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background-image: repeating-radial-gradient(
+    circle at var(--ring-x, 50%) var(--ring-y, 50%),
+    transparent 0,
+    transparent calc(var(--ring-gap) - var(--ring-weight)),
+    var(--ring-color) calc(var(--ring-gap) - var(--ring-weight)),
+    var(--ring-color) var(--ring-gap)
+  );
+  -webkit-mask-image: radial-gradient(
+    circle at var(--ring-x, 50%) var(--ring-y, 50%),
+    #000 0%,
+    rgba(0, 0, 0, 0.55) 42%,
+    transparent 74%
+  );
+  mask-image: radial-gradient(
+    circle at var(--ring-x, 50%) var(--ring-y, 50%),
+    #000 0%,
+    rgba(0, 0, 0, 0.55) 42%,
+    transparent 74%
+  );
+}
+
+/* A single ring pair — the small marker used beside headings and on
+   portal cards. Purely decorative, so hidden from assistive tech. */
+.ring-mark {
+  position: relative;
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: var(--r-full);
+  border: 1px solid var(--accent-line);
+}
+.ring-mark::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--accent-line);
+}
+.ring-mark::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+}
+
+/* Concentric divider — one long line that resolves into arcs. */
+.ring-rule {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--border) 18%,
+    var(--border) 82%,
+    transparent
+  );
+}
+
+/* ---------- typography helpers ---------- */
+.display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.kicker {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.lede {
+  max-width: var(--measure);
+  line-height: var(--leading-body);
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+/* ---------- focus + a11y ---------- */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--r-xs);
+}
+
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: var(--z-toast);
+  padding: 10px 16px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform var(--dur-2) var(--ease-out);
+}
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- layout helpers ---------- */
+.shell {
+  width: 100%;
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding-inline: clamp(18px, 4vw, 40px);
+}
+
+.shell-narrow {
+  max-width: var(--shell-narrow);
+}
+
+/* Staggered entrance for the hub: a single CSS animation, no library. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise var(--dur-3) var(--ease-out) both;
+}
+.rise-1 { animation-delay: 40ms; }
+.rise-2 { animation-delay: 100ms; }
+.rise-3 { animation-delay: 160ms; }
+.rise-4 { animation-delay: 220ms; }
+.rise-5 { animation-delay: 280ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .rise-1,
+  .rise-2,
+  .rise-3,
+  .rise-4,
+  .rise-5 {
+    animation: none;
+  }
+}
+
+/* ---------- transparency preferences ----------
+   Glass is an affordance, not a requirement: users who ask for less
+   transparency (or on browsers without backdrop-filter) get a solid
+   sheet with the same corners and borders. */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass,
+  .glass-panel,
+  .glass-bar {
+    background: var(--surface);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-panel,
+  .glass-bar {
+    background: var(--surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .glass-sheen::after {
+    display: none;
+  }
+}

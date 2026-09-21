@@ -6,6 +6,7 @@
    Importing utilities unlayered lets the class (specificity 0,1,0) win over `*`
    (0,0,0). */
 @import "tailwindcss/utilities";
+@import "../shared/tokens.css";
 @source "./main.ts";
 /* ============================================================
    WORKS INDEX · Eververdants 作品索引

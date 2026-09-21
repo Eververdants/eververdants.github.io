@@ -4,76 +4,42 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Photographs — Eververdants</title>
-    <script>
-      // Apply the visitor's saved sub-site language & theme BEFORE first
-      // paint so a returning visitor never flashes the wrong palette or
-      // script. Shares the same keys as the blog/projects sub-sites
-      // (blog-lang / blog-theme), so one toggle syncs everywhere; a
-      // ?lang=/?theme= URL override wins for the current visit. The photos
-      // app (src/photos/lib/prefs.tsx) keeps them in sync from then on.
-      try {
-        var p = new URLSearchParams(location.search);
-        var theme = p.get("theme");
-        theme =
-          theme === "dark" || theme === "light"
-            ? theme
-            : localStorage.getItem("blog-theme");
-        if (theme === "dark") document.documentElement.dataset.theme = "dark";
-        var lang = p.get("lang");
-        if (lang === "en" || lang === "zh") document.documentElement.lang = lang;
-        else if (localStorage.getItem("blog-lang") === "zh")
-          document.documentElement.lang = "zh";
-      } catch (e) {}
-    </script>
     <meta
       name="description"
       content="A photographic journal by Eververdants — landscapes, architecture, and quiet rooms."
     />
-    <meta name="author" content="Eververdants" />
     <link rel="canonical" href="https://eververdants.github.io/photos/" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Eververdants" />
     <meta property="og:title" content="Photographs — Eververdants" />
     <meta
       property="og:description"
       content="A photographic journal — landscapes, architecture, and quiet rooms."
     />
     <meta property="og:url" content="https://eververdants.github.io/photos/" />
-    <meta
-      property="og:image"
-      content="https://eververdants.github.io/og-image.png"
-    />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Eververdants" />
-    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Photographs — Eververdants" />
     <meta
       name="twitter:description"
       content="A photographic journal — landscapes, architecture, and quiet rooms."
     />
-    <meta
-      name="twitter:image"
-      content="https://eververdants.github.io/og-image.png"
-    />
-    <link rel="icon" href="/favicon.png" type="image/png" />
-    <!-- Self-hosted fonts: preload so the gallery / captions paint with the
-         real face on first paint. crossorigin is required. -->
-    <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/fraunces-italic-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="llms.txt" href="https://eververdants.github.io/llms.txt" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "CollectionPage",
         "name": "Photographs — Eververdants",
+        "alternateName": "摄影集",
         "url": "https://eververdants.github.io/photos/",
-        "about": { "@type": "Person", "name": "Eververdants", "alternateName": "万山青未阑" }
+        "inLanguage": ["en", "zh-Hans"],
+        "about": {
+          "@type": "Person",
+          "name": "Eververdants",
+          "alternateName": "万山青未阑",
+          "url": "https://eververdants.github.io/"
+        }
       }
     </script>
   </head>
   <body>
+    <a class="skip-link" href="#main">Skip to content</a>
     <div id="root"></div>
     <script type="module" src="/src/photos/main.tsx"></script>
   </body>

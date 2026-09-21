@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../shared/tokens.css";
 
 /* ---- blog sub-site theme tokens ----
    The blog's design language (米白 + warm gray grid + teal accent) as CSS
