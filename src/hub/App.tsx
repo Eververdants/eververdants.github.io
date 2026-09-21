@@ -18,6 +18,7 @@ import { getWorks } from "../photos/data/works";
 import reposFile from "../projects/data/repos.json";
 import { applyHead, breadcrumbLd, websiteLd, SITE } from "../shared/seo";
 import { usePrefs } from "../shared/prefs-react";
+import { pick } from "../shared/prefs";
 import { COPY } from "./copy";
 import type { HubCopy } from "./copy";
 
@@ -110,7 +111,9 @@ export default function Hub() {
 
   const award = resume.awards[0];
   const awardLine = award
-    ? `${award.results.map((r) => `${r.tier} (${r.scope})`).join(" · ")} — ${inline(award.contest)}`
+    ? `${award.results
+        .map((r) => `${pick(lang, r.tier.en, r.tier.zh)} (${pick(lang, r.scope.en, r.scope.zh)})`)
+        .join(" · ")} — ${inline(pick(lang, award.contest.en, award.contest.zh))}`
     : "";
 
   return (
@@ -143,11 +146,11 @@ export default function Hub() {
             <dl className="facts">
               <div>
                 <dt>{c.facts.based}</dt>
-                <dd>{c.facts.basedValue}</dd>
+                <dd>{pick(lang, resume.education.location.en, resume.education.location.zh)}</dd>
               </div>
               <div>
                 <dt>{c.facts.at}</dt>
-                <dd>{c.facts.atValue}</dd>
+                <dd>{inline(pick(lang, resume.education.school.en, resume.education.school.zh))}</dd>
               </div>
               <div>
                 <dt>{c.facts.since}</dt>
@@ -249,8 +252,8 @@ export default function Hub() {
             )}
             <ul className="chips">
               {resume.focus.slice(0, 6).map((f) => (
-                <li key={f} className="chip sq-sm">
-                  {f}
+                <li key={f.en} className="chip sq-sm">
+                  {pick(lang, f.en, f.zh)}
                 </li>
               ))}
             </ul>

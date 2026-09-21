@@ -14,6 +14,7 @@ import { worksIndexPlugin } from "./src/photos/build/worksIndexPlugin.ts";
    to the main site and normalize to the root. Rewrite those prefixes to their
    own entries, matching what the prerendered statics serve in production. */
 const SUB_SITES = [
+  { prefix: "/about", entry: "/about/index.html" },
   { prefix: "/blog", entry: "/blog/index.html" },
   { prefix: "/projects", entry: "/projects/index.html" },
   { prefix: "/photos", entry: "/photos/index.html" },
@@ -224,12 +225,14 @@ export default defineConfig({
     // Modern browsers only (es2022): smaller output, no legacy transforms.
     target: "es2022",
     rollupOptions: {
-      // Four independent SPA entries: the navigation hub at /, the blog at
-      // /blog/, the works index at /projects/ and the photo journal at
-      // /photos/. Each gets its own index.html + app bundle; all deploy
-      // together inside one dist/ (GitHub Pages serves them as directories).
+      // Five independent SPA entries: the navigation hub at /, the résumé at
+      // /about/, the blog at /blog/, the works index at /projects/ and the
+      // photo journal at /photos/. Each gets its own index.html + app bundle;
+      // all deploy together inside one dist/ (GitHub Pages serves them as
+      // subdirectories).
       input: {
         main: fileURLToPath(new URL("./index.html", import.meta.url)),
+        about: fileURLToPath(new URL("./about/index.html", import.meta.url)),
         blog: fileURLToPath(new URL("./blog/index.html", import.meta.url)),
         projects: fileURLToPath(
           new URL("./projects/index.html", import.meta.url),

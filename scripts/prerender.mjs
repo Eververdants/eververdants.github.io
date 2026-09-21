@@ -317,6 +317,21 @@ async function renderProjects(chromePath) {
   return out;
 }
 
+/* ---- render the /about/ résumé page, capture the whole document ----
+   The content that used to live only in scroll scenes is a real page now;
+   bake it so the education, award and contact facts are readable without
+   executing JavaScript. */
+async function renderAbout(chromePath) {
+  const html = await renderWithChrome(
+    chromePath,
+    `http://127.0.0.1:${PORT}/about/`,
+    `(() => { const h = document.querySelector('.about__title'); return h && h.textContent.trim() ? document.documentElement.outerHTML : ''; })()`,
+  );
+  const out = join(ROOT, "dist/about/index.html");
+  writeFileSync(out, html);
+  return out;
+}
+
 /* ---- render the photos sub-site gallery, capture the whole document ----
    The gallery (works list, category filter, hero, CollectionPage + ItemList
    JSON-LD injected by the app) is baked into dist/photos/index.html so
@@ -455,12 +470,16 @@ function buildStatic(post, articleHtml) {
 
 function writeSitemap(posts, works) {
   const today = new Date().toISOString().slice(0, 10);
+  /* /resume, /selected and /selected-blog used to be scroll positions inside
+     the old single-page deck. They are now redirect stubs (see
+     scripts/postbuild.mjs) and deliberately stay out of the sitemap — a
+     sitemap should list destinations, not hops. */
   const urls = [
-    `<url><loc>${SITE}/</loc><priority>1.0</priority></url>`,
-    `<url><loc>${SITE}/selected-blog/</loc><priority>0.8</priority></url>`,
+    `<url><loc>${SITE}/</loc><lastmod>${today}</lastmod><priority>1.0</priority></url>`,
+    `<url><loc>${SITE}/about/</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`,
     `<url><loc>${SITE}/projects/</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`,
     `<url><loc>${SITE}/photos/</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`,
-    `<url><loc>${SITE}/blog/</loc><priority>0.7</priority></url>`,
+    `<url><loc>${SITE}/blog/</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`,
     ...posts.map(
       (p) =>
         `<url><loc>${SITE}/blog/${p.slug}/</loc><lastmod>${p.date.replace(/\./g, "-")}</lastmod><priority>0.9</priority></url>`,
@@ -545,6 +564,7 @@ async function main() {
   const chromePath = findChrome();
   let ok = 0;
   let projectsOk = false;
+  let aboutOk = false;
   let photosOk = false;
   let photosWorksOk = 0;
   let homeOk = false;
@@ -571,6 +591,13 @@ async function main() {
       console.log(`  ✓ /projects/ prerendered -> ${out.replace(ROOT, ".")}`);
     } catch (e) {
       console.log(`  ✗ /projects/: ${e.message}`);
+    }
+    try {
+      const out = await renderAbout(chromePath);
+      aboutOk = true;
+      console.log(`  ✓ /about/ prerendered -> ${out.replace(ROOT, ".")}`);
+    } catch (e) {
+      console.log(`  ✗ /about/: ${e.message}`);
     }
     try {
       const out = await renderPhotos(chromePath);
@@ -622,7 +649,7 @@ async function main() {
   writeRobots();
   writeRss(posts);
   console.log(
-    `prerender done: ${ok}/${posts.length} articles${blogIndexOk ? " + /blog/" : ""}${homeOk ? " + /" : ""}${projectsOk ? " + /projects/" : ""}${photosOk ? " + /photos/" : ""}${photosWorksOk ? ` + ${photosWorksOk}/${works.length} photo works` : ""} + sitemap.xml + robots.txt + rss.xml`,
+    `prerender done: ${ok}/${posts.length} articles${blogIndexOk ? " + /blog/" : ""}${homeOk ? " + /" : ""}${aboutOk ? " + /about/" : ""}${projectsOk ? " + /projects/" : ""}${photosOk ? " + /photos/" : ""}${photosWorksOk ? ` + ${photosWorksOk}/${works.length} photo works` : ""} + sitemap.xml + robots.txt + rss.xml`,
   );
 }
 

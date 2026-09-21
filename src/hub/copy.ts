@@ -13,11 +13,11 @@ const en = {
     "I would rather leave something behind than simply pass through.",
   availability: "Open to small paid projects",
   availabilityNote: "Full-stack builds · LLM & GitHub deployment",
+  /* Labels only — the values come from src/data/resume.ts so the hub and
+     /about cannot disagree about where I go to school. */
   facts: {
     based: "Based in",
-    basedValue: "Kunshan, Jiangsu",
     at: "Studying at",
-    atValue: "Kunshan Bailu Senior High School",
     since: "Shipping since",
     sinceValue: "2025",
   },
@@ -90,9 +90,7 @@ const zh: typeof en = {
   availabilityNote: "全栈开发 · LLM 与 GitHub 部署",
   facts: {
     based: "所在地",
-    basedValue: "江苏昆山",
     at: "就读于",
-    atValue: "昆山市柏庐高级中学",
     since: "开始开源",
     sinceValue: "2025",
   },
