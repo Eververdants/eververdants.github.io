@@ -1,11 +1,16 @@
 import type { JournalPost } from "../../data/journal";
+import { usePrefs } from "../../shared/prefs-react";
+import { articlePath } from "../urls";
 import Highlight from "./Highlight";
 
 /* The plain chronological essay list — rows, not cards — shared by the
    blog index (tag-filtered views, search results) and every 专题 topic
    page (/blog/topic/<id>). One row: date / Fraunces title / one-line
    excerpt / reading time + arrow, separated by hairlines, with a quiet
-   accent wash on hover. Newest first — callers sort. */
+   accent wash on hover. Newest first — callers sort.
+
+   The href carries the reader's language so a row points at the same
+   language page they were looking at, not always English. */
 
 export default function PostList({
   posts,
@@ -18,6 +23,7 @@ export default function PostList({
   onOpen: (slug: string) => void;
   className?: string;
 }) {
+  const { lang } = usePrefs();
   return (
     <ul className={className}>
       {posts.map((post, i) => (
@@ -34,7 +40,7 @@ export default function PostList({
               ctrl+click "open in new tab" work; the click handler preserves
               the in-app SPA swap. */}
           <a
-            href={`/blog/${post.slug}/`}
+            href={articlePath(post.slug, lang)}
             onClick={(e) => {
               e.preventDefault();
               onOpen(post.slug);

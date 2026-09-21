@@ -1,52 +1,56 @@
 import { useEffect, useState } from "react";
-import { ui, useBlogPrefs } from "../prefs";
+import { usePrefs } from "../../shared/prefs-react";
+import { pick } from "../../shared/prefs";
+import { ui } from "../copy";
 
-/* Floating "back to top" control for the blog sub-site — bottom-right,
-   opposite the top-right preference pills, appearing only after the page
-   has scrolled past one viewport. Same grammar as the rest of the blog:
-   hairline border, field-tinted surface, teal hover. Smooth-scrolls via
-   the app's lenis instance (falling back to native scrollTo). */
+/* Ring-shaped back-to-top. Appears once the reader is a screen into the
+   page; on an article it doubles as the reading-progress dial, since the
+   fraction scrolled is exactly what that ring should show. */
 
-export default function BackToTop({
-  scrollTo,
-}: {
-  scrollTo: (y: number) => void;
-}) {
-  const { lang } = useBlogPrefs();
+const R = 20;
+const C = 2 * Math.PI * R;
+
+export default function BackToTop() {
+  const { lang } = usePrefs();
   const t = ui[lang];
-  const [show, setShow] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const onScroll = () => setShow(window.scrollY > window.innerHeight);
+    const onScroll = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(max > 0 ? Math.min(1, window.scrollY / max) : 0);
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, []);
+
+  if (progress < 0.08) return null;
 
   return (
     <button
       type="button"
-      onClick={() => scrollTo(0)}
+      className="back-to-top"
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       aria-label={t.backToTop}
       title={t.backToTop}
-      className={`fixed bottom-[clamp(20px,4vh,36px)] right-[clamp(16px,2vw,28px)] z-[55] flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--field)]/90 text-[var(--muted)] backdrop-blur transition-all duration-300 hover:border-[var(--accent)] hover:text-[var(--accent)] ${
-        show
-          ? "translate-y-0 opacity-100"
-          : "pointer-events-none translate-y-2 opacity-0"
-      }`}
     >
-      <svg
-        aria-hidden
-        viewBox="0 0 24 24"
-        className="h-4 w-4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M12 19V5M5 12l7-7 7 7" />
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <circle className="back-to-top__track" cx="24" cy="24" r={R} />
+        <circle
+          className="back-to-top__fill"
+          cx="24"
+          cy="24"
+          r={R}
+          strokeDasharray={C}
+          strokeDashoffset={C * (1 - progress)}
+        />
       </svg>
+      <span aria-hidden="true">↑</span>
     </button>
   );
 }

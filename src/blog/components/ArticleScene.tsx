@@ -1,27 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lenis from "lenis";
 import type { JournalPost } from "../../data/journal";
 import { journal, topicById } from "../../data/journal";
 import { getDeck, loadArticle } from "../../data/articles";
 import { sections } from "../../data/sections";
-import { ui, useBlogPrefs } from "../prefs";
+import { usePrefs, setLang } from "../../shared/prefs-react";
+import { pick } from "../../shared/prefs";
+import { applyHead, breadcrumbLd, PERSON, SITE } from "../../shared/seo";
+import { articlePath } from "../urls";
+import { ui } from "../copy";
 
-/* Article reader — a functional, light reading page for journal essays
-   (and future technical posts), deliberately the opposite of the dark
-   cinematic screens: 米白 background with a gray grid, a reading-progress
-   bar at the very top, and a sticky table of contents on the right that
-   scroll-spies the article's headings. No entrance choreography — content
-   is just there to read.
+/* Article reader — a functional reading page. 米白 background with a faint
+   grid, a reading-progress bar at the very top, and a sticky table of
+   contents on the right that scroll-spies the article's headings. There is no
+   entrance choreography: the essay is simply there to read.
 
-   App routes /blog/<slug> and passes scrollTo (a lenis-backed smooth
-   scroll) so the TOC can jump to headings.
-
-   Language + theme come from the blog prefs context: the deck, the article
-   body and every label switch with lang; every color is a theme token
-   (var(--x)). The animation effects re-run on lang change ([slug, lang])
-   because the article HTML is swapped wholesale. */
+   The body loads on demand (one chunk per essay) and the language is part of
+   the URL — /blog/<slug>/ and /blog/zh/<slug>/ are different pages with their
+   own canonical and an hreflang pair to each other, so both languages are
+   indexable instead of only whichever one got baked. */
 
 interface TocItem {
   id: string;
@@ -29,29 +25,30 @@ interface TocItem {
   level: number;
 }
 
+/** Scroll the window, leaving room for the fixed top bar. */
+function scrollToY(y: number, immediate = false) {
+  window.scrollTo({ top: Math.max(0, y), behavior: immediate ? "auto" : "smooth" });
+}
+
+const headerClearance = () => Math.max(88, window.innerHeight * 0.12);
+
 export default function ArticleScene({
   slug,
   onClose,
   onOpen,
   onNotFound,
-  scrollTo,
-  scrollToImmediate,
 }: {
   slug: string;
   onClose: () => void;
   onOpen: (slug: string) => void;
   onNotFound: () => void;
-  scrollTo: (y: number) => void;
-  scrollToImmediate: (y: number) => void;
 }) {
-  const { lang } = useBlogPrefs();
+  const { lang } = usePrefs();
   const t = ui[lang];
   const root = useRef<HTMLElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const tocNavRef = useRef<HTMLDivElement>(null);
   const tocIndicatorRef = useRef<HTMLSpanElement>(null);
-  const tocScrollbarRef = useRef<HTMLDivElement>(null);
-  const tocThumbRef = useRef<HTMLDivElement>(null);
   const lightboxRef = useRef<HTMLDialogElement>(null);
   /* Language swaps keep the reader's place: htmlRef tracks the body
      currently on screen, restoreRef remembers where the reader was before
@@ -65,14 +62,10 @@ export default function ArticleScene({
   } | null>(null);
   /* TOC auto-follow state */
   const lastActiveRef = useRef("");
-  const followRafRef = useRef(0);
   /* Which article the TOC currently belongs to — used to reset the nav's
      own scroll when a new article replaces the index (a long-index article
      must never leave the next one scrolled mid-list). */
   const tocSlugRef = useRef<string | null>(null);
-  /* Animation gating — entrances/reveals run for a fresh article only,
-     never for an in-place language swap (which must not flash). */
-  const prevSlugRef = useRef<string | null>(null);
   const prevLangRef = useRef(lang);
   const [toc, setToc] = useState<TocItem[]>([]);
   const [lightbox, setLightbox] = useState<{
@@ -148,7 +141,7 @@ export default function ArticleScene({
     // an index-anchored restore would land a section short of the footer.)
     if (cap.fraction >= 0.98) {
       const max = document.documentElement.scrollHeight - window.innerHeight;
-      scrollToImmediate(max * cap.fraction);
+      scrollToY(max * cap.fraction, true);
       return;
     }
     const heads = root.current?.querySelectorAll<HTMLElement>(
@@ -167,13 +160,13 @@ export default function ArticleScene({
       const max = document.documentElement.scrollHeight - window.innerHeight;
       y = max * cap.fraction;
     }
-    scrollToImmediate(y);
+    scrollToY(y, true);
   };
 
-  /* Smoothly scroll the TOC container so the active entry sits centered
-     (or at least in view) — the same easing language as the page's lenis,
-     applied to the nav's own scrollTop via a small rAF tween. Retargets
-     cleanly if the active entry changes mid-tween. */
+  /* Keep the active entry inside the TOC's own scrollport as the reader
+     moves down the article. The nav is a plain overflow container now, so
+     this is one call rather than a tween loop competing with a scroll
+     library. */
   const followActive = (btn: HTMLButtonElement) => {
     const nav = tocNavRef.current;
     if (!nav) return;
@@ -182,117 +175,14 @@ export default function ArticleScene({
     const pad = 6;
     if (bRect.top >= nRect.top + pad && bRect.bottom <= nRect.bottom - pad)
       return; // already visible
-    const target =
-      nav.scrollTop +
-      (bRect.top - nRect.top) -
-      (nRect.height - bRect.height) / 2;
-    const start = nav.scrollTop;
-    const dist = target - start;
-    if (Math.abs(dist) < 1) return;
-    const dur = 260;
-    const t0 = performance.now();
-    if (followRafRef.current) cancelAnimationFrame(followRafRef.current);
-    const ease = (k: number) => 1 - Math.pow(1 - k, 3);
-    const step = (now: number) => {
-      const k = Math.min(1, (now - t0) / dur);
-      nav.scrollTop = start + dist * ease(k);
-      followRafRef.current = k < 1 ? requestAnimationFrame(step) : 0;
-    };
-    followRafRef.current = requestAnimationFrame(step);
+    nav.scrollTo({
+      top:
+        nav.scrollTop +
+        (bRect.top - nRect.top) -
+        (nRect.height - bRect.height) / 2,
+      behavior: "smooth",
+    });
   };
-
-  /* The TOC is its own scroll container with a custom overlay scrollbar
-     (the page's slim bar, applied to the nav's scrollport). Smooth scrolling
-     runs on the same library the page uses — a lenis instance rooted at the
-     nav — so fast flicks get proper velocity easing instead of a hand-rolled
-     lerp's jitter. Lenis's nested-scroll propagation passes the wheel back
-     to the page at the container's ends (scroll chaining), so no manual
-     event juggling is needed. The thumb is draggable, tracks every scrollTop
-     change, and hides entirely when nothing overflows. */
-  useEffect(() => {
-    const nav = tocNavRef.current;
-    const bar = tocScrollbarRef.current;
-    const thumb = tocThumbRef.current;
-    if (!nav || !bar || !thumb) return;
-
-    const updateThumb = () => {
-      const sh = nav.scrollHeight - nav.clientHeight;
-      if (sh <= 0) {
-        bar.classList.remove("has-thumb");
-        return;
-      }
-      bar.classList.add("has-thumb");
-      const track = bar.clientHeight;
-      const h = Math.max(20, (nav.clientHeight / nav.scrollHeight) * track);
-      thumb.style.height = h + "px";
-      thumb.style.top = (nav.scrollTop / sh) * (track - h) + "px";
-    };
-    updateThumb();
-
-    /* smooth wheel scrolling — lenis on the nav as its own scrollport */
-    const tocLenis = new Lenis({
-      wrapper: nav,
-      content: nav,
-      lerp: 0.1,
-      smoothWheel: true,
-      autoRaf: true,
-    });
-
-    /* drag the thumb — direct manipulation; pause the smooth loop while
-       the pointer is down so the two never fight */
-    const onThumbDown = (e: MouseEvent) => {
-      const sh = nav.scrollHeight - nav.clientHeight;
-      if (sh <= 0) return;
-      e.preventDefault();
-      e.stopPropagation();
-      tocLenis.stop();
-      const startY = e.clientY;
-      const startTop = parseFloat(thumb.style.top || "0");
-      bar.classList.add("dragging");
-      const onMove = (ev: MouseEvent) => {
-        const track = bar.clientHeight;
-        const max = track - thumb.offsetHeight;
-        const top = Math.max(
-          0,
-          Math.min(max, startTop + (ev.clientY - startY)),
-        );
-        thumb.style.top = top + "px";
-        if (max > 0) nav.scrollTop = (top / max) * sh;
-      };
-      const onUp = () => {
-        bar.classList.remove("dragging");
-        tocLenis.start();
-        window.removeEventListener("mousemove", onMove);
-        window.removeEventListener("mouseup", onUp);
-      };
-      window.addEventListener("mousemove", onMove);
-      window.addEventListener("mouseup", onUp);
-    };
-    thumb.addEventListener("mousedown", onThumbDown);
-
-    /* keep the thumb in sync with any scrollTop change (lenis wheel, drag,
-       or the follow-active tween) and with size changes */
-    nav.addEventListener("scroll", updateThumb, { passive: true });
-    const ro = new ResizeObserver(() => {
-      updateThumb();
-      tocLenis.resize();
-    });
-    ro.observe(nav);
-
-    return () => {
-      nav.removeEventListener("scroll", updateThumb);
-      thumb.removeEventListener("mousedown", onThumbDown);
-      ro.disconnect();
-      tocLenis.destroy();
-    };
-  }, [toc, lang, html]);
-
-  /* Cancel any in-flight TOC follow tween on unmount. */
-  useEffect(() => {
-    return () => {
-      if (followRafRef.current) cancelAnimationFrame(followRafRef.current);
-    };
-  }, []);
 
   /* Body loading — on demand. A language swap does NOT blank the screen
      (no skeleton flash, no height collapse): the old-language body stays
@@ -353,14 +243,9 @@ export default function ArticleScene({
     const newArticle = tocSlugRef.current !== slug;
     if (newArticle) {
       tocSlugRef.current = slug;
+      // Resetting scrollTop also interrupts any in-flight smooth follow.
       const nav = tocNavRef.current;
       if (nav) nav.scrollTop = 0;
-      // Drop any in-flight follow tween and stale active tracking — the
-      // new article's index gets a clean scroll-spy pass.
-      if (followRafRef.current) {
-        cancelAnimationFrame(followRafRef.current);
-        followRafRef.current = 0;
-      }
       lastActiveRef.current = "";
     }
     // On a fresh article there is nothing to scan yet (the body is still
@@ -520,63 +405,57 @@ export default function ArticleScene({
     });
   };
 
-  // App only ever opens known slugs — an unknown /blog/<slug> is redirected
-  // to the root as a 404 (the same 404.html flow as every unknown URL), so
-  // this branch is defensive only.
-  /* Mount entrance — the header (back link, title, meta) rises in as the
-     essay opens. Functional, quick, no mask tricks. Runs once per article
-     (slug change); a language swap swaps the header text in place so the
-     reader's eye never loses the scroll position. */
+  /* Per-route head. The prerender pass bakes this into the static page, and
+     this keeps it true while the reader moves between essays and languages
+     without a page load — otherwise every article in a session would report
+     the same title and canonical to the browser and to any engine reading
+     the live DOM. */
   useEffect(() => {
-    const first = prevSlugRef.current === null;
-    const slugChanged = prevSlugRef.current !== slug;
-    prevSlugRef.current = slug;
-    if (!first && !slugChanged) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        "[data-art-head]",
-        { y: 22, autoAlpha: 0 },
+    if (!post) return;
+    const title = post.title.split("\n").join(" ");
+    const iso = post.date.replace(/\./g, "-");
+    const path = articlePath(post.slug, lang);
+    applyHead({
+      title: `${title} — ${pick(lang, "Blog", "博客")} — Eververdants`,
+      description: post.excerpt || title,
+      path,
+      ogType: "article",
+      publishedTime: iso,
+      modifiedTime: iso,
+      locale: lang === "zh" ? "zh_CN" : "en_US",
+      localeAlternate: lang === "zh" ? ["en_US"] : ["zh_CN"],
+      lang,
+      alternates: [
+        { hreflang: "en", href: articlePath(post.slug, "en") },
+        { hreflang: "zh-Hans", href: articlePath(post.slug, "zh") },
+        { hreflang: "x-default", href: articlePath(post.slug, "en") },
+      ],
+      jsonLd: [
         {
-          y: 0,
-          autoAlpha: 1,
-          duration: 0.55,
-          ease: "power3.out",
-          stagger: 0.07,
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          headline: title,
+          description: post.excerpt || undefined,
+          datePublished: iso,
+          dateModified: iso,
+          inLanguage: lang === "zh" ? "zh-Hans" : "en",
+          articleSection: post.category || undefined,
+          keywords: post.tags.join(", ") || undefined,
+          wordCount: post.read ? Number(post.read.replace(/\D/g, "")) * 225 : undefined,
+          timeRequired: `PT${post.read.replace(/\D/g, "")}M`,
+          mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE}${path}` },
+          url: `${SITE}${path}`,
+          author: PERSON,
+          publisher: PERSON,
         },
-      );
-    }, root);
-    return () => ctx.revert();
-  }, [slug, lang]);
-
-  /* Scroll reveals — each body block (paragraph, heading, quote) rises in
-     as it enters. Subtle and once-only so reading never fights the motion.
-     The article mounts after the global coordinator, so these triggers are
-     created here, scoped to this root. Re-runs when the on-demand body
-     arrives (html state) — before that there is nothing to reveal. A
-     language swap is skipped entirely (restoreRef is set for exactly that
-     case): the new body lands fully visible at the same scroll offset, so
-     a block fade-in would read as a flash. */
-  useEffect(() => {
-    if (restoreRef.current) return;
-    const ctx = gsap.context(() => {
-      const blocks = gsap.utils.toArray<HTMLElement>(".article-content > *");
-      if (!blocks.length) return;
-      gsap.set(blocks, { autoAlpha: 0, y: 16 });
-      ScrollTrigger.batch(blocks, {
-        start: "top 90%",
-        once: true,
-        onEnter: (batch) =>
-          gsap.to(batch, {
-            autoAlpha: 1,
-            y: 0,
-            duration: 0.5,
-            ease: "power2.out",
-            overwrite: true,
-          }),
-      });
-    }, root);
-    return () => ctx.revert();
-  }, [slug, lang, html]);
+        breadcrumbLd([
+          { name: "Eververdants", path: "/" },
+          { name: pick(lang, "Blog", "博客"), path: "/blog/" },
+          { name: title, path },
+        ]),
+      ],
+    });
+  }, [post, lang]);
 
   /* Related reading — tag Jaccard similarity (|A∩B| / |A∪B|), same-column
      posts weighted +0.2, newest first on ties; never the current article.
@@ -615,10 +494,9 @@ export default function ArticleScene({
   const jump = (id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
-    /* Clear the fixed top bar (up to ~112px) so a TOC jump never lands a
-       heading underneath it. */
-    const clear = Math.max(88, window.innerHeight * 0.12);
-    scrollTo(el.getBoundingClientRect().top + window.scrollY - clear);
+    /* Clear the fixed top bar so a TOC jump never lands a heading
+       underneath it. */
+    scrollToY(el.getBoundingClientRect().top + window.scrollY - headerClearance());
   };
 
   return (
@@ -644,10 +522,9 @@ export default function ArticleScene({
 
       <div className="mx-auto max-w-[1080px] px-[clamp(16px,4vw,40px)] pb-[clamp(80px,14vh,160px)] pt-[clamp(88px,11vh,112px)]">
         {/* top bar: back + meta */}
-        <div className="flex flex-wrap items-center justify-between gap-3 text-[11px] tracking-[0.18em] text-[var(--faint)]">
+        <div className="rise flex flex-wrap items-center justify-between gap-3 text-[11px] tracking-[0.18em] text-[var(--faint)]">
           <button
             onClick={onClose}
-            data-art-head
             className="group inline-flex items-center gap-2 font-semibold tracking-[0.2em] text-[var(--muted)] transition-colors hover:text-[var(--ink)]"
           >
             <span
@@ -656,25 +533,19 @@ export default function ArticleScene({
             >
               ←
             </span>
-            {t.journalBack}
+            {t.backToIndex}
           </button>
-          <span data-art-head>
+          <span>
             {post.category} · {post.date} · {post.read}
           </span>
         </div>
 
         {/* header */}
         <header className="mt-[clamp(40px,7vh,72px)]">
-          <h1
-            data-art-head
-            className="font-sans text-[clamp(26px,3.4vw,44px)] font-bold leading-[1.15] tracking-[-0.01em] text-[var(--ink)]"
-          >
+          <h1 className="rise rise-1 font-sans text-[clamp(26px,3.4vw,44px)] font-bold leading-[1.15] tracking-[-0.01em] text-[var(--ink)] [text-wrap:balance]">
             {post.title.split("\n").join(" ")}
           </h1>
-          <div
-            data-art-head
-            className="mt-[clamp(18px,3vh,28px)] flex flex-wrap gap-2"
-          >
+          <div className="rise rise-2 mt-[clamp(18px,3vh,28px)] flex flex-wrap gap-2">
             {post.tagLabels.map((label, i) => (
               <span
                 key={post.tags[i] ?? label}
@@ -763,7 +634,7 @@ export default function ArticleScene({
                   {t.onThisPage()}
                   <button
                     type="button"
-                    onClick={() => scrollTo(0)}
+                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                     className="inline-flex items-center gap-1 text-[9px] tracking-[0.24em] text-[var(--faintest)] transition-colors hover:text-[var(--accent)]"
                   >
                     ↑ {t.backToTop}
@@ -794,13 +665,6 @@ export default function ArticleScene({
                       </button>
                     ))}
                   </nav>
-                  <div
-                    ref={tocScrollbarRef}
-                    className="toc-scrollbar"
-                    aria-hidden="true"
-                  >
-                    <div ref={tocThumbRef} className="toc-scrollbar-thumb" />
-                  </div>
                 </div>
               </div>
             </aside>
@@ -829,7 +693,7 @@ export default function ArticleScene({
               href="/"
               className="ml-auto shrink-0 text-[10px] font-medium tracking-[0.24em] text-[var(--muted)] transition-colors hover:text-[var(--accent)]"
             >
-              {t.visitMain} ↗
+              {t.backToHub} ↗
             </a>
           </div>
 

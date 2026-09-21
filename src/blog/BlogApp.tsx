@@ -1,87 +1,47 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import type Lenis from "lenis";
+/* The blog sub-site's shell: routing, and nothing else.
+
+   Three views — the index, a topic page, and the essay reader — addressed by
+   path so every one of them is a URL someone can share and a crawler can
+   read. Lenis, GSAP's ScrollTrigger glue, the custom scrollbar, the
+   cross-site loading curtain and the blog's own prefs context are gone: the
+   browser scrolls, the shared <site-topbar> navigates, and the shared prefs
+   store remembers language and theme. */
+
+import { useCallback, useEffect, useState } from "react";
 import ArticleScene from "./components/ArticleScene";
 import BackToTop from "./components/BackToTop";
 import BlogIndexScene from "./components/BlogIndexScene";
 import TopicScene from "./components/TopicScene";
-import LoadingOverlay from "../components/LoadingOverlay";
-import Scrollbar from "../components/Scrollbar";
-import GlassTopBar from "../components/GlassTopBar";
 import { topicById } from "../data/journal";
-import { initScrollbar } from "../effects/scrollbar";
-import { initScrollTriggerGlue } from "../effects/scrollTriggerGlue";
-import { initSiteNavIntercept } from "../effects/siteNav";
-import { initSmoothScroll } from "../effects/smoothScroll";
-import { BlogPrefsProvider, useBlogPrefs } from "./prefs";
+import { setLang, usePrefs } from "../shared/prefs-react";
+import { defineTopBar } from "../shared/topbar";
+import { articlePath, BLOG, parseView, topicPath } from "./urls";
+import type { BlogView } from "./urls";
 
-const BLOG = "/blog";
-
-/* The blog sub-site's three view kinds: the index (topic directory),
-   a 专题 topic page (/blog/topic/<id>) and an essay reader (/blog/<slug>).
-   App routes between them in-app with pushState/replaceState. */
-type BlogView =
-  | { kind: "index" }
-  | { kind: "topic"; id: string }
-  | { kind: "article"; slug: string };
-
-/* Path → view. A topic page is a two-segment path: topic/<id>. Anything
-   else under /blog/ is an article slug (existing slugs never collide with
-   the literal "topic"). Unknown slugs validate asynchronously in the
-   reader; unknown topic ids fall back to the index below. */
-const parseView = (path: string): BlogView => {
-  const clean = path.replace(/\/+$/, "");
-  if (clean === BLOG) return { kind: "index" };
-  const rest = clean.startsWith(BLOG + "/")
-    ? clean.slice(BLOG.length + 1)
-    : "";
-  const [head, tail] = rest.split("/");
-  if (head === "topic")
-    return tail
-      ? { kind: "topic", id: decodeURIComponent(tail) }
-      : { kind: "index" };
-  return head
-    ? { kind: "article", slug: decodeURIComponent(head) }
-    : { kind: "index" };
-};
-
-/* The glass top bar, fed by the blog's own prefs provider. Active is always
-   "blog" on this sub-site; in the article reader it auto-hides on scroll
-   for an immersive read (topic pages keep it visible like the index). */
-function BlogTopBar({ autoHide = false }: { autoHide?: boolean }) {
-  const prefs = useBlogPrefs();
-  return <GlassTopBar prefs={prefs} active="blog" autoHide={autoHide} />;
-}
+defineTopBar();
 
 export default function BlogApp() {
-  const [view, setView] = useState<BlogView>(() =>
-    parseView(location.pathname),
-  );
-  const lenisRef = useRef<Lenis | null>(null);
+  const { lang } = usePrefs();
+  const [view, setView] = useState<BlogView>(() => parseView(location.pathname));
 
-  /* The main site's initLanding targets deck effects only, so the blog wires
-     its own smooth scroll + custom scrollbar + ScrollTrigger glue. */
+  /* A /blog/zh/<slug>/ link means the reader wants Chinese — adopt it as the
+     site language rather than showing a Chinese essay under English chrome. */
   useEffect(() => {
-    const prefersReduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    const smooth = initSmoothScroll(prefersReduced);
-    const lenis = smooth?.lenis ?? null;
-    lenisRef.current = lenis;
-    const barEl = document.getElementById("scrollbar");
-    const thumbEl = document.getElementById("scrollbar-thumb");
-    const bar = barEl && thumbEl ? initScrollbar(barEl, thumbEl, lenis) : null;
-    const disposeGlue = initScrollTriggerGlue(lenis);
-    const disposeNav = initSiteNavIntercept();
-    return () => {
-      disposeNav();
-      disposeGlue();
-      bar?.destroy();
-      smooth?.destroy();
-    };
-  }, []);
+    if (view.kind === "article" && view.lang !== lang) setLang(view.lang);
+  }, [view, lang]);
 
-  /* An unknown /blog/topic/<id> is normalized back to the index and the
-     URL cleaned up. */
+  /* The reverse: toggling language inside an essay moves the address bar to
+     that language's own URL, so the page you are reading is the page you
+     just shared. */
+  useEffect(() => {
+    if (view.kind !== "article") return;
+    const want = articlePath(view.slug, lang);
+    if (location.pathname.replace(/\/+$/, "") !== want.replace(/\/+$/, "")) {
+      history.replaceState({ __blogArticle: view.slug }, "", want);
+    }
+  }, [view, lang]);
+
+  /* An unknown /blog/topic/<id> normalizes back to the index. */
   useEffect(() => {
     if (view.kind === "topic" && !topicById.has(view.id)) {
       setView({ kind: "index" });
@@ -89,119 +49,110 @@ export default function BlogApp() {
     }
   }, [view]);
 
-  const scrollTop = useCallback(() => {
-    const lenis = lenisRef.current;
-    if (lenis) lenis.scrollTo(0, { immediate: true });
-    else window.scrollTo(0, 0);
-  }, []);
+  const toTop = useCallback(() => window.scrollTo({ top: 0 }), []);
 
-  /* Smooth scroll to any offset (TOC jumps, back-to-top) via lenis. */
-  const scrollToY = useCallback((y: number) => {
-    const lenis = lenisRef.current;
-    if (lenis) {
-      // lenis caches its max-scroll limit — a freshly loaded article body
-      // changed the page height, so re-measure before the clamp applies.
-      lenis.resize();
-      lenis.scrollTo(y);
-    } else window.scrollTo(0, y);
-  }, []);
-
-  /* Instant scroll — used to restore the reader's place after a language
-     swap has replaced the article body (no animation, no chase). */
-  const scrollToImmediate = useCallback((y: number) => {
-    const lenis = lenisRef.current;
-    if (lenis) {
-      lenis.resize();
-      lenis.scrollTo(y, { immediate: true });
-    } else window.scrollTo(0, y);
-  }, []);
-
-  /* Index / topic page → article pushes an entry so Back returns. */
   const openArticle = useCallback(
     (slug: string) => {
-      setView({ kind: "article", slug });
-      history.pushState({ __blogArticle: slug }, "", `${BLOG}/${slug}`);
-      scrollTop();
+      setView({ kind: "article", slug, lang });
+      history.pushState({ __blogArticle: slug }, "", articlePath(slug, lang));
+      toTop();
     },
-    [scrollTop],
+    [lang, toTop],
   );
 
-  /* prev/next inside an article REPLACE the entry — the stack never grows,
-     and JOURNAL always pops back to the index. */
+  /* prev/next REPLACE the entry, so Back always pops out to the index rather
+     than walking back through a chain of essays. */
   const openArticleReplace = useCallback(
     (slug: string) => {
-      setView({ kind: "article", slug });
-      history.replaceState({ __blogArticle: slug }, "", `${BLOG}/${slug}`);
-      scrollTop();
+      setView({ kind: "article", slug, lang });
+      history.replaceState(
+        { __blogArticle: slug },
+        "",
+        articlePath(slug, lang),
+      );
+      toTop();
     },
-    [scrollTop],
+    [lang, toTop],
   );
 
-  /* Index → 专题 page pushes an entry so Back returns to the directory. */
   const openTopic = useCallback(
     (id: string) => {
       setView({ kind: "topic", id });
-      history.pushState({ __blogTopic: id }, "", `${BLOG}/topic/${id}`);
-      scrollTop();
+      history.pushState({ __blogTopic: id }, "", topicPath(id));
+      toTop();
     },
-    [scrollTop],
+    [toTop],
   );
 
-  /* Close the essay back to the /blog index. */
-  const closeArticle = useCallback(() => {
+  const closeToIndex = useCallback(() => {
     setView({ kind: "index" });
     history.replaceState(null, "", BLOG);
-    scrollTop();
-  }, [scrollTop]);
+    toTop();
+  }, [toTop]);
 
-  /* Close the topic page back to the /blog index. */
-  const closeTopic = useCallback(() => {
-    setView({ kind: "index" });
-    history.replaceState(null, "", BLOG);
-    scrollTop();
-  }, [scrollTop]);
-
-  /* The reader calls this when its on-demand body load turns up nothing —
-     an unknown /blog/<slug> falls back to the index, same as before, only
-     validated asynchronously now. */
-  const closeNotFound = useCallback(() => {
-    setView({ kind: "index" });
-    history.replaceState(null, "", BLOG);
-    scrollTop();
-  }, [scrollTop]);
-
-  /* Browser Back/Forward across the index, topic pages and essays. The
-     reader validates its slug on its own; unknown topic ids normalize in
-     the effect above. */
   useEffect(() => {
     const onPop = () => {
       setView(parseView(location.pathname));
-      scrollTop();
+      toTop();
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
-  }, [scrollTop]);
+  }, [toTop]);
+
+  /* Plain links inside the app (tag chips, topic pills, related cards) are
+     intercepted here so navigation keeps its state instead of reloading. */
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement | null)?.closest<HTMLAnchorElement>(
+        "a[href]",
+      );
+      if (!a) return;
+      const url = new URL(a.href, location.origin);
+      if (url.origin !== location.origin) return;
+      const next = parseView(url.pathname);
+      if (next.kind === "article") {
+        e.preventDefault();
+        if (
+          view.kind === "article" &&
+          view.slug === next.slug &&
+          view.lang === next.lang
+        )
+          return;
+        setView(next);
+        history.pushState({ __blogArticle: next.slug }, "", url.pathname);
+        toTop();
+      } else if (next.kind === "topic") {
+        e.preventDefault();
+        setView(next);
+        history.pushState({ __blogTopic: next.id }, "", url.pathname);
+        toTop();
+      } else if (next.kind === "index" && url.pathname === BLOG) {
+        e.preventDefault();
+        setView({ kind: "index" });
+        history.pushState(null, "", url.pathname);
+        toTop();
+      }
+    };
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, [view, toTop]);
 
   return (
-    <BlogPrefsProvider>
+    <>
+      <site-topbar active="blog" />
       {view.kind === "article" ? (
         <ArticleScene
           slug={view.slug}
-          onClose={closeArticle}
+          onClose={closeToIndex}
           onOpen={openArticleReplace}
-          onNotFound={closeNotFound}
-          scrollTo={scrollToY}
-          scrollToImmediate={scrollToImmediate}
+          onNotFound={closeToIndex}
         />
       ) : view.kind === "topic" ? (
-        <TopicScene topicId={view.id} onClose={closeTopic} onOpen={openArticle} />
+        <TopicScene topicId={view.id} onClose={closeToIndex} onOpen={openArticle} />
       ) : (
         <BlogIndexScene onOpen={openArticle} onOpenTopic={openTopic} />
       )}
-      <BlogTopBar autoHide={view.kind === "article"} />
-      <BackToTop scrollTo={scrollToY} />
-      <Scrollbar />
-      <LoadingOverlay />
-    </BlogPrefsProvider>
+      <BackToTop />
+    </>
   );
 }

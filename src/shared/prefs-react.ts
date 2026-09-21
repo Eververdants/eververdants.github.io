@@ -7,3 +7,4 @@ export function usePrefs(): Prefs {
 }
 
 export type { Prefs } from "./prefs";
+export { setLang, setTheme, toggleTheme } from "./prefs";

@@ -24,7 +24,7 @@ import { journal, journalZh } from "./journal";
 import { escapeHtml, renderMarkdown } from "../lib/markdown";
 import { parseFrontmatter } from "./parsePost";
 import { blogIndex } from "virtual:blog-index";
-import type { Lang } from "../blog/prefs";
+import type { Lang } from "../shared/prefs";
 
 /* Every markdown file under src/blog/posts/ as a LAZY loader — Vite splits
    each into its own chunk. The build-time index maps every slug to its

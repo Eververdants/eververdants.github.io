@@ -9,9 +9,9 @@
    every function is a pure string-in/string-out transform so both runtimes
    can import it without surprises. */
 
-import type { Lang } from "../blog/prefs";
-import type { JournalPost, Source } from "./journal";
-import { sections } from "./sections";
+import type { Lang } from "../shared/prefs.ts";
+import type { JournalPost, Source } from "./journal.ts";
+import { sections } from "./sections.ts";
 
 /* ---- frontmatter: a deliberate strict subset of YAML — only what the
    essays need (bare scalars, double-quoted strings with \n escapes, inline

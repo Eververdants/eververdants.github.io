@@ -296,12 +296,19 @@ async function renderWithChrome(chromePath, url, expr, waitMs = 15000) {
   }
 }
 
-/* ---- render one article, extract the rendered [data-article] block ---- */
-async function renderArticle(chromePath, slug) {
+/* ---- render one article in one language, capture the whole document ----
+   The reader owns its own head now (applyHead in ArticleScene writes title,
+   description, canonical, og:/twitter:, hreflang pair and BlogPosting), so
+   serialising the live document is both simpler and more correct than the
+   regex pass this replaces — which could not update twitter:* and stamped
+   every article, English included, with inLanguage: zh-Hans. */
+async function renderArticle(chromePath, slug, lang) {
+  const path =
+    lang === "zh" ? `/blog/zh/${slug}/` : `/blog/${slug}/`;
   return renderWithChrome(
     chromePath,
-    `http://127.0.0.1:${PORT}/blog/${slug}/`,
-    `(() => { const el = document.querySelector('[data-article]'); const body = el && el.querySelector('.article-content'); return body && body.innerHTML.trim().length > 300 ? el.outerHTML : ''; })()`,
+    `http://127.0.0.1:${PORT}${path}`,
+    `(() => { const a = document.querySelector('[data-article] .article-content'); return a && a.textContent.trim().length > 200 ? document.documentElement.outerHTML : ''; })()`,
   );
 }
 
@@ -390,84 +397,6 @@ async function renderBlogIndex(chromePath) {
   return out;
 }
 
-/* ---- build a static shell for one article from the built blog entry's
-   index.html template (the article reader lives on the blog sub-site) ---- */
-function buildStatic(post, articleHtml) {
-  const url = `${SITE}/blog/${post.slug}/`;
-  const dateISO = post.date.replace(/\./g, "-"); // "2026.07.04" -> "2026-07-04" (ISO date)
-  let tpl = readFileSync(join(ROOT, "dist/blog/index.html"), "utf8");
-  // Articles are Chinese (JSON-LD says inLanguage: zh-Hans); the blog shell's
-  // lang="en" contradicts the content and weakens the relevance signal.
-  tpl = tpl.replace(/<html lang="en"/, `<html lang="zh-Hans"`);
-  tpl = tpl.replace(
-    /<title>[\s\S]*?<\/title>/,
-    `<title>${esc(post.title)} — Eververdants</title>`,
-  );
-  tpl = tpl.replace(
-    /<meta name="description"[^>]*\/>/,
-    `<meta name="description" content="${esc(post.excerpt)}" />`,
-  );
-  tpl = tpl.replace(
-    /<link rel="canonical"[^>]*\/>/,
-    `<link rel="canonical" href="${url}" />`,
-  );
-  tpl = tpl.replace(
-    /<meta property="og:type" content="website" \/>/,
-    `<meta property="og:type" content="article" />`,
-  );
-  tpl = tpl.replace(
-    /<meta property="og:title"[^>]*\/>/,
-    `<meta property="og:title" content="${esc(post.title)}" />`,
-  );
-  tpl = tpl.replace(
-    /<meta property="og:description"[^>]*\/>/,
-    `<meta property="og:description" content="${esc(post.excerpt)}" />`,
-  );
-  tpl = tpl.replace(
-    /<meta property="og:url"[^>]*\/>/,
-    `<meta property="og:url" content="${url}" />`,
-  );
-  tpl = tpl.replace(
-    /<script type="application\/ld\+json">[\s\S]*?<\/script>/,
-    `<script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BlogPosting",
-      "headline": ${JSON.stringify(post.title)},
-      "description": ${JSON.stringify(post.excerpt)},
-      "datePublished": ${JSON.stringify(dateISO)},
-      "dateModified": ${JSON.stringify(dateISO)},
-      "url": ${JSON.stringify(url)},
-      "mainEntityOfPage": ${JSON.stringify(url)},
-      "inLanguage": "zh-Hans",
-      "author": {
-        "@type": "Person",
-        "name": "Eververdants",
-        "alternateName": "万山青未阑",
-        "url": "${SITE}/",
-        "description": "Eververdants (a.k.a. 万山青未阑), a high-school student & open-source developer from Kunshan; full-stack (Tauri/Rust/Vue/React/TS/Python) and AI × creative. Open to paid low-cost gigs. / Eververdants（万山青未阑），苏州昆山高一学生、开源开发者，擅长全栈（Tauri/Rust/Vue/React/TypeScript/Python）与 AI × 创意。接受有偿低价小活。",
-        "knowsLanguage": ["en", "zh-Hans"],
-        "contact": "WeChat: evervdev",
-        "sameAs": [
-          "https://github.com/Eververdants",
-          "https://space.bilibili.com/2019959464",
-          "https://www.douyin.com/user/MS4wLjABAAAA8MEFE6VVh4_nWkTLPbueZYywgSyN19xhUFkmDF-nkhlnWytZWiBZ9YWM5s3RsprJ"
-        ]
-      },
-      "publisher": { "@type": "Person", "name": "Eververdants", "url": "${SITE}/" }
-    }
-    </script>`,
-  );
-  tpl = tpl.replace(
-    /<div id="root"><\/div>/,
-    `<div id="root">${articleHtml}</div>`,
-  );
-  const out = join(ROOT, "dist/blog", post.slug, "index.html");
-  mkdirSync(join(ROOT, "dist/blog", post.slug), { recursive: true });
-  writeFileSync(out, tpl);
-  return out;
-}
-
 function writeSitemap(posts, works) {
   const today = new Date().toISOString().slice(0, 10);
   /* /resume, /selected and /selected-blog used to be scroll positions inside
@@ -480,10 +409,13 @@ function writeSitemap(posts, works) {
     `<url><loc>${SITE}/projects/</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`,
     `<url><loc>${SITE}/photos/</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`,
     `<url><loc>${SITE}/blog/</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`,
-    ...posts.map(
-      (p) =>
-        `<url><loc>${SITE}/blog/${p.slug}/</loc><lastmod>${p.date.replace(/\./g, "-")}</lastmod><priority>0.9</priority></url>`,
-    ),
+    ...posts.flatMap((p) => {
+      const lastmod = p.date.replace(/\./g, "-");
+      return [
+        `<url><loc>${SITE}/blog/${p.slug}/</loc><lastmod>${lastmod}</lastmod><priority>0.9</priority></url>`,
+        `<url><loc>${SITE}/blog/zh/${p.slug}/</loc><lastmod>${lastmod}</lastmod><priority>0.8</priority></url>`,
+      ];
+    }),
     ...works.map(
       (w) =>
         `<url><loc>${SITE}/photos/work/${w.slug}/</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`,
@@ -574,15 +506,24 @@ async function main() {
     await sleep(300);
     console.log(`prerender: ${posts.length} article(s) + ${works.length} photo work(s) via ${chromePath}`);
     for (const post of posts) {
-      try {
-        const html = await renderArticle(chromePath, post.slug);
-        const out = buildStatic(post, html);
-        ok++;
-        console.log(
-          `  ✓ ${post.slug} (${html.length} chars) -> ${out.replace(ROOT, ".")}`,
-        );
-      } catch (e) {
-        console.log(`  ✗ ${post.slug}: ${e.message}`);
+      for (const lang of ["en", "zh"]) {
+        const dir =
+          lang === "zh"
+            ? join(ROOT, "dist/blog/zh", post.slug)
+            : join(ROOT, "dist/blog", post.slug);
+        try {
+          const html = await renderArticle(chromePath, post.slug, lang);
+          mkdirSync(dir, { recursive: true });
+          const out = join(dir, "index.html");
+          writeFileSync(out, html);
+          ok++;
+          const shown = lang === "zh" ? `/blog/zh/${post.slug}/` : `/blog/${post.slug}/`;
+          console.log(
+            `  ✓ ${shown} (${html.length} chars) -> ${out.replace(ROOT, ".")}`,
+          );
+        } catch (e) {
+          console.log(`  ✗ ${post.slug} (${lang}): ${e.message}`);
+        }
       }
     }
     try {
@@ -628,8 +569,8 @@ async function main() {
     } catch (e) {
       console.log(`  ✗ /: ${e.message}`);
     }
-    // Must run AFTER the article loop: buildStatic() reads dist/blog/index.html
-    // as its template, and this overwrites that file with the baked DOM.
+    /* Last, so it never competes with the article pages for the same file.
+       (The old buildStatic() read this as a template; nothing does now.) */
     try {
       const out = await renderBlogIndex(chromePath);
       blogIndexOk = true;
@@ -649,7 +590,7 @@ async function main() {
   writeRobots();
   writeRss(posts);
   console.log(
-    `prerender done: ${ok}/${posts.length} articles${blogIndexOk ? " + /blog/" : ""}${homeOk ? " + /" : ""}${aboutOk ? " + /about/" : ""}${projectsOk ? " + /projects/" : ""}${photosOk ? " + /photos/" : ""}${photosWorksOk ? ` + ${photosWorksOk}/${works.length} photo works` : ""} + sitemap.xml + robots.txt + rss.xml`,
+    `prerender done: ${ok}/${posts.length * 2} article pages (en+zh)${blogIndexOk ? " + /blog/" : ""}${homeOk ? " + /" : ""}${aboutOk ? " + /about/" : ""}${projectsOk ? " + /projects/" : ""}${photosOk ? " + /photos/" : ""}${photosWorksOk ? ` + ${photosWorksOk}/${works.length} photo works` : ""} + sitemap.xml + robots.txt + rss.xml`,
   );
 }
 
