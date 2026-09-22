@@ -97,7 +97,6 @@ function renderFeatured() {
             <h2 class="display section__title">${esc(u.featuredTitle)}</h2>
           </div>
         </div>
-        <p class="section__note">${esc(u.hoverHint)}</p>
       </div>
       <div class="featured">
         ${featured

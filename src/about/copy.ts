@@ -8,7 +8,7 @@ const en = {
     "Eververdants (万山青未阑) is a high-school student and open-source developer in Kunshan, Jiangsu: Tauri/Rust/Vue/TypeScript tools, essays on Mao Zedong's Selected Works, photography and calligraphy. Available for small paid projects.",
   title: "About",
   subtitle: "万山青未阑 · High-school student & open-source developer",
-  lede: "I build tools, write essays, and take photographs while finishing high school in Kunshan. This page is the plain summary — the work itself is in the other three sections.",
+  lede: "I go to school in Kunshan and I build things on the side: desktop tools, small web apps, essays I actually finished, photographs I stopped for.",
   sections: {
     glance: "At a glance",
     bio: "In short",
@@ -34,27 +34,27 @@ const en = {
   },
   work: {
     pitch:
-      "Paid, but at a student rate, and with real deadlines. If it is small and useful, I will take it.",
+      "Paid, but at a student rate, and with deadlines I keep. If it is small and actually useful, I will take it.",
     items: [
       {
         title: "Web apps and sites",
-        note: "React or Vue front ends, TypeScript throughout, deployed and maintained.",
+        note: "React or Vue on the front, TypeScript through it, deployed and then kept working.",
       },
       {
         title: "Desktop tools",
-        note: "Tauri 2.0 and Rust wrappers where a browser tab is the wrong shape for the job.",
+        note: "Tauri 2.0 and Rust, for the things a browser tab cannot hold.",
       },
       {
         title: "Deployment",
-        note: "Getting an LLM running, or a repository built and shipped to GitHub Pages or a VPS.",
+        note: "I get a model running, or a repository built and shipped to GitHub Pages or a server.",
       },
       {
         title: "AI × creative",
-        note: "Calligraphy rendering, photography tooling, generative visuals.",
+        note: "Calligraphy rendering, photography tooling, visuals made by code.",
       },
     ],
     wechat: "WeChat",
-    wechatNote: "fastest way to reach me",
+    wechatNote: "the fastest way to reach me",
     copy: "Copy",
     copied: "Copied",
     copyFailed: "Select and copy manually",
@@ -76,7 +76,7 @@ const zh: typeof en = {
     "Eververdants（万山青未阑），江苏昆山的高中生与开源开发者：Tauri/Rust/Vue/TypeScript 工具、《毛选》研读随笔、摄影与书法。接受有偿小项目。",
   title: "关于",
   subtitle: "万山青未阑 · 高中生 · 开源开发者",
-  lede: "我在读高中期间做工具、写随笔、拍照。这一页是平实的自我介绍——作品本身在另外三个栏目里。",
+  lede: "我在昆山读书，课余做东西：桌面工具、小网站、写得完的随笔，和愿意为我停下来的照片。",
   sections: {
     glance: "速览",
     bio: "简而言之",
@@ -99,23 +99,23 @@ const zh: typeof en = {
     location: "地区",
   },
   work: {
-    pitch: "有偿，但按学生价，并且按时交付。项目小、确实有用，我就接。",
+    pitch: "收费，但只是学生价，答应的时间我会守住。项目小、确实有用，我就接。",
     items: [
       {
         title: "网页应用与网站",
-        note: "React 或 Vue 前端，全程 TypeScript，负责部署与后续维护。",
+        note: "前端 React 或 Vue，全程 TypeScript，部署之后也继续维护。",
       },
       {
         title: "桌面工具",
-        note: "当浏览器标签页不适合这件事时，用 Tauri 2.0 与 Rust 来做。",
+        note: "浏览器标签页装不下的东西，用 Tauri 2.0 与 Rust 做。",
       },
       {
         title: "部署",
-        note: "把大模型跑起来，或把仓库构建好并发布到 GitHub Pages 与服务器。",
+        note: "把模型跑起来，或者把仓库构建好，发到 GitHub Pages 和自己的服务器上。",
       },
       {
         title: "AI × 创意",
-        note: "书法渲染、摄影工具、程序化生成视觉。",
+        note: "书法渲染、摄影工具、用代码生成的视觉。",
       },
     ],
     wechat: "微信",

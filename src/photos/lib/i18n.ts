@@ -44,7 +44,7 @@ export const ui: Record<Lang, Dict> = {
     overline: (year: string) => `A PHOTOGRAPHIC JOURNAL · EST. ${year}`,
     title: "Photographs",
     lede:
-      "A small, slow collection — landscapes, architecture, and the rooms in between. Filed as it is made.",
+      "Photographs I keep. Mountains, buildings, and the inside of a room nobody is standing in.",
     metaWorks: "WORKS",
     metaCategories: "CATEGORIES",
     metaImages: "IMAGES",
@@ -76,7 +76,7 @@ export const ui: Record<Lang, Dict> = {
     brand: "摄影集",
     overline: (year: string) => `影像手记 · 始于 ${year}`,
     title: "摄影集",
-    lede: "一座小而慢的影像档案 —— 山川、建筑，以及其间安静的角落。随拍随录。",
+    lede: "我留下来的照片。山、房子，和没有人的房间。",
     metaWorks: "作品",
     metaCategories: "分类",
     metaImages: "影像",

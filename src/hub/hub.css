@@ -142,7 +142,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: clamp(18px, 2.2vw, 26px);
+  padding: clamp(26px, 3vw, 38px);
   min-width: 0;
 }
 .portal--wide {
@@ -296,7 +296,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: clamp(18px, 3vw, 34px);
   align-items: center;
-  padding: clamp(20px, 2.6vw, 30px);
+  padding: clamp(28px, 3.2vw, 42px);
 }
 .contact__title {
   font-size: var(--text-xl);
