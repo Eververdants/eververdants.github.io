@@ -15,10 +15,12 @@ import TopicScene from "./components/TopicScene";
 import { topicById } from "../data/journal";
 import { setLang, usePrefs } from "../shared/prefs-react";
 import { defineTopBar } from "../shared/topbar";
+import { definePalette } from "../shared/palette";
 import { articlePath, BLOG, parseView, topicPath } from "./urls";
 import type { BlogView } from "./urls";
 
 defineTopBar();
+definePalette();
 
 export default function BlogApp() {
   const { lang } = usePrefs();
@@ -139,7 +141,8 @@ export default function BlogApp() {
 
   return (
     <>
-      <site-topbar active="blog" />
+      <site-topbar active="blog" search />
+      <site-palette />
       {view.kind === "article" ? (
         <ArticleScene
           slug={view.slug}

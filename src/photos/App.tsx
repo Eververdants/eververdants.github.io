@@ -208,7 +208,8 @@ export function App() {
 
   return (
     <>
-      <site-topbar active="photos" />
+      <site-topbar active="photos" search />
+      <site-palette />
       <div className="photos" onClick={onClick}>
         <main id="main" className="shell shell--photos">
           {route.name === "gallery" ? (

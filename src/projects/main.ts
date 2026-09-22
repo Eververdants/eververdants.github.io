@@ -18,6 +18,7 @@ import { repoDesc, ui } from "./lib/i18n";
 import { getPrefs, initPrefs, pick, subscribePrefs } from "../shared/prefs";
 import type { Lang } from "../shared/prefs";
 import { defineTopBar } from "../shared/topbar";
+import { definePalette } from "../shared/palette";
 import { applyHead, breadcrumbLd, PERSON, SITE } from "../shared/seo";
 
 /* Language + theme live in blog-lang / blog-theme, so a reader's choices carry
@@ -26,6 +27,7 @@ import { applyHead, breadcrumbLd, PERSON, SITE } from "../shared/seo";
    prefs store itself — this file never renders or re-renders the bar. */
 initPrefs();
 defineTopBar();
+definePalette();
 
 const d = data as unknown as Dataset;
 const repos: Repo[] = d.repos;
@@ -440,7 +442,8 @@ function initReveal() {
 function renderSkeleton() {
   const app = document.getElementById("app")!;
   app.innerHTML = `
-    <site-topbar active="works"></site-topbar>
+    <site-topbar active="works" search></site-topbar>
+    <site-palette></site-palette>
     <main id="main">
       <section id="hero" class="hero"></section>
       <section id="featured" class="section"></section>

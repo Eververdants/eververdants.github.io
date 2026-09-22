@@ -182,18 +182,10 @@ export default function BlogIndexScene({
     });
   }, [lang, deck, j.cover.subtitle]);
 
-  /* ⌘K / Ctrl K focuses archive search from anywhere on the index. */
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        searchRef.current?.focus();
-        searchRef.current?.select();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  /* ⌘K / Ctrl K belongs to the site-wide palette everywhere, including here —
+     binding it to this box too would make the same keystroke mean two things.
+     The archive box stays reachable by clicking it, and searches essay bodies,
+     which the palette does not. */
 
   const chip = (on: boolean) => `filter-chip sq-sm${on ? " filter-chip--on" : ""}`;
 

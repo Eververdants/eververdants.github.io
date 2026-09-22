@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin } from "vite";
@@ -8,11 +8,18 @@ import { parsePostMeta, stripMarkdown } from "./src/data/parsePost.ts";
 import type { JournalPost } from "./src/data/journal.ts";
 import { worksIndexPlugin } from "./src/photos/build/worksIndexPlugin.ts";
 
-/* Each SPA entry (main /blog /projects /photos) fallbacks its own paths, but
-   Vite's built-in dev/preview server only knows the root index.html — a deep
-   link like /blog/<slug> or /projects/ with no static file (dev) would fall
-   to the main site and normalize to the root. Rewrite those prefixes to their
-   own entries, matching what the prerendered statics serve in production. */
+/* Each SPA entry (main /about /blog /projects /photos) fallbacks its own
+   paths, but Vite's built-in dev/preview server only knows the root
+   index.html — a deep link like /blog/<slug> or /projects/ with no static
+   file (dev) would fall to the main site and normalize to the root. Rewrite
+   those prefixes to their own entries, matching what the prerendered statics
+   serve in production.
+
+   The rewrite must not swallow a path that already has a file behind it:
+   scripts/prerender.mjs writes dist/blog/<slug>/index.html and
+   dist/blog/zh/<slug>/index.html, and rewriting unconditionally made preview
+   serve the blog *index* for every article — so a deep link looked broken
+   locally while production served it correctly. */
 const SUB_SITES = [
   { prefix: "/about", entry: "/about/index.html" },
   { prefix: "/blog", entry: "/blog/index.html" },
@@ -20,13 +27,25 @@ const SUB_SITES = [
   { prefix: "/photos", entry: "/photos/index.html" },
 ];
 
-function subSiteFallbackMiddleware() {
+/* The dist directory comes from the resolved server config, not from this
+   file's own import.meta.url — Vite bundles the config before evaluating it,
+   so a relative URL here resolves against a temp file and every path check
+   silently misses, which re-introduces the bug this guard exists to prevent. */
+function subSiteFallbackMiddleware(distDir: string) {
+  const hasStaticFile = (urlPath: string): boolean => {
+    const clean = decodeURIComponent(urlPath.split("?")[0]);
+    return [join(distDir, clean), join(distDir, clean, "index.html")].some(
+      (p) => existsSync(p) && statSync(p).isFile(),
+    );
+  };
   return (req: { url?: string }, _res: unknown, next: () => void) => {
     const url = (req.url ?? "").split("?")[0];
-    for (const { prefix, entry } of SUB_SITES) {
-      if (url === prefix || url.startsWith(prefix + "/")) {
-        req.url = entry;
-        break;
+    if (!hasStaticFile(url)) {
+      for (const { prefix, entry } of SUB_SITES) {
+        if (url === prefix || url.startsWith(prefix + "/")) {
+          req.url = entry;
+          break;
+        }
       }
     }
     next();
@@ -36,15 +55,21 @@ function subSiteFallbackMiddleware() {
 /* configureServer / configurePreviewServer are plugin hooks, not top-level
    config keys — hence the inline plugin. */
 function subSiteEntryFallbackPlugin() {
+  const distOf = (server: { config: { root: string } }) =>
+    join(server.config.root, "dist");
   return {
     name: "subsite-entry-fallback",
-    configureServer(server: { middlewares: { use: (m: unknown) => void } }) {
-      server.middlewares.use(subSiteFallbackMiddleware());
+    configureServer(server: {
+      middlewares: { use: (m: unknown) => void };
+      config: { root: string };
+    }) {
+      server.middlewares.use(subSiteFallbackMiddleware(distOf(server)));
     },
     configurePreviewServer(server: {
       middlewares: { use: (m: unknown) => void };
+      config: { root: string };
     }) {
-      server.middlewares.use(subSiteFallbackMiddleware());
+      server.middlewares.use(subSiteFallbackMiddleware(distOf(server)));
     },
   };
 }
