@@ -55,22 +55,6 @@ function scrollTop() {
   });
 }
 
-/* ================= 数字滚动 ================= */
-function countUp(el: HTMLElement, target: number, duration = 900) {
-  if (reducedMotion()) {
-    el.textContent = String(target);
-    return;
-  }
-  const t0 = performance.now();
-  const ease = (p: number) => 1 - Math.pow(1 - p, 3);
-  const tick = (now: number) => {
-    const p = Math.min((now - t0) / duration, 1);
-    el.textContent = String(Math.round(ease(p) * target));
-    if (p < 1) requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
-}
-
 /* ================= Hero ================= */
 function renderHero() {
   const el = document.getElementById("hero")!;
@@ -88,26 +72,11 @@ function renderHero() {
         <a class="btn sq-md hero__cta" href="/">${esc(u.mainSite)} <span aria-hidden="true">↗</span></a>
       </div>
       <div class="hero__meta" data-reveal style="--reveal-delay:170ms">
-        <div class="stat"><b class="num" data-count="${meta.count}">0</b><span class="kicker">${esc(u.metaRepos)}</span></div>
-        <div class="stat"><b class="num" data-count="${stars}">0</b><span class="kicker">${esc(u.metaStars)}</span></div>
-        <div class="stat"><b class="num" data-count="${langs}">0</b><span class="kicker">${esc(u.metaLangs)}</span></div>
+        <div class="stat"><b class="num">${meta.count}</b><span class="kicker">${esc(u.metaRepos)}</span></div>
+        <div class="stat"><b class="num">${stars}</b><span class="kicker">${esc(u.metaStars)}</span></div>
+        <div class="stat"><b class="num">${langs}</b><span class="kicker">${esc(u.metaLangs)}</span></div>
       </div>
     </div>`;
-
-  /* 统计数字在进入视口时滚动到位（reduced-motion 下直接落定） */
-  const io = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((en) => {
-        if (!en.isIntersecting) return;
-        en.target
-          .querySelectorAll<HTMLElement>("[data-count]")
-          .forEach((n) => countUp(n, Number(n.dataset.count || 0)));
-        io.disconnect();
-      });
-    },
-    { threshold: 0.4 },
-  );
-  io.observe(el);
 }
 
 /* ================= 精选 ================= */

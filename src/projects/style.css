@@ -58,6 +58,22 @@ img {
   --ring-x: 84%;
   --ring-y: 22%;
   --ring-gap: 34px;
+  /* The hero is wide, so a ring field at the default fade reaches across the
+     whole viewport as huge arcs. Pull the mask in and drop the contrast so it
+     reads as a quiet halo behind the title, like the hub's mark. */
+  --ring-color: color-mix(in oklab, var(--ink) 7%, transparent);
+  -webkit-mask-image: radial-gradient(
+    circle at 84% 22%,
+    #000 0%,
+    rgba(0, 0, 0, 0.4) 22%,
+    transparent 46%
+  );
+  mask-image: radial-gradient(
+    circle at 84% 22%,
+    #000 0%,
+    rgba(0, 0, 0, 0.4) 22%,
+    transparent 46%
+  );
 }
 .hero__inner {
   position: relative;
