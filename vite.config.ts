@@ -27,16 +27,20 @@ const SUB_SITES = [
   { prefix: "/photos", entry: "/photos/index.html" },
 ];
 
-/* The dist directory comes from the resolved server config, not from this
-   file's own import.meta.url — Vite bundles the config before evaluating it,
-   so a relative URL here resolves against a temp file and every path check
-   silently misses, which re-introduces the bug this guard exists to prevent. */
-function subSiteFallbackMiddleware(distDir: string) {
+/* The dist check belongs to preview only. The dev server serves from the
+ * project root, not from dist/, so consulting dist there is actively wrong:
+ * a stale dist/blog/<slug>/index.html makes the guard skip the rewrite, the
+ * dev server then finds no such path in the root, and its SPA fallback hands
+ * back the hub — so every article deep link "works" in preview and shows the
+ * homepage in dev. */
+function subSiteFallbackMiddleware(opts: { distDir?: string } = {}) {
   const hasStaticFile = (urlPath: string): boolean => {
+    if (!opts.distDir) return false;
     const clean = decodeURIComponent(urlPath.split("?")[0]);
-    return [join(distDir, clean), join(distDir, clean, "index.html")].some(
-      (p) => existsSync(p) && statSync(p).isFile(),
-    );
+    return [
+      join(opts.distDir, clean),
+      join(opts.distDir, clean, "index.html"),
+    ].some((p) => existsSync(p) && statSync(p).isFile());
   };
   return (req: { url?: string }, _res: unknown, next: () => void) => {
     const url = (req.url ?? "").split("?")[0];
@@ -55,21 +59,20 @@ function subSiteFallbackMiddleware(distDir: string) {
 /* configureServer / configurePreviewServer are plugin hooks, not top-level
    config keys — hence the inline plugin. */
 function subSiteEntryFallbackPlugin() {
-  const distOf = (server: { config: { root: string } }) =>
-    join(server.config.root, "dist");
   return {
     name: "subsite-entry-fallback",
     configureServer(server: {
       middlewares: { use: (m: unknown) => void };
-      config: { root: string };
     }) {
-      server.middlewares.use(subSiteFallbackMiddleware(distOf(server)));
+      server.middlewares.use(subSiteFallbackMiddleware());
     },
     configurePreviewServer(server: {
       middlewares: { use: (m: unknown) => void };
       config: { root: string };
     }) {
-      server.middlewares.use(subSiteFallbackMiddleware(distOf(server)));
+      server.middlewares.use(
+        subSiteFallbackMiddleware({ distDir: join(server.config.root, "dist") }),
+      );
     },
   };
 }
