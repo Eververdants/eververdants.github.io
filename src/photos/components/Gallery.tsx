@@ -1,37 +1,27 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { getWorks, getCategoryIds } from "../data/works";
 import { categoryById } from "../data/categories";
 import { WorkCard } from "./WorkCard";
-import { usePhotosPrefs } from "../lib/prefs";
+import { usePrefs } from "../../shared/prefs-react";
 import { ui, estYear, countImages, catLabelOf } from "../lib/i18n";
 import { mainSiteHref } from "../lib/asset";
 
 const ALL = "ALL";
 
-function CountUp({ target }: { target: number }) {
-  const [v, setV] = useState(0);
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setV(target);
-      return;
-    }
-    const t0 = performance.now();
-    const dur = 800;
-    const ease = (p: number) => 1 - Math.pow(1 - p, 3);
-    let raf = 0;
-    const tick = (now: number) => {
-      const p = Math.min((now - t0) / dur, 1);
-      setV(Math.round(ease(p) * target));
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target]);
-  return <b>{v}</b>;
+/* The hero counts are written as they are, not counted up: a number that
+   animates is a number the prerendered page can bake half-way through, and a
+   crawler reading dist/photos/index.html would be told there were two works. */
+function Count({ target, label }: { target: number; label: string }) {
+  return (
+    <div className="meta-item">
+      <b className="num">{target}</b>
+      <span className="kicker">{label}</span>
+    </div>
+  );
 }
 
 export function Gallery() {
-  const { lang } = usePhotosPrefs();
+  const { lang } = usePrefs();
   const t = ui[lang];
   const works = getWorks();
   const usedIds = getCategoryIds();
@@ -54,39 +44,34 @@ export function Gallery() {
 
   return (
     <>
-      <section className="gallery-hero">
-        <p className="overline">{t.overline(estYear(works))}</p>
-        <h1 className="gallery-hero__title">{t.title}</h1>
+      <section className="gallery-hero glass-panel sq-xl glass-sheen rise">
+        <span className="ring-field" aria-hidden="true" />
+        <p className="kicker">{t.overline(estYear(works))}</p>
+        <div className="gallery-head">
+          <span className="ring-mark" aria-hidden="true" />
+          <h1 className="display gallery-title">{t.title}</h1>
+        </div>
         <div className="hero-row">
           <p className="lede">{t.lede}</p>
-          <a className="home-btn" href={mainSiteHref()}>
-            {t.mainSite} <span aria-hidden>↗</span>
+          <a className="btn btn--ghost sq-md home-btn" href={mainSiteHref()}>
+            {t.mainSite} <span aria-hidden="true">↗</span>
           </a>
         </div>
         <div className="hero-meta">
-          <div className="meta-item">
-            <CountUp target={works.length} />
-            <span className="mono">{t.metaWorks}</span>
-          </div>
-          <div className="meta-item">
-            <CountUp target={catCount} />
-            <span className="mono">{t.metaCategories}</span>
-          </div>
-          <div className="meta-item">
-            <CountUp target={imgCount} />
-            <span className="mono">{t.metaImages}</span>
-          </div>
+          <Count target={works.length} label={t.metaWorks} />
+          <Count target={catCount} label={t.metaCategories} />
+          <Count target={imgCount} label={t.metaImages} />
         </div>
-        <div className="filter-bar" role="tablist" aria-label={t.filterAria}>
+        <div className="filter-bar glass-bar sq-lg" role="tablist" aria-label={t.filterAria}>
           <button
             type="button"
             role="tab"
             aria-selected={active === ALL}
-            className={`filter-chip ${active === ALL ? "is-active" : ""}`}
+            className={`filter-chip sq-sm ${active === ALL ? "is-active" : ""}`}
             onClick={() => setActive(ALL)}
           >
             <span>{t.all}</span>
-            <span className="chip-count">{counts[ALL]}</span>
+            <span className="chip-count num">{counts[ALL]}</span>
           </button>
           {orderedIds.map((id) => {
             const cat = categoryById[id];
@@ -96,17 +81,17 @@ export function Gallery() {
                 key={id}
                 role="tab"
                 aria-selected={active === id}
-                className={`filter-chip ${active === id ? "is-active" : ""}`}
+                className={`filter-chip sq-sm ${active === id ? "is-active" : ""}`}
                 onClick={() => setActive(id)}
               >
                 <span>{catLabelOf(cat, id, lang)}</span>
-                <span className="chip-count">{counts[id] ?? 0}</span>
+                <span className="chip-count num">{counts[id] ?? 0}</span>
               </button>
             );
           })}
         </div>
       </section>
-      <hr className="hairline" />
+      <hr className="ring-rule" />
       {filtered.length === 0 ? (
         <p className="gallery-empty">{t.empty}</p>
       ) : (

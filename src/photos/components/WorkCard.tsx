@@ -3,30 +3,33 @@ import type { Work } from "../data/types";
 import { asset } from "../lib/asset";
 import { categoryById } from "../data/categories";
 import { fmtMonthYearShort } from "../lib/format";
-import { usePhotosPrefs } from "../lib/prefs";
+import { usePrefs } from "../../shared/prefs-react";
 import { ui, titleOf, catLabelOf } from "../lib/i18n";
 
 const workHref = (slug: string) => `/photos/work/${slug}/`;
 
+/* Masonry cell: the frame is the glass card, the scrim carries the caption on
+   hover/keyboard focus, and the line beneath keeps the metadata readable
+   without a pointer. Staggered by the `rise` keyframes from tokens.css. */
 export function WorkCard({ work, index }: { work: Work; index: number }) {
-  const { lang } = usePhotosPrefs();
+  const { lang } = usePrefs();
   const t = ui[lang];
   const cat = categoryById[work.category];
   const catLabel = catLabelOf(cat, work.category, lang);
   return (
     <a
-      className="work-card fade-up"
+      className="work-card rise"
       href={workHref(work.slug)}
-      style={{ animationDelay: `${index * 70}ms` } as CSSProperties}
+      style={{ animationDelay: `${Math.min(index, 8) * 70}ms` } as CSSProperties}
     >
-      <div className="work-card-media">
+      <div className="work-card-media glass sq-xl">
         <img
           src={asset(work.cover)}
           alt={titleOf(work, lang)}
           loading="lazy"
           decoding="async"
         />
-        <div className="work-card-overlay" aria-hidden>
+        <div className="work-card-overlay sq-xl" aria-hidden="true">
           <span className="o-cat">{catLabel}</span>
           <h3 className="o-title">{titleOf(work, lang)}</h3>
           <span className="o-date">{fmtMonthYearShort(work.date, lang)}</span>
@@ -39,7 +42,7 @@ export function WorkCard({ work, index }: { work: Work; index: number }) {
             <span className="m-selected">· {t.selected}</span>
           )}
         </span>
-        <span className="m-date">{fmtMonthYearShort(work.date, lang)}</span>
+        <span className="m-date num">{fmtMonthYearShort(work.date, lang)}</span>
       </div>
     </a>
   );

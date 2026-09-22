@@ -1,11 +1,13 @@
-/* 摄影集双语字典 —— 语言偏好与 blog/projects 打通（共享 blog-lang）。 */
+/* 摄影集双语字典 —— 语言偏好由 shared/prefs 管理（共享 blog-lang）。 */
 import type { Work } from "../data/types";
 import type { CategoryDef } from "../data/categories";
 
-export type Lang = "en" | "zh";
+/* The one language type for the whole site. */
+import type { Lang } from "../../shared/prefs";
+export type { Lang };
 
 export interface Dict {
-  brand: string; // header mark
+  brand: string; // gallery name: footer + "back to gallery"
   overline: (year: string) => string;
   title: string; // hero h1
   lede: string;
@@ -15,8 +17,8 @@ export interface Dict {
   all: string;
   empty: string;
   mainSite: string; // back-to-main button
-  backGallery: string; // aria label for the brand link
   selected: string; // "· SELECTED" badge
+  watermark: string; // rights notice, carried from the old main site
   prev: string;
   next: string;
   first: string;
@@ -30,9 +32,10 @@ export interface Dict {
   metaAperture: string;
   metaShutter: string;
   metaIso: string;
-  themeDark: string;
-  themeLight: string;
   filterAria: string;
+  metaAria: string;
+  navAria: string;
+  backAria: string;
 }
 
 export const ui: Record<Lang, Dict> = {
@@ -48,8 +51,9 @@ export const ui: Record<Lang, Dict> = {
     all: "All",
     empty: "Nothing filed here yet",
     mainSite: "Main site",
-    backGallery: "Photographs — back to gallery",
     selected: "SELECTED",
+    watermark:
+      "Every original carries a blind watermark — please do not repost or reuse.",
     prev: "← Previous",
     next: "Next →",
     first: "— First entry",
@@ -63,9 +67,10 @@ export const ui: Record<Lang, Dict> = {
     metaAperture: "Aperture",
     metaShutter: "Shutter",
     metaIso: "ISO",
-    themeDark: "Switch to dark",
-    themeLight: "Switch to light",
     filterAria: "Filter by category",
+    metaAria: "Metadata",
+    navAria: "Work navigation",
+    backAria: "Back to gallery",
   },
   zh: {
     brand: "摄影集",
@@ -78,8 +83,8 @@ export const ui: Record<Lang, Dict> = {
     all: "全部",
     empty: "这里还没有归档作品",
     mainSite: "返回主站",
-    backGallery: "摄影集 —— 返回画廊",
     selected: "精选",
+    watermark: "每张原片都带有盲水印，请勿转载复用。",
     prev: "← 上一篇",
     next: "下一篇 →",
     first: "— 首篇",
@@ -93,9 +98,10 @@ export const ui: Record<Lang, Dict> = {
     metaAperture: "光圈",
     metaShutter: "快门",
     metaIso: "感光度",
-    themeDark: "切换到深色",
-    themeLight: "切换到浅色",
     filterAria: "按分类筛选",
+    metaAria: "拍摄信息",
+    navAria: "作品导航",
+    backAria: "返回画廊",
   },
 };
 
