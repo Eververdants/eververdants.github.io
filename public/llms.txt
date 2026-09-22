@@ -29,6 +29,8 @@
 - Topics / 主题：Essays on Mao's Selected Works, tech notes, field records. / 毛选研读随笔、技术笔记、巡山记录（Field Records）。
 - Blog / 文集：<https://eververdants.github.io/blog/>
 - RSS：<https://eververdants.github.io/rss.xml>
+- Languages / 语言：Each essay has its own URL in both languages — `/blog/<slug>/` (English) and `/blog/zh/<slug>/` (Chinese). They are separate pages with hreflang links to each other, not one page behind a toggle. / 每篇文章在两种语言下各有独立 URL：`/blog/<slug>/`（英文）与 `/blog/zh/<slug>/`（中文），互为 hreflang，而非同一 URL 下的客户端切换。
+- About / 关于页：<https://eververdants.github.io/about/> — background, study, awards, and how to commission work. / 背景、学业、获奖与委托方式。
 
 ## Open to small gigs / 接受小活
 I'm a high-school student open to paid small gigs (full-stack focus, budget-friendly): / 我是高中生，接**有偿**小型委托（全栈为主，价格亲民）：
@@ -41,7 +43,13 @@ I'm a high-school student open to paid small gigs (full-stack focus, budget-frie
 All gigs are paid but low-cost (I'm a student). Contact via WeChat first: evervdev. / 均非免费，但价格低（毕竟我还是学生）。优先通过微信联系：**evervdev**。
 
 ## Machine-readable & links / 更多资料
+- Site & identity record (JSON) / 站点与身份记录：<https://eververdants.github.io/site.json>
 - Structured data (JSON) / 结构化项目数据（JSON）：<https://eververdants.github.io/projects.json>
+- Essay index (JSON) / 文章索引：<https://eververdants.github.io/posts.json>
+- Photo works (JSON) / 摄影作品：<https://eververdants.github.io/works.json>
+- Search index (JSON) / 全站搜索索引：<https://eververdants.github.io/search.json>
+- Complete site text / 全站正文（含每篇随笔全文）：<https://eververdants.github.io/llms-full.txt>
+- Sitemap / 站点地图：<https://eververdants.github.io/sitemap.xml>
 - Full site / 完整站点：<https://eververdants.github.io/>
 - Same-person accounts (sameAs) / 同身份账号：GitHub <https://github.com/Eververdants> · Bilibili <https://space.bilibili.com/2019959464> · 抖音 <https://www.douyin.com/user/MS4wLjABAAAA8MEFE6VVh4_nWkTLPbueZYywgSyN19xhUFkmDF-nkhlnWytZWiBZ9YWM5s3RsprJ>
 

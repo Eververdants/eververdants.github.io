@@ -25,6 +25,31 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      # npm run build cannot fail on a broken prerender: scripts/prerender.mjs
+      # ends in process.exit(0) unconditionally so a missing Chrome degrades to
+      # a warning instead of a red deploy. That safety is also how a build can
+      # ship with no sitemap, no RSS and no article pages and still go green —
+      # which happened. Assert the artefacts exist rather than trust the exit
+      # code.
+      - name: Assert SEO artefacts
+        run: |
+          set -euo pipefail
+          missing=0
+          for f in sitemap.xml robots.txt rss.xml search.json site.json posts.json works.json llms-full.txt llms.txt 404.html; do
+            if [ -s "dist/$f" ]; then echo "ok   dist/$f"; else echo "MISS dist/$f"; missing=1; fi
+          done
+          articles=$(find dist/blog -mindepth 2 -maxdepth 2 -type d | wc -l)
+          zh=$(find dist/blog/zh -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)
+          echo "prerendered article dirs: $articles (zh: $zh)"
+          if [ "$articles" -lt 6 ] || [ "$zh" -lt 6 ]; then
+            echo "::error::prerender produced fewer article pages than expected — headless Chrome likely unavailable or the pass crashed"
+            missing=1
+          fi
+          if grep -q 'rel="canonical"' dist/404.html; then
+            echo "::error::404.html still carries a canonical — it will be treated as a duplicate of the homepage"
+            missing=1
+          fi
+          exit $missing
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

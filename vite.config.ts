@@ -77,16 +77,20 @@ const SHARED_HEAD = [
   `<link rel="preload" href="/fonts/fraunces-italic-latin.woff2" as="font" type="font/woff2" crossorigin />`,
   /* Machine-readable surface that generative engines follow. */
   `<link rel="alternate" type="application/rss+xml" title="Eververdants — Blog" href="https://eververdants.github.io/rss.xml" />`,
+  `<link rel="alternate" type="application/json" title="Site & identity" href="https://eververdants.github.io/site.json" />`,
   `<link rel="alternate" type="application/json" title="Repositories" href="https://eververdants.github.io/projects.json" />`,
+  `<link rel="alternate" type="application/json" title="Essay index" href="https://eververdants.github.io/posts.json" />`,
+  `<link rel="alternate" type="application/json" title="Photo works" href="https://eververdants.github.io/works.json" />`,
   `<link rel="search" type="application/json" href="https://eververdants.github.io/search.json" />`,
   `<link rel="llms" href="https://eververdants.github.io/llms.txt" />`,
+  `<link rel="profile" href="https://eververdants.github.io/llms-full.txt" />`,
   `<meta property="og:site_name" content="Eververdants" />`,
-  `<meta property="og:image" content="https://eververdants.github.io/og-image.png" />`,
+  `<meta property="og:image" content="https://eververdants.github.io/og-image.jpg" />`,
   `<meta property="og:image:width" content="1200" />`,
   `<meta property="og:image:height" content="630" />`,
   `<meta property="og:image:alt" content="Eververdants — 万山青未阑" />`,
   `<meta name="twitter:card" content="summary_large_image" />`,
-  `<meta name="twitter:image" content="https://eververdants.github.io/og-image.png" />`,
+  `<meta name="twitter:image" content="https://eververdants.github.io/og-image.jpg" />`,
 ].join("\n    ");
 
 /* Vite's tag-descriptor API cannot inject a raw multi-line block, so the

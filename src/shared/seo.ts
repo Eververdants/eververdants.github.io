@@ -82,7 +82,7 @@ export function setJsonLd(nodes: unknown[]): void {
 
 export function applyHead(input: HeadInput): void {
   const url = absUrl(input.path);
-  const image = absUrl(input.image ?? "/og-image.png");
+  const image = absUrl(input.image ?? "/og-image.jpg");
 
   document.title = input.title;
   if (input.lang) {
@@ -133,7 +133,7 @@ export const PERSON = {
   name: "Eververdants",
   alternateName: "万山青未阑",
   url: `${SITE}/`,
-  image: `${SITE}/og-image.png`,
+  image: `${SITE}/og-image.jpg`,
   jobTitle: "High-school student · Open-source developer",
   knowsLanguage: ["en", "zh-Hans"],
   address: {
