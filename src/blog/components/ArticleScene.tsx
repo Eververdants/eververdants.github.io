@@ -503,13 +503,7 @@ export default function ArticleScene({
     <section
       ref={root}
       data-article
-      className="relative z-[1] min-h-[100vh] min-h-dvh"
-      style={{
-        backgroundColor: "var(--bg)",
-        backgroundImage:
-          "linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px)",
-        backgroundSize: "28px 28px",
-      }}
+      className="relative z-[1] min-h-[100dvh]"
     >
       {/* reading progress — accent fill, rounded head */}
       <div className="fixed inset-x-0 top-0 z-[40] h-[3px] bg-[var(--progress-track)]">

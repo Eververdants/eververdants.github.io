@@ -37,27 +37,27 @@
   --accent-soft: color-mix(in oklab, var(--accent) 9%, transparent);
   --accent-line: color-mix(in oklab, var(--accent) 34%, transparent);
 
-  /* liquid glass ------------------------------------------------
-     Translucent fill + backdrop blur/saturate, a specular hairline
-     along the top edge (single light source, upper-left), a refracted
-     bottom edge, and hue-matched shadows instead of generic black. */
-  --glass-fill: color-mix(in oklab, var(--surface) 62%, transparent);
-  --glass-fill-strong: color-mix(in oklab, var(--surface) 78%, transparent);
-  --glass-blur: 22px;
-  --glass-saturate: 170%;
-  --glass-border: color-mix(in oklab, var(--ink) 11%, transparent);
-  --glass-specular: color-mix(in oklab, #ffffff 70%, transparent);
-  --glass-refraction: color-mix(in oklab, var(--ink) 6%, transparent);
-  --glass-shadow:
-    0 1px 2px color-mix(in oklab, var(--ink) 6%, transparent),
-    0 14px 34px -16px color-mix(in oklab, var(--ink) 18%, transparent);
+  /* quiet translucent surfaces ----------------------------------
+     Glass here is a material cue, not a light show: a small blur, a
+     fill that reads almost solid, one hairline border, one soft
+     shadow. No specular edge, no saturation boost, no sheen sweep. */
+  --glass-fill: color-mix(in oklab, var(--surface) 84%, transparent);
+  --glass-fill-strong: color-mix(in oklab, var(--surface) 93%, transparent);
+  --glass-blur: 10px;
+  --glass-border: color-mix(in oklab, var(--ink) 10%, transparent);
+  --glass-shadow: 0 1px 2px color-mix(in oklab, var(--ink) 5%, transparent);
   --glass-shadow-lift:
-    0 2px 4px color-mix(in oklab, var(--ink) 7%, transparent),
-    0 26px 56px -22px color-mix(in oklab, var(--ink) 26%, transparent);
+    0 2px 6px color-mix(in oklab, var(--ink) 8%, transparent);
+
+  /* the site surface: graph paper ---------------------------------
+     One square grid behind every page — the single thing all five
+     entries now share visually. */
+  --grid-line: color-mix(in oklab, var(--ink) 5.5%, transparent);
+  --grid-size: 28px;
 
   /* concentric rings --------------------------------------------
-    The site motif: evenly spaced circles on a single centre, faded
-    out radially so they read as a field, not a target. */
+    Kept as a small marker (.ring-mark) rather than a backdrop; the
+    large decorative ring fields are inert. */
   --ring-color: color-mix(in oklab, var(--ink) 13%, transparent);
   --ring-gap: 26px;
   --ring-weight: 1px;
@@ -144,17 +144,14 @@
   --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
   --accent-line: color-mix(in oklab, var(--accent) 42%, transparent);
 
-  --glass-fill: color-mix(in oklab, var(--surface) 58%, transparent);
-  --glass-fill-strong: color-mix(in oklab, var(--surface) 74%, transparent);
+  --glass-fill: color-mix(in oklab, var(--surface) 86%, transparent);
+  --glass-fill-strong: color-mix(in oklab, var(--surface) 94%, transparent);
   --glass-border: color-mix(in oklab, var(--ink) 13%, transparent);
-  --glass-specular: color-mix(in oklab, #ffffff 13%, transparent);
-  --glass-refraction: color-mix(in oklab, #000000 30%, transparent);
-  --glass-shadow:
-    0 1px 2px color-mix(in oklab, #000000 40%, transparent),
-    0 16px 40px -18px color-mix(in oklab, #000000 70%, transparent);
+  --glass-shadow: 0 1px 2px color-mix(in oklab, #000000 34%, transparent);
   --glass-shadow-lift:
-    0 2px 4px color-mix(in oklab, #000000 45%, transparent),
-    0 28px 60px -24px color-mix(in oklab, #000000 80%, transparent);
+    0 2px 6px color-mix(in oklab, #000000 44%, transparent);
+
+  --grid-line: color-mix(in oklab, var(--ink) 5%, transparent);
 
   --ring-color: color-mix(in oklab, var(--ink) 11%, transparent);
 }
@@ -184,15 +181,25 @@
 }
 
 /* ---------- base ---------- */
+/* The graph-paper surface lives on the root canvas rather than a
+   z-index:-1 pseudo-element: as a pseudo it escaped into the root stacking
+   context and some entries' own backgrounds painted straight over it, so the
+   grid appeared on one page and vanished on another. On `html` with a fixed
+   attachment it is one rule, always behind everything, and never scrolls. */
 html {
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+  background-attachment: fixed;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
-  background: var(--bg);
+  background-color: var(--bg);
   color: var(--body);
   font-family: var(--font-sans);
   font-size: var(--text-base);
@@ -224,22 +231,19 @@ html.theme-anim * {
 }
 
 /* ---------- materials ----------
-   Three weights of the same glass. Cards are translucent; a panel is
-   heavier (modals, palette); a bar is the widest, thinnest sheet. */
+   Two weights: a card and a heavier panel for overlays. Both are a
+   near-solid tinted surface with one hairline border and one small
+   shadow — translucency enough to register as glass over the grid,
+   nothing more. */
 .glass,
 .glass-panel,
 .glass-bar {
   position: relative;
   background: var(--glass-fill);
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(
-    var(--glass-saturate)
-  );
-  box-shadow:
-    var(--glass-shadow),
-    inset 0 1px 0 var(--glass-specular),
-    inset 0 -1px 0 var(--glass-refraction);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-shadow);
 }
 
 .glass-panel {
@@ -247,45 +251,30 @@ html.theme-anim * {
 }
 
 .glass-bar {
-  box-shadow:
-    var(--glass-shadow),
-    inset 0 1px 0 var(--glass-specular);
+  box-shadow: var(--glass-shadow);
 }
 
-/* Interactive glass: lift on hover, settle on press. */
+/* Interactive glass: a border and shadow shift on hover, a small settle on
+   press. No lift — the cards stay where they are. */
 .glass-press {
   transition:
-    transform var(--dur-2) var(--ease-out),
     box-shadow var(--dur-2) var(--ease-out),
     border-color var(--dur-2) var(--ease-out),
     background-color var(--dur-2) var(--ease-out);
 }
 .glass-press:hover {
-  box-shadow:
-    var(--glass-shadow-lift),
-    inset 0 1px 0 var(--glass-specular),
-    inset 0 -1px 0 var(--glass-refraction);
-  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: var(--glass-shadow-lift);
 }
 .glass-press:active {
-  transform: translateY(0) scale(0.994);
+  transform: translateY(0) scale(0.995);
 }
 
-/* Edge sheen: a soft specular sweep across the top-left, the direction
-   every shadow in the system is lit from. */
+/* Retired: the specular sweep and the large decorative ring fields. Both
+   stayed in the markup of every entry, so switching them off here rather
+   than editing thirty call sites keeps the quiet version one change deep. */
 .glass-sheen::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: radial-gradient(
-    120% 90% at 12% -10%,
-    color-mix(in oklab, #ffffff 26%, transparent) 0%,
-    transparent 55%
-  );
-  opacity: 0.55;
-  mix-blend-mode: soft-light;
+  content: none;
 }
 
 /* ---------- corner geometry ----------
@@ -325,31 +314,12 @@ html.theme-anim * {
 
 /* ---------- concentric rings ---------- */
 
-/* A ring field: evenly spaced circles on one centre, faded radially so
-   they dissolve before the edge of their container. */
+/* Retired. The full-bleed ring fields read as scenery on a wide viewport —
+   huge arcs sweeping behind the title — and the graph paper now carries the
+   background role. The element stays in the markup, drawing nothing, so no
+   entry has to be edited to turn it off. */
 .ring-field {
-  position: absolute;
-  inset: -20%;
-  pointer-events: none;
-  background-image: repeating-radial-gradient(
-    circle at var(--ring-x, 50%) var(--ring-y, 50%),
-    transparent 0,
-    transparent calc(var(--ring-gap) - var(--ring-weight)),
-    var(--ring-color) calc(var(--ring-gap) - var(--ring-weight)),
-    var(--ring-color) var(--ring-gap)
-  );
-  -webkit-mask-image: radial-gradient(
-    circle at var(--ring-x, 50%) var(--ring-y, 50%),
-    #000 0%,
-    rgba(0, 0, 0, 0.55) 42%,
-    transparent 74%
-  );
-  mask-image: radial-gradient(
-    circle at var(--ring-x, 50%) var(--ring-y, 50%),
-    #000 0%,
-    rgba(0, 0, 0, 0.55) 42%,
-    transparent 74%
-  );
+  display: none;
 }
 
 /* A single ring pair — the small marker used beside headings and on
@@ -520,37 +490,19 @@ html.theme-anim * {
   border: 1px solid var(--border-soft);
 }
 
-/* Staggered entrance for the hub: a single CSS animation, no library. */
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+/* Entrance animation — retired. Content appears where it is, already painted — a staggered
+   entrance on every page is exactly the ceremony this site is meant to
+   stop performing. The class names stay on the elements so removing the
+   motion is one rule rather than a sweep of edits. */
+.rise,
+.rise-1,
+.rise-2,
+.rise-3,
+.rise-4,
+.rise-5 {
+  animation: none;
 }
 
-.rise {
-  animation: rise var(--dur-3) var(--ease-out) both;
-}
-.rise-1 { animation-delay: 40ms; }
-.rise-2 { animation-delay: 100ms; }
-.rise-3 { animation-delay: 160ms; }
-.rise-4 { animation-delay: 220ms; }
-.rise-5 { animation-delay: 280ms; }
-
-@media (prefers-reduced-motion: reduce) {
-  .rise,
-  .rise-1,
-  .rise-2,
-  .rise-3,
-  .rise-4,
-  .rise-5 {
-    animation: none;
-  }
-}
 
 /* ---------- transparency preferences ----------
    Glass is an affordance, not a requirement: users who ask for less

@@ -253,15 +253,11 @@ main.shell--photos {
   height: auto;
   transition: transform var(--dur-3) var(--ease-out);
 }
-/* A frame lifting, not the card: the `rise` entrance owns the card's own
-   transform, and a finished animation would outrank a hover transform there. */
+/* The frame lifts inside the card, not the card itself. */
 .work-card:hover .work-card-media,
 .work-card:focus-visible .work-card-media {
   border-color: var(--border-strong);
-  box-shadow:
-    var(--glass-shadow-lift),
-    inset 0 1px 0 var(--glass-specular),
-    inset 0 -1px 0 var(--glass-refraction);
+  box-shadow: var(--glass-shadow-lift);
 }
 .work-card:hover .work-card-media img,
 .work-card:focus-visible .work-card-media img {

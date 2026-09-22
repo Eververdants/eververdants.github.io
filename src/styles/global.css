@@ -8,7 +8,7 @@
    code-block surfaces, the syntax palette, and the ink ladder steps the
    article typography addresses by name. */
 :root {
-  --grid: #e5e2d9;
+
   --field: #f4f2ea;
   --chip: #efece4;
   --pre-bg: #f2f0ea;
@@ -43,7 +43,7 @@
 }
 
 [data-theme="dark"] {
-  --grid: #26241d;
+
   --field: #1c1b17;
   --chip: #201e19;
   --pre-bg: #1a1915;
