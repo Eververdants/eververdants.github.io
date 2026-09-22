@@ -7,7 +7,7 @@
    browser scrolls, the shared <site-topbar> navigates, and the shared prefs
    store remembers language and theme. */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ArticleScene from "./components/ArticleScene";
 import BackToTop from "./components/BackToTop";
 import BlogIndexScene from "./components/BlogIndexScene";
@@ -26,21 +26,40 @@ export default function BlogApp() {
   const { lang } = usePrefs();
   const [view, setView] = useState<BlogView>(() => parseView(location.pathname));
 
-  /* A /blog/zh/<slug>/ link means the reader wants Chinese — adopt it as the
-     site language rather than showing a Chinese essay under English chrome. */
-  useEffect(() => {
-    if (view.kind === "article" && view.lang !== lang) setLang(view.lang);
-  }, [view, lang]);
+  /* An article's language is owned by its URL, and the two effects below have
+     to agree on who moves first.
 
-  /* The reverse: toggling language inside an essay moves the address bar to
-     that language's own URL, so the page you are reading is the page you
-     just shared. */
+     The bug this replaces: the "adopt the URL's language" effect depended on
+     [view, lang], so it re-ran after every language change and forced the
+     store back to whatever the URL said — which meant the top bar's 中/EN
+     toggle did nothing at all on an essay. It now fires once per route,
+     tracked by a ref, and the toggle effect moves the route *and* the URL
+     together so nothing pushes the language back. */
+  const routeKey =
+    view.kind === "article" ? `${view.slug}:${view.lang}` : "";
+  const adoptedRoute = useRef<string | null>(null);
+
+  /* Arriving at /blog/zh/<slug>/ means the reader wants Chinese — adopt it as
+     the site language instead of showing a Chinese essay under English chrome. */
   useEffect(() => {
     if (view.kind !== "article") return;
-    const want = articlePath(view.slug, lang);
-    if (location.pathname.replace(/\/+$/, "") !== want.replace(/\/+$/, "")) {
-      history.replaceState({ __blogArticle: view.slug }, "", want);
-    }
+    if (adoptedRoute.current === routeKey) return;
+    adoptedRoute.current = routeKey;
+    if (view.lang !== lang) setLang(view.lang);
+  }, [view, routeKey, lang]);
+
+  /* The reverse: toggling language inside an essay moves the route and the
+     address bar to that language's own URL, so the page you are reading is
+     the page you just shared. */
+  useEffect(() => {
+    if (view.kind !== "article" || view.lang === lang) return;
+    adoptedRoute.current = `${view.slug}:${lang}`;
+    setView({ kind: "article", slug: view.slug, lang });
+    history.replaceState(
+      { __blogArticle: view.slug },
+      "",
+      articlePath(view.slug, lang),
+    );
   }, [view, lang]);
 
   /* An unknown /blog/topic/<id> normalizes back to the index. */
