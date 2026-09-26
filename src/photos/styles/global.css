@@ -162,14 +162,15 @@ main.shell--photos {
   gap: 10px;
 }
 .meta-item b {
-  font-family: var(--font-crt);
-  font-weight: 400;
+  font-family: var(--font-display);
+  font-weight: 900;
   font-size: 1.9rem;
   line-height: 1;
-  color: var(--accent);
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 .meta-item .kicker {
-  font-size: 9px;
+  font-size: 10.5px;
 }
 
 /* ---------- filters ---------- */
@@ -318,10 +319,10 @@ main.shell--photos {
   transform: none;
 }
 .o-cat {
-  font-family: var(--font-pixel);
-  font-size: 8px;
-  font-weight: 400;
-  letter-spacing: 0.12em;
+  font-family: var(--font-term);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--faint);
 }
@@ -391,9 +392,10 @@ main.shell--photos {
   color: var(--body);
 }
 .d-idx {
-  font-family: var(--font-crt);
-  font-size: 1rem;
-  letter-spacing: 0.08em;
+  font-family: var(--font-term);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   color: var(--faint);
 }
 .detail-title {
@@ -491,10 +493,10 @@ main.shell--photos {
 }
 .m-key {
   align-self: center;
-  font-family: var(--font-pixel);
-  font-size: 8px;
-  font-weight: 400;
-  letter-spacing: 0.12em;
+  font-family: var(--font-term);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--faint);
 }

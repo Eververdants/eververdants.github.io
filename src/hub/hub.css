@@ -77,10 +77,6 @@
   border-radius: var(--r-flat);
   object-fit: cover;
   border: 1px solid var(--rule-mark);
-  /* The stamp is inked in the spot colour, so the mint original is
-     dropped into the palette instead of shouting over it. */
-  filter: grayscale(1) sepia(1) hue-rotate(78deg) saturate(1.35)
-    brightness(0.88) contrast(1.12);
 }
 .identity__mark::before {
   content: "";
@@ -124,13 +120,11 @@
 }
 
 .masthead__tagline {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: clamp(0.72rem, 0.62rem + 0.5vw, 0.95rem);
-  line-height: 1.7;
-  letter-spacing: var(--tracking-tight);
+  font-family: var(--font-term);
+  font-size: var(--text-base);
+  line-height: 1.75;
   color: var(--ink);
-  max-width: 40ch;
+  max-width: 44ch;
   margin: 0;
 }
 
@@ -156,10 +150,10 @@
   padding-right: 0;
 }
 .facts dt {
-  font-family: var(--font-pixel);
-  font-size: 8px;
-  font-weight: 400;
-  letter-spacing: 0.12em;
+  font-family: var(--font-term);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--faint);
   margin-bottom: 6px;
@@ -340,10 +334,10 @@
 .feed__tag {
   grid-column: 2;
   grid-row: 1;
-  font-family: var(--font-pixel);
-  font-size: 8px;
-  font-weight: 400;
-  letter-spacing: 0.12em;
+  font-family: var(--font-term);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--faint);
   text-align: right;
@@ -458,10 +452,10 @@
 .strip__label {
   display: block;
   margin-top: 9px;
-  font-family: var(--font-pixel);
-  font-size: 8px;
-  font-weight: 400;
-  letter-spacing: 0.12em;
+  font-family: var(--font-term);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--faint);
   transition: color var(--dur-2) var(--ease-out);
