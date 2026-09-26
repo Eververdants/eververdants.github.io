@@ -204,6 +204,102 @@ function initGhostCursor(): void {
   });
 }
 
+/* ---------- view-transition pixel mosaic ---------- */
+
+/* The pixelate filters used by the navigation transition (fx.css).
+   Each one samples the frame into N-px blocks: a tiled dot grid masks
+   the source, then a dilate grows every kept dot back into a full
+   block — the ordered-mosaic of the CapCut/Jimeng pixel wipe. */
+const PX_SIZES = [4, 8, 16, 32];
+
+function injectPixelFilters(): void {
+  if (document.getElementById("px-filters")) return;
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.id = "px-filters";
+  svg.setAttribute("aria-hidden", "true");
+  svg.style.cssText = "position:absolute;width:0;height:0;pointer-events:none";
+  svg.innerHTML = PX_SIZES.map(
+    (n) =>
+      `<filter id="pxf${n}" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">` +
+      `<feFlood x="${n / 4}" y="${n / 4}" width="1" height="1"/>` +
+      `<feComposite width="${n}" height="${n}"/>` +
+      `<feTile result="a"/>` +
+      `<feComposite in="SourceGraphic" in2="a" operator="in"/>` +
+      `<feMorphology operator="dilate" radius="${n / 2}"/>` +
+      `</filter>`,
+  ).join("");
+  document.documentElement.appendChild(svg);
+}
+
+type VTDocument = Document & {
+  startViewTransition?: (change: () => void | Promise<void>) => unknown;
+};
+
+/* SPA scene switches (blog index ↔ article, photo detail) run through
+   history.pushState / popstate and hand their DOM change to React's
+   async commit. Wrap both in a view transition whose callback waits
+   two frames — enough for the framework to have painted the new
+   scene — so the old snapshot is taken before, the new after. */
+function patchHistoryTransitions(): void {
+  const doc = document as VTDocument;
+  if (typeof doc.startViewTransition !== "function") return;
+  const startTransition = doc.startViewTransition.bind(doc);
+
+  const waitCommit = () =>
+    new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+
+  const transition = (change: () => void) => {
+    if (document.hidden) {
+      change();
+      return;
+    }
+    try {
+      startTransition(() => {
+        change();
+        return waitCommit();
+      });
+    } catch {
+      change(); /* a running transition refused ours — just switch */
+    }
+  };
+
+  const origPush = history.pushState.bind(history);
+  history.pushState = function pushStateWithTransition(
+    data: unknown,
+    unused: string,
+    url?: string | URL | null,
+  ) {
+    let sameUrl = true;
+    try {
+      if (url != null) {
+        sameUrl = new URL(String(url), location.href).href === location.href;
+      }
+    } catch {
+      sameUrl = false;
+    }
+    if (sameUrl) {
+      /* URL fixes and filter-state rewrites change nothing visible. */
+      return origPush(data, unused, url ?? null);
+    }
+    transition(() => origPush(data, unused, url ?? null));
+  } as typeof history.pushState;
+
+  /* Registered before the apps mount, so this runs ahead of their own
+     popstate handlers and captures the old scene first. */
+  addEventListener(
+    "popstate",
+    () => {
+      transition(() => {
+        /* The URL already changed; the apps' own popstate listeners
+           commit the DOM swap inside the two-frame wait. */
+      });
+    },
+    { capture: true },
+  );
+}
+
 /* ---------- entry point ---------- */
 
 /** Wire every decoration. Safe to call more than once (guarded by the
@@ -215,7 +311,11 @@ export function initFx(): void {
   const root = document.documentElement;
   if (reducedMotion() || root.classList.contains("fx-on")) return;
 
+  /* The transition keyframes reference these filters by id — they must
+     exist before html.fx-on turns the animations on. */
+  injectPixelFilters();
   root.classList.add("fx-on");
+  patchHistoryTransitions();
 
   const start = () =>
     /* Two frames: React's first commit lands between them, so the

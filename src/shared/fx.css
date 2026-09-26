@@ -98,6 +98,77 @@
   box-shadow: 3px 3px 0 var(--accent-2-soft);
 }
 
+/* ---------- navigation transitions: the pixel wipe ----------
+   The CapCut/Jimeng-style mosaic: the outgoing page's snapshot
+   coarsens through the SVG pixelate filters (4 → 8 → 16 → 32 px
+   blocks, each step held as a hard jump — the discrete mosaic is
+   the look), the incoming page then resolves from 32 px back to
+   clean. Works for cross-document jumps between the five entries
+   and for the SPAs' own scene switches (fx.ts wraps their
+   history changes in a transition).
+
+   The keyframes reference filters injected by fx.ts into every
+   page — so the pseudo animations are scoped to html.fx-on and a
+   no-JS page simply falls back to the browser's plain crossfade.
+   (@view-transition itself must sit at the stylesheet's top level
+   per spec; the reduced-motion gate is applied by scoping the
+   pseudo-element rules instead.) */
+@view-transition {
+  navigation: auto;
+}
+
+@keyframes vt-px-out {
+  0% {
+    filter: url("#pxf4");
+    opacity: 1;
+  }
+  22% {
+    filter: url("#pxf8");
+    opacity: 1;
+  }
+  48% {
+    filter: url("#pxf16");
+    opacity: 1;
+  }
+  72% {
+    filter: url("#pxf32");
+    opacity: 1;
+  }
+  92% {
+    filter: url("#pxf32");
+    opacity: 1;
+  }
+  100% {
+    filter: url("#pxf32");
+    opacity: 0;
+  }
+}
+
+@keyframes vt-px-in {
+  0% {
+    filter: url("#pxf32");
+  }
+  30% {
+    filter: url("#pxf16");
+  }
+  60% {
+    filter: url("#pxf8");
+  }
+  100% {
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.fx-on::view-transition-old(root) {
+    animation: vt-px-out 300ms steps(1, end) both;
+  }
+
+  html.fx-on::view-transition-new(root) {
+    animation: vt-px-in 320ms steps(1, end) 280ms both;
+  }
+}
+
 /* ---------- reduced motion ----------
    The belt under the guard above: if fx-on ever lands on the root of
    a reader who asked for less motion, nothing stays hidden and
