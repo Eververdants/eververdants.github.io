@@ -536,7 +536,7 @@ export default function ArticleScene({
 
         {/* header */}
         <header className="mt-[clamp(40px,7vh,72px)]">
-          <h1 className="rise rise-1 font-fraunces text-[clamp(29px,3.7vw,52px)] font-semibold leading-[1.05] tracking-[-0.028em] text-[var(--ink)] [text-wrap:balance]">
+          <h1 className="rise rise-1 font-fraunces text-[clamp(21px,2.4vw,32px)] font-bold leading-[1.35] tracking-[0] text-[var(--ink)] [text-wrap:balance]">
             {post.title.split("\n").join(" ")}
           </h1>
           <div className="rise rise-2 mt-[clamp(18px,3vh,28px)] flex flex-wrap gap-2">
@@ -712,7 +712,7 @@ export default function ArticleScene({
                     >
                       <span
                         aria-hidden
-                        className="h-[6px] w-[6px] rounded-full"
+                        className="h-[6px] w-[6px]"
                         style={{ backgroundColor: tp.color, opacity: 0.75 }}
                       />
                       {tp.symbol} {tp.name[lang]}
@@ -829,14 +829,14 @@ export default function ArticleScene({
         onClick={(e) => {
           if (e.target === e.currentTarget) setLightbox(null);
         }}
-        className="m-auto max-w-none border-0 bg-transparent p-0 backdrop:bg-[rgba(18,16,12,0.88)]"
+        className="m-auto max-w-none border-0 bg-transparent p-0 backdrop:bg-[rgba(4,5,7,0.9)]"
       >
         {lightbox && (
           <figure className="text-center">
             <img
               src={lightbox.src}
               alt={lightbox.alt}
-              className="max-h-[82vh] w-auto max-w-[min(92vw,1200px)] rounded-xl border border-[var(--border-strong)] bg-[var(--chip)]"
+              className="max-h-[82vh] w-auto max-w-[min(92vw,1200px)] border border-[var(--border-strong)] bg-[var(--chip)]"
             />
             {lightbox.caption && (
               <figcaption className="mt-4 text-[11px] tracking-[0.14em] text-[#d8d4c8]">

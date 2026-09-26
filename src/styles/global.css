@@ -4,81 +4,88 @@
 /* ---- blog-only tokens ----
    Palette, surfaces, accent, borders, radii and the scrollbar quartet all
    come from shared/tokens.css now. What is left here is vocabulary the
-   reading page genuinely needs and no other entry does: the 米白 grid, the
-   code-block surfaces, the syntax palette, and the ink ladder steps the
-   article typography addresses by name. */
+   reading page genuinely needs and no other entry does: the code-block
+   surfaces, the syntax palette, and the ink ladder steps the article
+   typography addresses by name. */
 :root {
 
-  --field: #f4f2ea;
-  --chip: #efece4;
-  --pre-bg: #f2f0ea;
-  --code-bg: #f0ede4;
-  --code-border: #e0dcd2;
-  --muted-2: #6b675d;
-  --fainter: #7d776a;
-  --faintest: #8f897b;
-  --border-faint: #e2dfd6;
-  --folio: #f7f5ef;
-  --card-bg: #fffdf7;
-  --card-border: #e2dfd6;
-  /* Shadows, where they exist at all, are tinted with the paper's own
-     warm black rather than a neutral grey, so they never go ashy. */
-  --card-shadow: 0 1px 0 color-mix(in oklab, var(--ink) 4%, transparent);
-  --card-shadow-hover: 0 2px 4px color-mix(in oklab, var(--ink) 7%, transparent);
+  --field: #0d1014;
+  --chip: #12161b;
+  --pre-bg: #0c0f13;
+  --code-bg: #141a1e;
+  --code-border: #212a26;
+  --muted-2: #7f8b80;
+  --fainter: #63705f;
+  --faintest: #4c584c;
+  --border-faint: #1a221d;
+  --folio: #dce4d5;
+  --card-bg: #12161c;
+  --card-border: #212a26;
+  /* Shadows are hard offsets now — the pixel grammar has no blur. */
+  --card-shadow: none;
+  --card-shadow-hover: 4px 4px 0 color-mix(in oklab, #000000 55%, transparent);
   /* one source of truth for reading metrics */
-  --text-body: clamp(16.5px, 1vw + 0.5rem, 19px);
-  --text-leading: 1.82;
-  --code-ink: #8b3120;
-  /* Syntax palette, held inside the plate's own inks: the spot red for
-     keywords and numbers, an olive for strings, graphite for types. No
-     blue-violet anywhere — that pairing is the surest tell of a
-     generated theme. */
-  --tok-kw: #a8402a;
-  --tok-str: #4f6b3a;
-  --tok-num: #8b3120;
-  --tok-fn: #2f5d63;
-  --tok-type: #5a5346;
-  --tok-com: #8f897b;
-  --tok-var: #7a5230;
-  --progress-track: color-mix(in oklab, var(--ink) 7%, transparent);
-  --progress-fill: var(--ink);
-  --scrollbar-thumb: color-mix(in oklab, var(--ink) 28%, transparent);
-  --scrollbar-thumb-hover: color-mix(in oklab, var(--ink) 46%, transparent);
+  --text-body: clamp(15.5px, 1vw + 0.5rem, 17.5px);
+  --text-leading: 1.85;
+  --code-ink: #a6ffc6;
+  /* Syntax palette, held inside the screen's own inks: phosphor green
+     for keywords, the dream violet for strings, warm paper for the
+     rest. No foreign hue enters the tube. */
+  --tok-kw: #6bf190;
+  --tok-str: #b49aff;
+  --tok-num: #ffd9a0;
+  --tok-fn: #e8f0e2;
+  --tok-type: #9db09c;
+  --tok-com: #5c6a5e;
+  --tok-var: #ffd9a0;
+  --progress-track: color-mix(in oklab, var(--ink) 9%, transparent);
+  --progress-fill: var(--accent);
+  --scrollbar-thumb: var(--border-strong);
+  --scrollbar-thumb-hover: var(--accent);
 }
 
-[data-theme="dark"] {
+[data-theme="light"] {
 
-  --field: #1c1b17;
-  --chip: #201e19;
-  --pre-bg: #1a1915;
-  --code-bg: #1f1d18;
-  --code-border: #2b2922;
-  --muted-2: #8f897b;
-  --fainter: #807a6d;
-  --faintest: #6e685c;
-  --border-faint: #26241d;
-  --folio: #ece9e0;
-  --card-bg: #201e1a;
-  --card-border: #302d27;
-  --card-shadow: 0 1px 0 color-mix(in oklab, #000000 30%, transparent);
-  --card-shadow-hover: 0 2px 4px color-mix(in oklab, #000000 44%, transparent);
-  --code-ink: #e0785a;
-  --tok-kw: #e0785a;
-  --tok-str: #9db87a;
-  --tok-num: #d99a6a;
-  --tok-fn: #6fb3bb;
-  --tok-type: #b3aa97;
-  --tok-com: #6e685c;
-  --tok-var: #c9996a;
-  --progress-track: color-mix(in oklab, var(--ink) 12%, transparent);
-  --progress-fill: var(--ink);
-  --scrollbar-thumb: color-mix(in oklab, var(--ink) 30%, transparent);
-  --scrollbar-thumb-hover: color-mix(in oklab, var(--ink) 50%, transparent);
+  --field: #e3dec9;
+  --chip: #dcd7c0;
+  --pre-bg: #e6e1cb;
+  --code-bg: #eee9d5;
+  --code-border: #c9c4ae;
+  --muted-2: #5a6455;
+  --fainter: #68745e;
+  --faintest: #8a9280;
+  --border-faint: #c9c4ae;
+  --folio: #1d2418;
+  --card-bg: #f2eedf;
+  --card-border: #c9c4ae;
+  --card-shadow: none;
+  --card-shadow-hover: 4px 4px 0 color-mix(in oklab, var(--ink) 18%, transparent);
+  --code-ink: #0c5730;
+  --tok-kw: #0c5730;
+  --tok-str: #6a48d8;
+  --tok-num: #a05a00;
+  --tok-fn: #1d2418;
+  --tok-type: #55604f;
+  --tok-com: #8a9280;
+  --tok-var: #7a4a00;
+  --progress-track: color-mix(in oklab, var(--ink) 10%, transparent);
+  --progress-fill: var(--accent);
+  --scrollbar-thumb: var(--border-strong);
+  --scrollbar-thumb-hover: var(--accent);
 }
 
 @theme {
-  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
-  --font-fraunces: "Fraunces", Georgia, "Times New Roman", serif;
+  /* The Tailwind vocabulary maps onto the terminal voices: every
+     `font-sans` utility resolves to the terminal mono, and the old
+     serif display token now resolves to it as well — long titles read
+     better in the mono than in the pixel face, which is reserved for
+     names and short standing labels. */
+  --font-sans: "Cascadia Mono", "Consolas", ui-monospace, "SFMono-Regular",
+    Menlo, "Noto Sans Mono CJK SC", "Sarasa Mono SC", "Microsoft YaHei",
+    monospace;
+  --font-fraunces: "Cascadia Mono", "Consolas", ui-monospace,
+    "SFMono-Regular", Menlo, "Noto Sans Mono CJK SC", "Sarasa Mono SC",
+    "Microsoft YaHei", monospace;
 }
 
 
@@ -92,7 +99,6 @@
   top: 0;
   left: -1px;
   width: 2px;
-  border-radius: 1px;
   background: var(--accent);
   opacity: 1;
   transition:
@@ -147,10 +153,10 @@
   padding: 0;
   border: 0;
   font-family: var(--font-display);
-  font-size: clamp(22px, 1.9vw, 30px);
-  font-weight: 600;
-  line-height: 1.22;
-  letter-spacing: -0.02em;
+  font-size: clamp(0.8rem, 0.7rem + 0.6vw, 1.05rem);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0;
   color: var(--ink);
   text-wrap: balance;
 }
@@ -160,19 +166,19 @@
   counter-increment: sect;
   display: block;
   margin-bottom: 8px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.22em;
+  font-family: var(--font-crt);
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
   color: var(--accent);
 }
 .article-content h3 {
   margin: clamp(30px, 4.5vh, 46px) 0 clamp(12px, 2vh, 20px);
-  font-family: var(--font-display);
-  font-size: clamp(18px, 1.4vw, 22px);
-  font-weight: 600;
-  line-height: 1.32;
-  letter-spacing: -0.012em;
+  font-family: var(--font-term);
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.15rem);
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: 0;
   color: var(--ink);
 }
 
@@ -285,6 +291,22 @@
   overflow: hidden;
   font-size: clamp(13px, 0.95vw, 15px);
   box-shadow: none;
+  /* Code is a window onto the machine: stepped pixel corners, same
+     notch as every other tile. */
+  clip-path: polygon(
+    0 var(--px-notch),
+    var(--px-notch) var(--px-notch),
+    var(--px-notch) 0,
+    calc(100% - var(--px-notch)) 0,
+    calc(100% - var(--px-notch)) var(--px-notch),
+    100% var(--px-notch),
+    100% calc(100% - var(--px-notch)),
+    calc(100% - var(--px-notch)) calc(100% - var(--px-notch)),
+    calc(100% - var(--px-notch)) 100%,
+    var(--px-notch) 100%,
+    var(--px-notch) calc(100% - var(--px-notch)),
+    0 calc(100% - var(--px-notch))
+  );
 }
 
 .article-content .code-head {
@@ -299,10 +321,10 @@
 }
 
 .article-content .code-lang {
-  font-family: var(--font-sans);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--fainter);
 }
@@ -323,14 +345,14 @@
   scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 .article-content pre > code::-webkit-scrollbar {
-  height: 6px;
+  height: 8px;
 }
 .article-content pre > code::-webkit-scrollbar-track {
   background: transparent;
 }
 .article-content pre > code::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
-  border-radius: 999px;
+  border-radius: 0;
 }
 .article-content pre > code::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover);
@@ -368,7 +390,7 @@
   flex: none;
   width: 28px;
   height: 28px;
-  border-radius: 7px;
+  border-radius: 0;
   border: 1px solid transparent;
   background: transparent;
   color: var(--fainter);
@@ -378,7 +400,11 @@
     opacity 0.18s ease,
     color 0.18s ease,
     background-color 0.18s ease,
-    border-color 0.18s ease;
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+.code-copy:active {
+  transform: translateY(1px);
 }
 
 .code-copy svg {
@@ -447,7 +473,7 @@
   padding: clamp(13px, 2vh, 18px) 6px;
   color: var(--ink);
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 0;
   transition: background-color 0.18s ease;
 }
 .article-content .references a:hover {
@@ -456,9 +482,9 @@
 }
 .article-content .ref-index {
   flex: none;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 10px;
-  letter-spacing: 0.08em;
+  font-family: var(--font-crt);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
   color: var(--accent);
 }
 .article-content .ref-body {
@@ -594,11 +620,11 @@
 }
 .toc-nav::-webkit-scrollbar {
   display: block;
-  width: 6px;
+  width: 8px;
 }
 .toc-nav::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
-  border-radius: 3px;
+  border-radius: 0;
 }
 
 /* Desktop TOC entries — a short accent hairline grows from the rail on

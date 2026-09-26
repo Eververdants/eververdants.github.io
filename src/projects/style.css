@@ -136,12 +136,12 @@ img {
   padding-right: 0;
 }
 .stat b {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: var(--text-2xl);
+  font-family: var(--font-crt);
+  font-weight: 400;
+  font-size: 1.9rem;
   line-height: 1;
   font-variant-numeric: tabular-nums lining-nums;
-  color: var(--ink);
+  color: var(--accent);
 }
 .stat .kicker {
   color: var(--faint);
@@ -260,11 +260,11 @@ img {
   left: 0;
   z-index: var(--z-raised);
   padding: 3px 8px;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: var(--text-base);
+  font-family: var(--font-crt);
+  font-weight: 400;
+  font-size: 1.05rem;
   font-variant-numeric: tabular-nums lining-nums;
-  line-height: 1;
+  line-height: 1.1;
   color: var(--accent);
   background: var(--bg);
   border-right: 1px solid var(--rule);
@@ -282,9 +282,9 @@ img {
   color: var(--faint);
 }
 .feat__name {
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: 500;
+  font-family: var(--font-term);
+  font-size: var(--text-lg);
+  font-weight: 700;
   line-height: var(--leading-snug);
   letter-spacing: var(--tracking-tight);
   color: var(--ink);
@@ -293,7 +293,7 @@ img {
   gap: 8px;
 }
 .feat-cell:not(:first-child) .feat__name {
-  font-size: var(--text-lg);
+  font-size: var(--text-base);
 }
 .feat__name .arrow {
   color: var(--accent);
@@ -325,13 +325,14 @@ img {
   color: var(--faint);
 }
 /* Language is a word, not a swatch. Sixteen GitHub brand hues on one
-   cream sheet is sixteen colours where the plate allows two. */
+   screen is sixteen colours where the terminal allows two. */
 .lang-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 10.5px;
-  letter-spacing: 0.1em;
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -400,7 +401,7 @@ button.chip {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 6px 12px;
-  border-radius: var(--r-full);
+  border-radius: 0;
   transition:
     color var(--dur-2) var(--ease-out),
     background-color var(--dur-2) var(--ease-out),
@@ -478,8 +479,8 @@ button.chip[aria-pressed="true"] {
   background: var(--accent-soft);
 }
 .row__idx {
-  font-family: var(--font-display);
-  font-size: var(--text-sm);
+  font-family: var(--font-crt);
+  font-size: 1.2rem;
   color: var(--faint);
   transition: color var(--dur-2) var(--ease-out);
 }
@@ -487,9 +488,9 @@ button.chip[aria-pressed="true"] {
   color: var(--accent);
 }
 .row__name {
-  font-family: var(--font-display);
+  font-family: var(--font-term);
   font-size: var(--text-lg);
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: var(--tracking-tight);
   color: var(--ink);
   display: flex;
@@ -505,7 +506,7 @@ button.chip[aria-pressed="true"] {
   text-transform: uppercase;
   border: 1px solid var(--accent-line);
   padding: 1px 8px;
-  border-radius: var(--r-full);
+  border-radius: 0;
   transform: translateY(-1px);
 }
 .row__tag--muted {
@@ -604,8 +605,8 @@ button.chip[aria-pressed="true"] {
   flex-wrap: wrap;
 }
 .footer__sign {
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
+  font-family: var(--font-pixel);
+  font-size: 0.75rem;
   color: var(--ink);
 }
 .footer__alias {

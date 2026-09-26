@@ -51,8 +51,9 @@
   align-items: center;
   gap: 12px;
   margin: 0;
-  font-size: var(--text-xs);
-  letter-spacing: var(--tracking-caps);
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--fainter);
 }
@@ -144,7 +145,7 @@
   width: 22px;
   height: 22px;
   border: 0;
-  border-radius: var(--r-full);
+  border-radius: 0;
   background: transparent;
   color: var(--faint);
   font-size: 13px;
@@ -210,9 +211,10 @@
   align-items: center;
   gap: 10px;
   margin: 0 0 2px;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  letter-spacing: var(--tracking-caps);
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink);
 }
@@ -304,10 +306,10 @@
   color: var(--accent-ink);
 }
 
-/* ---------- ring back-to-top / reading dial ----------
+/* ---------- reading dial ----------
    It floats over running text, so unlike the plates it keeps an opaque
-   ground — but paper, not glass: a disc cut from the sheet with one
-   hairline, and the dial drawn on it. */
+   ground — but screen, not glass: a square tile with one hairline and
+   the stepped notch, the progress dial drawn on it. */
 .back-to-top {
   position: fixed;
   right: clamp(14px, 2.5vw, 28px);
@@ -320,10 +322,24 @@
   appearance: none;
   cursor: pointer;
   border: 1px solid var(--rule);
-  border-radius: var(--r-full);
+  border-radius: 0;
   background: var(--bg);
   box-shadow: none;
   color: var(--muted);
+  clip-path: polygon(
+    0 var(--px-notch),
+    var(--px-notch) var(--px-notch),
+    var(--px-notch) 0,
+    calc(100% - var(--px-notch)) 0,
+    calc(100% - var(--px-notch)) var(--px-notch),
+    100% var(--px-notch),
+    100% calc(100% - var(--px-notch)),
+    calc(100% - var(--px-notch)) calc(100% - var(--px-notch)),
+    calc(100% - var(--px-notch)) 100%,
+    var(--px-notch) 100%,
+    var(--px-notch) calc(100% - var(--px-notch)),
+    0 calc(100% - var(--px-notch))
+  );
   transition:
     color var(--dur-2) var(--ease-out),
     border-color var(--dur-2) var(--ease-out);

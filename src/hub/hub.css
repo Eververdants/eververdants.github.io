@@ -14,11 +14,11 @@
   position: relative;
 }
 
-/* Crop marks sit just outside the sheet, in the paper's own margin. */
+/* Crop marks sit just outside the sheet, in the screen's own margin.
+   They are ASCII corner brackets now (see tokens.css); the old box
+   sizing is gone, only the dimming stays. */
 .sheet.marks::before,
 .sheet.marks::after {
-  width: 14px;
-  height: 14px;
   opacity: 0.6;
 }
 
@@ -58,8 +58,8 @@
   align-items: center;
 }
 
-/* The avatar as a plate stamp: a square of paper with a hairline frame,
-   and the compass circle left around it. Circles here are construction
+/* The avatar as a tile in the machine: square, hairline frame, and the
+   dashed guide box left around it. Squares here are construction
    geometry, not a default. */
 .identity__mark {
   position: relative;
@@ -79,14 +79,13 @@
   border: 1px solid var(--rule-mark);
   /* The stamp is inked in the spot colour, so the mint original is
      dropped into the palette instead of shouting over it. */
-  filter: grayscale(1) sepia(0.62) hue-rotate(-16deg) saturate(1.5)
-    brightness(0.94) contrast(1.1);
+  filter: grayscale(1) sepia(1) hue-rotate(78deg) saturate(1.35)
+    brightness(0.88) contrast(1.12);
 }
 .identity__mark::before {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: var(--r-full);
   border: 1px dashed color-mix(in oklab, var(--ink) 16%, transparent);
 }
 
@@ -99,12 +98,8 @@
 
 .masthead__name {
   font-size: var(--text-display);
-  /* Set as though it were cut for a plate twice this size: the display end
-     of the optical axis, which is where Fraunces loses its sturdiness and
-     gains its contrast. */
-  font-variation-settings:
-    "opsz" var(--opsz-name),
-    "wght" 500;
+  /* The pixel face has no axes to open — the name is simply drawn at
+     the scale the grid allows, and the spacing stays untouched. */
   margin: 0;
 }
 
@@ -131,11 +126,11 @@
 .masthead__tagline {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: var(--text-xl);
-  line-height: 1.42;
-  letter-spacing: -0.012em;
+  font-size: clamp(0.72rem, 0.62rem + 0.5vw, 0.95rem);
+  line-height: 1.7;
+  letter-spacing: var(--tracking-tight);
   color: var(--ink);
-  max-width: 34ch;
+  max-width: 40ch;
   margin: 0;
 }
 
@@ -161,12 +156,13 @@
   padding-right: 0;
 }
 .facts dt {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: var(--tracking-caps);
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--faint);
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 .facts dd {
   margin: 0;
@@ -275,11 +271,10 @@
 
 .plate__blurb {
   margin: 0 0 clamp(14px, 2vw, 20px);
-  max-width: 56ch;
-  font-family: var(--font-display);
-  font-weight: 400;
+  max-width: 58ch;
+  font-family: var(--font-term);
   font-size: var(--text-base);
-  line-height: 1.65;
+  line-height: 1.7;
   color: var(--muted);
   text-wrap: pretty;
 }
@@ -323,9 +318,9 @@
   border-top-color: var(--accent);
 }
 .feed__title {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: var(--text-lg);
+  font-family: var(--font-term);
+  font-weight: 700;
+  font-size: var(--text-base);
   line-height: var(--leading-snug);
   color: var(--ink);
   text-wrap: pretty;
@@ -345,9 +340,10 @@
 .feed__tag {
   grid-column: 2;
   grid-row: 1;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: var(--tracking-caps);
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--faint);
   text-align: right;
@@ -385,10 +381,10 @@
   border-top-color: var(--accent);
 }
 .ledger__name {
-  font-family: var(--font-mono);
+  font-family: var(--font-term);
   font-size: var(--text-sm);
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: 0;
   color: var(--ink);
   overflow-wrap: anywhere;
   transition: color var(--dur-2) var(--ease-out);
@@ -432,6 +428,22 @@
   border: 1px solid var(--rule);
   background: color-mix(in oklab, var(--surface) 65%, transparent);
   transition: border-color var(--dur-2) var(--ease-out);
+  /* The mount gets the stepped pixel corners; the photograph inside
+     stays smooth — the frame is drawn, the picture is developed. */
+  clip-path: polygon(
+    0 var(--px-notch),
+    var(--px-notch) var(--px-notch),
+    var(--px-notch) 0,
+    calc(100% - var(--px-notch)) 0,
+    calc(100% - var(--px-notch)) var(--px-notch),
+    100% var(--px-notch),
+    100% calc(100% - var(--px-notch)),
+    calc(100% - var(--px-notch)) calc(100% - var(--px-notch)),
+    calc(100% - var(--px-notch)) 100%,
+    var(--px-notch) 100%,
+    var(--px-notch) calc(100% - var(--px-notch)),
+    0 calc(100% - var(--px-notch))
+  );
 }
 .strip__cell img {
   width: 100%;
@@ -446,9 +458,10 @@
 .strip__label {
   display: block;
   margin-top: 9px;
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--faint);
   transition: color var(--dur-2) var(--ease-out);
