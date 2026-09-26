@@ -55,14 +55,15 @@ site-topbar {
     saturate(0.72) brightness(0.98);
 }
 
-/* The wordmark is set as a masthead would be: the display serif at its
- * natural optical size, letterspaced rather than bold. Weight is carried
- * by the typeface and the tracking, not by a heavier number. */
+/* The wordmark is the machine's nameplate: the pixel face at its one
+ * size, letterspaced to sit on the character grid. No weight axis —
+ * the face carries itself. */
 .stb-wordmark {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: 16px;
-  letter-spacing: 0.2em;
+  font-family: var(--font-pixel);
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
   color: var(--ink);
   white-space: nowrap;
 }

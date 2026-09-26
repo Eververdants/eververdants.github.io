@@ -87,22 +87,23 @@ function subSiteEntryFallbackPlugin() {
 
    The inline script mirrors src/shared/prefs.ts exactly (same keys, same
    precedence). Keep the two in step. */
-const HEAD_INIT = `<script>(function(){try{var q=new URLSearchParams(location.search);var t=q.get("theme");t=(t==="dark"||t==="light")?t:localStorage.getItem("blog-theme");if(t===null&&window.matchMedia)t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":null;document.documentElement.dataset.theme=t==="dark"?"dark":"light";var l=q.get("lang");l=(l==="en"||l==="zh")?l:localStorage.getItem("blog-lang");document.documentElement.lang=l==="zh"?"zh-Hans":"en";}catch(e){document.documentElement.dataset.theme="light"}})();</script>`;
+const HEAD_INIT = `<script>(function(){try{var q=new URLSearchParams(location.search);var t=q.get("theme");t=(t==="dark"||t==="light")?t:localStorage.getItem("blog-theme");if(t===null)t="dark";document.documentElement.dataset.theme=t;var l=q.get("lang");l=(l==="en"||l==="zh")?l:localStorage.getItem("blog-lang");document.documentElement.lang=l==="zh"?"zh-Hans":"en";}catch(e){document.documentElement.dataset.theme="dark"}})();</script>`;
 
 const SHARED_HEAD = [
   HEAD_INIT,
   `<meta name="author" content="Eververdants" />`,
-  `<meta name="theme-color" content="#f6f4ee" />`,
-  `<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#141310" />`,
+  `<meta name="theme-color" content="#0a0c0f" />`,
+  `<meta name="theme-color" media="(prefers-color-scheme: light)" content="#eae6d5" />`,
   `<link rel="icon" href="/favicon.svg" type="image/svg+xml" />`,
   `<link rel="icon" href="/favicon.png" type="image/png" />`,
   `<link rel="apple-touch-icon" href="/apple-touch-icon.png" />`,
   `<link rel="manifest" href="/site.webmanifest" />`,
-  /* Variable fonts: one file covers every weight. crossorigin is required
-     even same-origin because font fetches are always CORS-mode. */
-  `<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />`,
-  `<link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />`,
-  `<link rel="preload" href="/fonts/fraunces-italic-latin.woff2" as="font" type="font/woff2" crossorigin />`,
+  /* Self-hosted pixel faces: one static file each. crossorigin is
+     required even same-origin because font fetches are always
+     CORS-mode. The old Inter/Fraunces files stay on disk but nothing
+     links them any more. */
+  `<link rel="preload" href="/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />`,
+  `<link rel="preload" href="/fonts/vt323-latin.woff2" as="font" type="font/woff2" crossorigin />`,
   /* Machine-readable surface that generative engines follow. */
   `<link rel="alternate" type="application/rss+xml" title="Eververdants — Blog" href="https://eververdants.github.io/rss.xml" />`,
   `<link rel="alternate" type="application/json" title="Site & identity" href="https://eververdants.github.io/site.json" />`,

@@ -2,157 +2,183 @@
    Eververdants — shared design system
    ------------------------------------------------------------
    Single source of truth for every entry (hub, /about, /blog,
-   /projects, /photos): palette, surfaces, rules, the drafting
+   /projects, /photos): palette, surfaces, rules, the terminal
    motif, type scale, elevation and motion.
 
    Plain custom properties + component classes only — no Tailwind
    directives — so the vanilla-TS sub-site can consume it exactly
    like the React ones. Import it FIRST in each entry stylesheet.
 
-   ART DIRECTION — the drawing plate
-   ---------------------------------
-   The page is not a stack of objects sitting on top of a background;
-   it is one sheet, and everything on it is drawn *into* the sheet.
-   Hierarchy is carried by ink weight, rules and margin — the way a
-   printer or a draughtsman carries it — never by drop shadows,
-   rounded panels or frosted glass. Two inks only: a warm black for
-   everything that speaks, and red-oxide for everything that marks a
-   place (index numerals, the availability flag, a live rule).
-   Consequences that are worth stating, because they undo earlier
-   decisions: panels have no fill and no radius, the graph paper is
-   meant to be *seen* rather than glimpsed under a card, and the
-   concentric rings survive only as construction lines that a
-   compass would have drawn before the plate was inked.
+   ART DIRECTION — the phosphor terminal
+   -------------------------------------
+   The page is one CRT screen, and everything on it is drawn on
+   the character grid. Two voices, never interchangeable: a pixel
+   display face (Press Start 2P) for names, titles and standing
+   labels, and a terminal mono for every sentence a person reads.
+   Hierarchy is carried by ink weight, rules and hard offset
+   shadows — no blur, no rounded panel, no frosted glass. Two
+   inks: a pale phosphor for everything that speaks, and a
+   phosphor green spot for everything that marks a place. A
+   violet "dream" ink exists only where the screen slips — the
+   glitch split, a hover ghost — and never carries text.
+
+   The dark screen is the default. The light theme is the same
+   terminal at daylight: warm paper instead of a dark tube, same
+   dot grid, same spot ink at print density.
    ============================================================ */
 @import "./topbar.css";
 @import "./palette.css";
 
 /* ---------- palette ----------
-   Cream paper, warm black ink, one red-oxide spot. Every neutral in
-   both themes is the same warm hue family — no cool grey appears
-   anywhere, which is what stops a cream page reading as a template.
-   Contrast floors are checked, not assumed: --faint is the lightest
-   colour allowed to carry text, and it clears 4.5:1 on paper. */
+   Dark: a deep blue-black tube, pale phosphor ink, one green spot
+   and one violet dream ink. Light: warm paper, warm black ink,
+   the same two accents at print density. Every neutral in both
+   themes keeps one hue family per theme — no stray grey. Contrast
+   floors are checked, not assumed: --faint is the lightest colour
+   allowed to carry text, and it clears 4.5:1 on the screen. */
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
-  --bg: #f6f4ee;
-  --bg-2: #efece3;
-  --surface: #fffdf8;
-  --surface-2: #f1eee6;
+  --bg: #0a0c0f;
+  --bg-2: #0e1116;
+  --surface: #12161c;
+  --surface-2: #161b22;
 
-  --ink: #1a1917;
-  --body: #37352f;
-  --muted: #6a665c;
-  --faint: #6f6a5e;
-  --fainter: #726d60;
+  --ink: #dce4d5;
+  --body: #a9b4a6;
+  --muted: #7f8b80;
+  --faint: #72806f;
+  --fainter: #63705f;
   /* the faintest ink there is — decoration and placeholders only,
      never a run of text a person has to read */
-  --faintest: #8f897b;
+  --faintest: #4c584c;
 
-  --border: #d9d4c6;
-  --border-soft: #e4e0d5;
-  --border-strong: #b9b3a3;
+  --border: #212a26;
+  --border-soft: #1a221d;
+  --border-strong: #3c4a41;
 
-  /* red-oxide: the printer's second ink. 5.6:1 on paper, so it is
-     allowed to carry a link at body size. */
-  --accent: #a8402a;
-  --accent-ink: #8b3120;
-  --accent-hover: #8b3120;
-  --accent-soft: color-mix(in oklab, var(--accent) 8%, transparent);
-  --accent-line: color-mix(in oklab, var(--accent) 38%, transparent);
+  /* phosphor green: the terminal's second ink. Bright on the tube,
+     so it is allowed to carry a link at body size. */
+  --accent: #6bf190;
+  --accent-ink: #a6ffc6;
+  --accent-hover: #a6ffc6;
+  --accent-soft: color-mix(in oklab, var(--accent) 9%, transparent);
+  --accent-line: color-mix(in oklab, var(--accent) 42%, transparent);
+
+  /* dream violet: where the screen slips. Glitch layers and ghost
+     states only — it must never be the only carrier of meaning. */
+  --accent-2: #b49aff;
+  --accent-2-soft: color-mix(in oklab, var(--accent-2) 12%, transparent);
 
   /* rules — the actual hierarchy mechanism. `--rule` is the working
      hairline; `--rule-heavy` closes a plate the way a press rule does. */
-  --rule: color-mix(in oklab, var(--ink) 17%, transparent);
-  --rule-faint: color-mix(in oklab, var(--ink) 9%, transparent);
+  --rule: color-mix(in oklab, var(--ink) 18%, transparent);
+  --rule-faint: color-mix(in oklab, var(--ink) 10%, transparent);
   --rule-heavy: var(--ink);
-  --rule-mark: color-mix(in oklab, var(--ink) 34%, transparent);
+  --rule-mark: color-mix(in oklab, var(--ink) 36%, transparent);
 
   /* translucent surfaces survive only where chrome genuinely floats
      above moving content — the top bar and the command palette. Cards
      are not floating, so they are not translucent. */
-  --glass-fill: color-mix(in oklab, var(--bg) 88%, transparent);
-  --glass-fill-strong: color-mix(in oklab, var(--bg) 95%, transparent);
-  --glass-blur: 12px;
+  --glass-fill: color-mix(in oklab, var(--bg) 86%, transparent);
+  --glass-fill-strong: color-mix(in oklab, var(--bg) 94%, transparent);
+  --glass-blur: 10px;
   --glass-border: var(--rule);
-  --glass-shadow: 0 1px 0 color-mix(in oklab, var(--ink) 4%, transparent);
-  --glass-shadow-lift: 0 2px 4px color-mix(in oklab, var(--ink) 7%, transparent);
+  --glass-shadow: 0 0 0 1px color-mix(in oklab, var(--ink) 3%, transparent);
+  --glass-shadow-lift: 6px 6px 0 color-mix(in oklab, #000000 55%, transparent);
 
-  /* the site surface: graph paper, minor cell plus a major line every
-     fifth cell, exactly as on a pad. Panels no longer paint over it. */
-  --grid-line: color-mix(in oklab, var(--ink) 5%, transparent);
-  --grid-major: color-mix(in oklab, var(--ink) 9.5%, transparent);
-  --grid-size: 28px;
+  /* the site surface: a dot-matrix character grid — one faint dot per
+     cell, a brighter dot every fifth cell, the way a terminal maps
+     its field. Panels no longer paint over it. */
+  --grid-dot: color-mix(in oklab, var(--ink) 7%, transparent);
+  --grid-dot-major: color-mix(in oklab, var(--ink) 13%, transparent);
+  --grid-size: 24px;
+  --grid-major-every: 5;
 
-  /* layout module — spacing snaps to the paper, so a panel's edge
-     lands on a printed line instead of drifting between two. */
+  /* scanlines + grain — the two atmospheric layers. Drawn once on
+     the root pseudo-elements, fixed, pointer-transparent. */
+  --scanline: color-mix(in oklab, #000000 55%, transparent);
+  --scanline-gap: 3px;
+  --scanline-opacity: 0.22;
+  --grain-opacity: 0.05;
+
+  /* layout module — spacing snaps to the character cell, so a panel's
+     edge lands on the grid instead of drifting between two. */
   --cell: var(--grid-size);
 
-  /* construction rings — retired as scenery, kept as the compass
-     marks that .arc and .ring-mark draw. */
-  --ring-color: color-mix(in oklab, var(--ink) 13%, transparent);
+  /* construction marks — kept as the terminal's own datum glyphs that
+     .arc and .ring-mark draw. */
+  --ring-color: color-mix(in oklab, var(--ink) 14%, transparent);
   --ring-gap: 26px;
   --ring-weight: 1px;
 
   /* corner geometry ---------------------------------------------
-     A printed sheet has square corners, so content is square now:
-     the plate radii collapsed to 2px and `corner-shape: squircle`
-     no longer has anything to round. Radius survives only on the
-     small controls you click, where it tells them apart from rules. */
-  --r-flat: 2px;
-  --r-xs: 3px;
-  --r-sm: 4px;
-  --r-md: 6px;
-  --r-lg: 8px;
-  --r-xl: 2px;
-  --r-2xl: 2px;
+     A character cell has square corners, so content is square.
+     Panels may cut a stepped notch (the pixel-corner clip), but
+     nothing is ever rounded: the radii collapse to 0 and only the
+     tiny inline kbd/code chips keep 2px so a hairline can breathe. */
+  --px-notch: 6px;
+  --r-flat: 0px;
+  --r-xs: 2px;
+  --r-sm: 0px;
+  --r-md: 0px;
+  --r-lg: 0px;
+  --r-xl: 0px;
+  --r-2xl: 0px;
   --r-full: 999px;
 
+  /* the hard offset shadow — the pixel button's third dimension.
+     No blur anywhere: elevation is displacement, not diffusion. */
+  --px-shadow: 3px 3px 0 color-mix(in oklab, #000000 72%, transparent);
+  --px-shadow-strong: 4px 4px 0 color-mix(in oklab, #000000 80%, transparent);
+  --px-shadow-flat: 2px 2px 0 color-mix(in oklab, #000000 60%, transparent);
+
   /* type ---------------------------------------------------------
-     Three voices, and they are not interchangeable:
-       --font-display  Fraunces, the plate's voice — names, titles,
-                       and the running text of an essay.
-       --font-sans     Inter, demoted to interface — nav, buttons,
-                       table cells, anything operational.
-       --font-mono     machine readouts: counts, ids, code.
-     Fraunces carries a live `opsz` axis in the self-hosted cut, so
-     the display sizes are pulled toward the high-contrast end that
-     only shows up above ~60px. */
-  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-display: "Fraunces", "Songti SC", "Noto Serif CJK SC",
-    "Source Han Serif SC", "SimSun", Georgia, serif;
-  --font-read: var(--font-display);
-  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas,
+     Two voices and a readout:
+       --font-pixel   Press Start 2P — names, titles, standing labels.
+       --font-term    terminal mono — every sentence, table, button.
+       --font-crt     VT323 — big readouts: index numerals, counts.
+     The pixel face has no italics, no weights and no optical sizes;
+     emphasis in display type is colour and spacing, not faux-bold. */
+  --font-pixel: "Press Start 2P", ui-monospace, monospace;
+  --font-crt: "VT323", ui-monospace, monospace;
+  --font-term: "Cascadia Mono", "Consolas", ui-monospace, "SFMono-Regular",
+    Menlo, "Noto Sans Mono CJK SC", "Sarasa Mono SC", "Microsoft YaHei",
     monospace;
 
-  --text-xs: 0.75rem;
-  --text-sm: 0.8125rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: clamp(1.25rem, 1.05rem + 0.9vw, 1.6rem);
-  --text-2xl: clamp(1.6rem, 1.25rem + 1.6vw, 2.3rem);
-  --text-3xl: clamp(2.3rem, 1.5rem + 3.4vw, 4rem);
-  --text-display: clamp(2.8rem, 1.6rem + 5.2vw, 5.6rem);
+  /* kept names, new voices — every existing rule that asked for the
+     sans gets the terminal mono, every display rule gets the pixel
+     face, and code keeps the terminal. */
+  --font-sans: var(--font-term);
+  --font-display: var(--font-pixel);
+  --font-read: var(--font-term);
+  --font-mono: var(--font-term);
 
-  --leading-tight: 1.04;
-  --leading-snug: 1.28;
-  --leading-body: 1.72;
-  --leading-read: 1.8;
+  --text-xs: 0.6875rem;
+  --text-sm: 0.78125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: clamp(1rem, 0.95rem + 0.35vw, 1.2rem);
+  --text-2xl: clamp(1.1rem, 0.95rem + 0.8vw, 1.5rem);
+  --text-3xl: clamp(1.3rem, 1rem + 1.5vw, 2.1rem);
+  --text-display: clamp(1.5rem, 0.9rem + 2.6vw, 2.9rem);
 
-  --tracking-tight: -0.028em;
-  --tracking-caps: 0.17em;
-  /* Fraunces' `opsz` axis runs the way a real cut does: low is the
-     sturdy text design, high is the narrow, high-contrast display
-     design. Browsers already map it to font-size, so it is only
-     overridden where a size should be drawn as something larger. */
-  --opsz-name: 144;
+  --leading-tight: 1.5;
+  --leading-snug: 1.6;
+  --leading-body: 1.75;
+  --leading-read: 1.85;
 
-  /* measure: prose never runs wider than ~68 characters */
-  --measure: 68ch;
+  /* pixel faces arrive pre-spaced: tightening them eats the grid
+     between cells, so tracking only ever opens up, never closes. */
+  --tracking-tight: 0em;
+  --tracking-caps: 0.14em;
+  --tracking-wide: 0.22em;
+
+  /* measure: prose never runs wider than ~70 characters */
+  --measure: 70ch;
   --shell: 1180px;
   --shell-narrow: 760px;
-  /* the plate's binding margin: the left column is where index
+  /* the terminal's binding margin: the left column is where index
      numerals and standing data live, and it is deliberately wide */
   --margin-note: 132px;
 
@@ -165,117 +191,183 @@
   --z-overlay: 80;
   --z-modal: 90;
   --z-toast: 100;
+  /* the CRT layers (scanlines + grain) sit above everything — they
+     are the glass of the tube, not part of the page. */
+  --z-crt: 2000;
 
-  /* motion ------------------------------------------------------- */
+  --header-clearance: 96px;
+
+  /* motion -------------------------------------------------------
+     Short and square. The steps() curve is reserved for dissolves
+     (the pixel-flavoured fade); everything interactive stays on a
+     plain ease so it reads smooth, never stuttery. */
   --dur-1: 120ms;
   --dur-2: 200ms;
   --dur-3: 320ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0.05, 0.36, 1);
-
-  --header-clearance: 96px;
+  --ease-steps: steps(4, end);
 }
 
-[data-theme="dark"] {
-  color-scheme: dark;
+[data-theme="light"] {
+  color-scheme: light;
 
-  --bg: #141310;
-  --bg-2: #1b1a16;
-  --surface: #201e1a;
-  --surface-2: #262420;
+  /* daylight terminal: warm paper, warm black ink, the spot ink at
+     print density. Same dot grid, same rules, same geometry. */
+  --bg: #eae6d5;
+  --bg-2: #e1dcc8;
+  --surface: #f2eedf;
+  --surface-2: #e8e3d0;
 
-  --ink: #ece9e0;
-  --body: #c6c1b4;
-  --muted: #9c968a;
-  --faint: #8e887a;
-  --fainter: #8a8477;
-  --faintest: #6e685c;
+  --ink: #1d2418;
+  --body: #3a4234;
+  --muted: #5a6455;
+  --faint: #59654f;
+  --fainter: #68745e;
+  --faintest: #8a9280;
 
-  --border: #38352d;
-  --border-soft: #2b2822;
-  --border-strong: #4a453b;
+  --border: #c9c4ae;
+  --border-soft: #d6d1bc;
+  --border-strong: #a8a48c;
 
-  --accent: #e0785a;
-  --accent-ink: #eda087;
-  --accent-hover: #eda087;
-  --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
-  --accent-line: color-mix(in oklab, var(--accent) 44%, transparent);
+  --accent: #12713e;
+  --accent-ink: #0c5730;
+  --accent-hover: #0c5730;
+  --accent-soft: color-mix(in oklab, var(--accent) 8%, transparent);
+  --accent-line: color-mix(in oklab, var(--accent) 40%, transparent);
+
+  --accent-2: #6a48d8;
+  --accent-2-soft: color-mix(in oklab, var(--accent-2) 10%, transparent);
 
   --rule: color-mix(in oklab, var(--ink) 20%, transparent);
   --rule-faint: color-mix(in oklab, var(--ink) 11%, transparent);
   --rule-heavy: var(--ink);
-  --rule-mark: color-mix(in oklab, var(--ink) 40%, transparent);
+  --rule-mark: color-mix(in oklab, var(--ink) 42%, transparent);
 
-  --glass-fill: color-mix(in oklab, var(--bg) 90%, transparent);
-  --glass-fill-strong: color-mix(in oklab, var(--surface) 96%, transparent);
+  --glass-fill: color-mix(in oklab, var(--bg) 88%, transparent);
+  --glass-fill-strong: color-mix(in oklab, var(--bg) 95%, transparent);
   --glass-border: var(--rule);
-  --glass-shadow: 0 1px 0 color-mix(in oklab, #000000 30%, transparent);
-  --glass-shadow-lift: 0 2px 4px color-mix(in oklab, #000000 42%, transparent);
+  --glass-shadow: 0 0 0 1px color-mix(in oklab, var(--ink) 4%, transparent);
+  --glass-shadow-lift: 6px 6px 0 color-mix(in oklab, var(--ink) 16%, transparent);
 
-  --grid-line: color-mix(in oklab, var(--ink) 4.5%, transparent);
-  --grid-major: color-mix(in oklab, var(--ink) 8.5%, transparent);
+  --grid-dot: color-mix(in oklab, var(--ink) 8%, transparent);
+  --grid-dot-major: color-mix(in oklab, var(--ink) 15%, transparent);
 
-  --ring-color: color-mix(in oklab, var(--ink) 12%, transparent);
+  --scanline: color-mix(in oklab, var(--ink) 26%, transparent);
+  --scanline-opacity: 0.1;
+  --grain-opacity: 0.045;
+
+  --ring-color: color-mix(in oklab, var(--ink) 14%, transparent);
+
+  --px-shadow: 3px 3px 0 color-mix(in oklab, var(--ink) 22%, transparent);
+  --px-shadow-strong: 4px 4px 0 color-mix(in oklab, var(--ink) 26%, transparent);
+  --px-shadow-flat: 2px 2px 0 color-mix(in oklab, var(--ink) 18%, transparent);
 }
 
 /* ---------- fonts (self-hosted; Google Fonts is unreachable on CN
-   mobile networks). Inter + Fraunces are variable: one file each. ---------- */
+   mobile networks). The two pixel faces are small static cuts: one
+   file each. The old Inter/Fraunces files stay on disk for the OG
+   renderer but are no longer wired into the site. ---------- */
 @font-face {
-  font-family: "Inter";
+  font-family: "Press Start 2P";
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 400;
   font-display: swap;
-  src: url("/fonts/inter-latin.woff2") format("woff2-variations");
+  src: url("/fonts/press-start-2p-latin.woff2") format("woff2");
 }
 @font-face {
-  font-family: "Fraunces";
+  font-family: "VT323";
   font-style: normal;
-  font-weight: 300 600;
+  font-weight: 400;
   font-display: swap;
-  src: url("/fonts/fraunces-latin.woff2") format("woff2-variations");
-}
-@font-face {
-  font-family: "Fraunces";
-  font-style: italic;
-  font-weight: 300 500;
-  font-display: swap;
-  src: url("/fonts/fraunces-italic-latin.woff2") format("woff2-variations");
+  src: url("/fonts/vt323-latin.woff2") format("woff2");
 }
 
-/* ---------- base ---------- */
-/* The graph paper lives on the root canvas rather than a z-index:-1
-   pseudo-element: as a pseudo it escaped into the root stacking context
-   and some entries' own backgrounds painted straight over it. On `html`
-   with a fixed attachment it is one rule, always behind everything, and
-   it never scrolls — so the sheet feels like a surface you are reading,
-   not a pattern that slides past. */
+/* ---------- base ----------
+   The dot-matrix lives on the root canvas rather than a z-index:-1
+   pseudo-element: as a pseudo it escaped into the root stacking
+   context and some entries' own backgrounds painted straight over it.
+   On `html` with a fixed attachment it is one rule, always behind
+   everything, and it never scrolls — so the screen feels like a
+   surface you are reading, not a pattern that slides past. */
 html {
   background-color: var(--bg);
   background-image:
-    linear-gradient(var(--grid-major) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
-    linear-gradient(var(--grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    radial-gradient(var(--grid-dot-major) 1px, transparent 1.4px),
+    radial-gradient(var(--grid-dot) 1px, transparent 1.4px);
   background-size:
-    calc(var(--grid-size) * 5) calc(var(--grid-size) * 5),
-    calc(var(--grid-size) * 5) calc(var(--grid-size) * 5),
-    var(--grid-size) var(--grid-size),
+    calc(var(--grid-size) * var(--grid-major-every))
+      calc(var(--grid-size) * var(--grid-major-every)),
     var(--grid-size) var(--grid-size);
+  background-position: 0 0, 0 0;
   background-attachment: fixed;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+}
+
+/* The tube's glass: scanlines (a 1px dark line every third row) with a
+   soft vignette pressing the corners, plus a film of grain underneath.
+   Both layers are fixed, pointer-transparent and purely atmospheric —
+   text contrast is carried entirely by the inks, never by these. */
+html::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-crt) - 1);
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  opacity: var(--grain-opacity);
+}
+
+html::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-crt);
+  pointer-events: none;
+  background-image:
+    radial-gradient(
+      130% 110% at 50% 0%,
+      transparent 62%,
+      color-mix(in oklab, #000000 26%, transparent) 100%
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--scanline) 0 1px,
+      transparent 1px var(--scanline-gap)
+    );
+  opacity: var(--scanline-opacity);
+}
+
+/* Daylight paper needs no tube vignette — only the faintest scan of
+   a print ratchet. The scanline colour itself re-resolves from the
+   theme's own --scanline value. */
+html[data-theme="light"]::after {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--scanline) 0 1px,
+    transparent 1px var(--scanline-gap)
+  );
 }
 
 body {
   margin: 0;
   background-color: transparent;
   color: var(--body);
-  font-family: var(--font-sans);
+  font-family: var(--font-term);
   font-size: var(--text-base);
   line-height: var(--leading-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+}
+
+/* Selection is the terminal marking a block: full spot ink, screen
+   colour dropped out behind it. */
+::selection {
+  background: var(--accent);
+  color: var(--bg);
 }
 
 /* One brief colour cross-fade on the theme flip (see shared/prefs.ts).
@@ -297,17 +389,21 @@ html.theme-anim * {
   html.theme-anim * {
     transition: none !important;
   }
+  /* The tube's atmosphere is motion-free decoration; for readers who
+     ask for less movement the grain stays, the flicker never starts. */
+  html::after {
+    animation: none !important;
+  }
 }
 
 /* ---------- materials ----------
    `.glass` used to mean "paint a white rounded panel here". Under the
-   plate direction a panel is not an object, so the class now paints
-   nothing at all and keeps only a hairline. Every call site across the
-   five entries picks this up without an edit — which is the same
-   one-rule-deep trick .ring-field and .rise already use.
-   Translucency is left exactly where it earns its place: the floating
-   chrome in topbar.css and palette.css, which sets these properties
-   itself and is untouched by this. */
+   terminal direction a panel is a character-field tile: no fill, a
+   hairline rule, and a stepped notch cut from each corner so the
+   corners resolve into visible pixels. Every call site across the
+   five entries picks this up without an edit. Translucency is left
+   exactly where it earns its place: the floating chrome in
+   topbar.css and palette.css, which sets these properties itself. */
 .glass,
 .glass-panel,
 .glass-bar {
@@ -317,10 +413,24 @@ html.theme-anim * {
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+  clip-path: polygon(
+    0 var(--px-notch),
+    var(--px-notch) var(--px-notch),
+    var(--px-notch) 0,
+    calc(100% - var(--px-notch)) 0,
+    calc(100% - var(--px-notch)) var(--px-notch),
+    100% var(--px-notch),
+    100% calc(100% - var(--px-notch)),
+    calc(100% - var(--px-notch)) calc(100% - var(--px-notch)),
+    calc(100% - var(--px-notch)) 100%,
+    var(--px-notch) 100%,
+    var(--px-notch) calc(100% - var(--px-notch)),
+    0 calc(100% - var(--px-notch))
+  );
 }
 
 /* The one exception: a block that genuinely sits above other content
-   (the contact plate) gets a sheet of heavier paper under it, so it
+   (the contact plate) gets a tile of heavier screen under it, so it
    reads as laid on top rather than printed in place. */
 .glass-panel {
   background: color-mix(in oklab, var(--surface) 72%, transparent);
@@ -331,9 +441,9 @@ html.theme-anim * {
   box-shadow: var(--glass-shadow);
 }
 
-/* Interactive glass: the rule darkens and thickens to a drawn line,
-   and the plate slides a hair toward its own index numeral. No lift,
-   no shadow growth — nothing here pretends to leave the paper. */
+/* Interactive glass: the rule darkens to a drawn line and the tile
+   fills with the faint spot tint. No lift, no blur growth — nothing
+   here pretends to leave the screen. */
 .glass-press {
   transition:
     border-color var(--dur-2) var(--ease-out),
@@ -341,7 +451,7 @@ html.theme-anim * {
 }
 .glass-press:hover {
   border-color: var(--rule-mark);
-  background: color-mix(in oklab, var(--surface) 55%, transparent);
+  background: var(--accent-soft);
 }
 .glass-press:active {
   background: color-mix(in oklab, var(--surface) 78%, transparent);
@@ -356,18 +466,9 @@ html.theme-anim * {
 }
 
 /* ---------- corner geometry ----------
-     Content is square. The squircle layer is kept only for the small
-     controls, where a continuous curve still reads better than a hard
-     mitre — and it is harmless everywhere else. */
-@supports (corner-shape: squircle) {
-  .btn,
-  .chip,
-  .sq-sm,
-  .sq-md {
-    corner-shape: squircle;
-  }
-}
-
+   Content is square. The old squircle layer has nothing to round; the
+   declarations stay (they are harmless) so page stylesheets that set
+   radii through the scale keep compiling to squares. */
 .sq,
 .sq-sm,
 .sq-md,
@@ -395,9 +496,9 @@ html.theme-anim * {
 }
 
 /* ---------- the plate and its rules ----------
-   A plate is a ruled zone of the sheet, not a card. It is opened by a
+   A plate is a ruled zone of the screen, not a card. It is opened by a
    heavy rule at the head and closed by a hairline at the foot; the
-   sides stay open so the paper runs through it. */
+   sides stay open so the grid runs through it. */
 .rule {
   height: 1px;
   border: 0;
@@ -412,9 +513,9 @@ html.theme-anim * {
   background: var(--rule-heavy);
 }
 
-/* A rule that fades out before the margin, the way a drawn line stops
-   when the hand lifts. Full-bleed borders are the default nobody
-   chose; a rule that stops short is a decision. */
+/* A rule that fades out before the margin — a scan line losing signal.
+   Full-bleed borders are the default nobody chose; a rule that stops
+   short is a decision. */
 .rule--stops {
   background: linear-gradient(
     90deg,
@@ -424,40 +525,37 @@ html.theme-anim * {
   );
 }
 
-/* Crop marks. Four printer's marks at the corners of a plate, drawn
-   with two pseudo-elements — the small geometry a press uses to say
-   "trim here". Decorative, so kept off the accessibility tree. */
+/* Crop marks. ASCII corner brackets at two corners of a plate — the
+   geometry a terminal uses to say "trim here". Decorative, so kept
+   off the accessibility tree (pure ::before/::after content). */
 .marks::before,
 .marks::after {
-  content: "";
   position: absolute;
-  width: 10px;
-  height: 10px;
+  font-family: var(--font-term);
+  font-size: 13px;
+  line-height: 1;
   pointer-events: none;
-  opacity: 0.85;
+  color: var(--rule-mark);
 }
 .marks::before {
-  top: -1px;
-  left: -1px;
-  border-top: 1px solid var(--rule-mark);
-  border-left: 1px solid var(--rule-mark);
+  content: "┌";
+  top: -7px;
+  left: -5px;
 }
 .marks::after {
-  bottom: -1px;
-  right: -1px;
-  border-bottom: 1px solid var(--rule-mark);
-  border-right: 1px solid var(--rule-mark);
+  content: "┘";
+  bottom: -7px;
+  right: -5px;
 }
 
-/* Construction arc — the concentric-ring motif kept honest. A single
-   quarter arc, dashed the way a compass line is left on a drawing
-   before it is inked over, bleeding off one corner of the plate. */
+/* Construction frame — the concentric-ring motif kept honest. A single
+   dashed square, bleeding off one corner of the plate: the guide box a
+   terminal draws before it fills the field. */
 .arc {
   position: absolute;
   width: 340px;
   height: 340px;
-  border-radius: var(--r-full);
-  border: 1px dashed color-mix(in oklab, var(--ink) 13%, transparent);
+  border: 1px dashed var(--ring-color);
   pointer-events: none;
   z-index: var(--z-base);
 }
@@ -465,26 +563,23 @@ html.theme-anim * {
   content: "";
   position: absolute;
   inset: 46px;
-  border-radius: var(--r-full);
   border: 1px solid color-mix(in oklab, var(--ink) 7%, transparent);
 }
 
-/* A single ring pair — the small marker beside headings. Now read as a
-   datum point rather than an icon: one hairline circle, one inked dot. */
+/* A single datum mark — the small marker beside headings. One square
+   outline, one filled pixel: a cursor waiting on a line. */
 .ring-mark {
   position: relative;
   display: inline-block;
-  width: 13px;
-  height: 13px;
+  width: 12px;
+  height: 12px;
   flex: none;
-  border-radius: var(--r-full);
   border: 1px solid var(--rule-mark);
 }
 .ring-mark::after {
   content: "";
   position: absolute;
-  inset: 4px;
-  border-radius: var(--r-full);
+  inset: 3px;
   background: var(--accent);
 }
 
@@ -502,43 +597,47 @@ html.theme-anim * {
 }
 
 /* ---------- typography helpers ---------- */
-/* Optical size is left to the browser's own mapping from font-size, which
-   is what the axis is for: a 24px title gets the text cut and a 90px name
-   gets the display cut, without either needing to be told. `.display`
-   therefore sets no `font-variation-settings` at all, so a `font-weight`
-   declared at a call site keeps working. */
+/* Display type is the pixel face at its only weight. Line-height and
+   spacing stay open — the face draws its own rhythm — and the hover
+   glitch is left to the motion layer, never applied statically. */
 .display {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 400;
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-tight);
   color: var(--ink);
   text-wrap: balance;
 }
 
-/* The plate index numeral: the spot ink, set in the display face at a
- * weight heavy enough to hold its hairlines at margin size. It hangs in
- * the binding margin and numbers the plate the way a drawing does. */
+/* The plate index numeral: the spot ink set in the CRT readout face —
+   tall, narrow, exactly like a line number on a terminal. It hangs in
+   the binding margin and numbers the plate. */
 .index {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: var(--text-lg);
+  font-family: var(--font-crt);
+  font-weight: 400;
+  font-size: 1.375rem;
   line-height: 1;
   font-variant-numeric: tabular-nums lining-nums;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   color: var(--accent);
 }
 
-/* Small caps label — the standing text of the plate. Uppercase, spaced,
-   and in the interface voice so it never competes with a title. */
+/* Small caps label — the standing text of the screen. Set in the pixel
+   face at its smallest legible size; the `//` prefix marks it as a
+   comment, the terminal's way of labelling a field. */
 .kicker,
 .label {
-  font-family: var(--font-sans);
-  font-size: 10.5px;
-  font-weight: 600;
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.6;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--faint);
+}
+.kicker::before {
+  content: "// ";
+  color: var(--accent);
 }
 
 .num {
@@ -554,8 +653,10 @@ html.theme-anim * {
 }
 
 /* ---------- focus + a11y ---------- */
+/* Focus is a dashed spot-ink box — the marching-ants selection of a
+   drawing tool, visible on every surface. */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px dashed var(--accent);
   outline-offset: 3px;
   border-radius: var(--r-xs);
 }
@@ -564,12 +665,13 @@ html.theme-anim * {
   position: fixed;
   top: 8px;
   left: 8px;
-  z-index: var(--z-toast);
+  z-index: calc(var(--z-crt) + 10);
   padding: 10px 16px;
   background: var(--surface);
   color: var(--ink);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-xs);
+  font-family: var(--font-term);
   font-weight: 600;
   text-decoration: none;
   transform: translateY(-160%);
@@ -607,50 +709,66 @@ html.theme-anim * {
    Small primitives that more than one entry needs. Anything specific to a
    single page stays in that page's stylesheet.
 
-   A button here is a stamped label, not a raised pill: square corners, a
-   1px ink border, no fill until you touch it. */
+   A button here is a key on the machine: square, a 1px ink border and a
+   hard offset shadow for depth. Hover lifts it one pixel against the
+   shadow; pressing drives it down into the screen and takes the shadow
+   with it. */
 .btn {
   appearance: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 14px;
+  padding: 10px 14px;
   font: inherit;
-  font-family: var(--font-sans);
+  font-family: var(--font-term);
   font-size: var(--text-sm);
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   color: var(--ink);
   background: transparent;
   border: 1px solid var(--border-strong);
-  border-radius: var(--r-md);
+  border-radius: var(--r-flat);
   text-decoration: none;
+  box-shadow: var(--px-shadow-flat);
   transition:
-    background-color var(--dur-2) var(--ease-out),
-    border-color var(--dur-2) var(--ease-out),
-    color var(--dur-2) var(--ease-out);
+    background-color var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out),
+    transform var(--dur-1) var(--ease-out),
+    box-shadow var(--dur-1) var(--ease-out);
 }
 .btn:hover {
   background: var(--accent-soft);
   border-color: var(--accent);
   color: var(--accent-ink);
+  transform: translate(-1px, -1px);
+  box-shadow: var(--px-shadow);
 }
 .btn:active {
-  transform: translateY(1px);
+  transform: translate(1px, 1px);
+  box-shadow: none;
+  background: color-mix(in oklab, var(--accent) 16%, transparent);
 }
 .btn--ghost {
   border-color: var(--rule);
   color: var(--muted);
+  box-shadow: none;
 }
 .btn--ghost:hover {
   color: var(--ink);
   border-color: var(--border-strong);
   background: transparent;
+  transform: none;
+  box-shadow: none;
+}
+.btn--ghost:active {
+  transform: none;
 }
 
-/* A link that is underlined by the plate's own rule rather than by a
-   browser default — the hairline sits on the baseline grid. */
+/* A link that is underlined by the terminal's own rule rather than by a
+   browser default — the hairline sits on the baseline grid, and the
+   hover state thickens it the way a cursor doubles in intensity. */
 .link-rule {
   color: var(--accent-ink);
   text-decoration: none;
@@ -676,12 +794,20 @@ html.theme-anim * {
 }
 .chip {
   padding: 4px 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-term);
   font-size: var(--text-sm);
   color: var(--muted);
   background: none;
   border: 0;
   border-bottom: 1px solid var(--rule-faint);
+  transition:
+    color var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out);
+}
+a.chip:hover,
+button.chip:hover {
+  color: var(--accent-ink);
+  border-bottom-color: var(--accent-line);
 }
 
 /* Entrance animation — retired. Content appears where it is, already
@@ -695,6 +821,35 @@ html.theme-anim * {
 .rise-4,
 .rise-5 {
   animation: none;
+}
+
+/* ---------- scrollbars ----------
+   Chunky, square, machine-drawn: a track of darker screen with a
+   thumb that is a solid block, not a rounded pill. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: color-mix(in oklab, var(--bg-2) 80%, transparent);
+  border-left: 1px solid var(--rule-faint);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* ---------- transparency preferences ----------
@@ -716,5 +871,10 @@ html.theme-anim * {
   }
   .glass-sheen::after {
     display: none;
+  }
+  /* Opaque chrome also means: drop the atmospheric layers' cost where
+     they would blend with translucent fills. */
+  html::before {
+    opacity: calc(var(--grain-opacity) * 0.5);
   }
 }

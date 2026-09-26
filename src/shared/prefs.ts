@@ -4,10 +4,14 @@
  * always used (`blog-lang` / `blog-theme`), so a choice made on any page
  * follows the reader everywhere. Resolution order is:
  *
- *   ?lang= / ?theme=  →  localStorage  →  prefers-color-scheme  →  light
+ *   ?lang= / ?theme=  →  localStorage  →  dark
  *
  * The URL override exists so a link can hand someone a specific language
- * (and so the prerendered zh article pages can be shared directly).
+ * (and so the prerendered zh article pages can be shared directly). The
+ * theme falls back to dark because the terminal direction is the site's
+ * default look; a reader who wants daylight picks it once in the bar.
+ * The inline pre-paint script in vite.config.ts mirrors this exactly —
+ * keep the two in step.
  *
  * Framework-free by design: /projects is deliberately dependency-less
  * vanilla TS, so this module touches nothing but the DOM. React entries
@@ -61,20 +65,11 @@ function urlOverride(): Partial<Prefs> {
   }
 }
 
-function systemTheme(): Theme {
-  try {
-    return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  } catch {
-    return "light";
-  }
-}
-
 export function resolvePrefs(): Prefs {
   const ov = urlOverride();
   return {
     lang: ov.lang ?? asLang(read(LANG_KEY)) ?? "en",
-    theme:
-      ov.theme ?? asTheme(read(THEME_KEY)) ?? systemTheme(),
+    theme: ov.theme ?? asTheme(read(THEME_KEY)) ?? "dark",
   };
 }
 

@@ -44,6 +44,21 @@
   -webkit-backdrop-filter: blur(var(--glass-blur));
   box-shadow: var(--glass-shadow-lift);
   overflow: hidden;
+  /* Same stepped pixel corners as every other floating tile. */
+  clip-path: polygon(
+    0 var(--px-notch),
+    var(--px-notch) var(--px-notch),
+    var(--px-notch) 0,
+    calc(100% - var(--px-notch)) 0,
+    calc(100% - var(--px-notch)) var(--px-notch),
+    100% var(--px-notch),
+    100% calc(100% - var(--px-notch)),
+    calc(100% - var(--px-notch)) calc(100% - var(--px-notch)),
+    calc(100% - var(--px-notch)) 100%,
+    var(--px-notch) 100%,
+    var(--px-notch) calc(100% - var(--px-notch)),
+    0 calc(100% - var(--px-notch))
+  );
 }
 
 .palette__field {
