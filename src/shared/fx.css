@@ -50,8 +50,11 @@
 
   /* One-time power-on: the field surfaces in five visible steps.
      Opacity only — a body filter would turn it into the containing
-     block for the fixed top bar and make it jump. */
-  html.fx-on body {
+     block for the fixed top bar and make it jump. Skipped when the
+     page booted under the navigation curtain: the curtain's own
+     dissolve is the entrance, and two overlapping fades read as a
+     blank beat. */
+  html.fx-on:not(.px-boot):not(.px-arrived) body {
     animation: fx-boot 300ms steps(5, end) both;
   }
 

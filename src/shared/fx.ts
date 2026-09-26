@@ -340,6 +340,12 @@ function runCurtain(dir: "in" | "out", done: () => void): void {
   const h = window.innerHeight;
   canvas.width = w * dpr;
   canvas.height = h * dpr;
+  /* Without an explicit CSS size the canvas renders at its bitmap
+     size — on any display scaling ≠ 100% (dpr 1.25/1.5) that is
+     LARGER than the viewport, and the curtain then covers only the
+     top-left corner while the rest of the screen flashes bare. */
+  canvas.style.width = `${w}px`;
+  canvas.style.height = `${h}px`;
   const ctx = canvas.getContext("2d");
   if (!ctx) {
     canvas.remove();
@@ -446,10 +452,18 @@ function pxNavReveal(): void {
       requestAnimationFrame(wait);
       return;
     }
+    /* Order matters: runCurtain paints the full checker synchronously
+       BEFORE the CSS cover class is dropped, so there is no paint
+       between the two walls — the dissolve uncovers the live page
+       directly. The px-arrived marker keeps the boot fade (which
+       would otherwise start the moment px-boot is dropped) out of
+       the dissolve's way. */
     runCurtain("out", () => {
       document.documentElement.classList.remove("px-boot");
       document.getElementById("px-curtain")?.remove();
     });
+    document.documentElement.classList.add("px-arrived");
+    document.documentElement.classList.remove("px-boot");
   };
   wait();
 }
