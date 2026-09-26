@@ -98,9 +98,18 @@ const HEAD_INIT = `<script>(function(){try{var q=new URLSearchParams(location.se
    inline is the anti-FOUC guard. */
 const HEAD_COVER = `<style>html{background:#060608}html[data-theme="light"]{background:#f2f3ee}html.px-boot::after{content:"";position:fixed;inset:0;z-index:3000;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2748%27%20height=%2748%27%20shape-rendering=%27crispEdges%27%3E%3Crect%20x=%270%27%20y=%270%27%20width=%2724%27%20height=%2724%27%20fill=%27%23060608%27/%3E%3Crect%20x=%2724%27%20y=%270%27%20width=%2724%27%20height=%2724%27%20fill=%27%230b0b10%27/%3E%3Crect%20x=%270%27%20y=%2724%27%20width=%2724%27%20height=%2724%27%20fill=%27%230e0e13%27/%3E%3Crect%20x=%2724%27%20y=%2724%27%20width=%2724%27%20height=%2724%27%20fill=%27%23090910%27/%3E%3C/svg%3E") 0 0/48px 48px}</style><script>(function(){try{var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;if(!reduce&&sessionStorage.getItem("px-nav")==="1"){document.documentElement.classList.add("px-boot")}}catch(e){}})();</script>`;
 
+/* Prerender same-origin pages on hover intent (Chromium): by the time
+   the click lands, the target page — including its framework render —
+   is fully built in a hidden renderer, and activation is instant. This
+   is what removes the cross-document load gap the transition curtain
+   used to have to ride out. Firefox/Safari ignore this and fall back
+   to the plain curtain path (fx.ts hover-prefetches the HTML there). */
+const HEAD_SPECULATION = `<script type="speculationrules">{"prerender":[{"source":"document","where":{"href_matches":"/**"},"eagerness":"moderate"}],"prefetch":[{"source":"document","where":{"href_matches":"/**"},"eagerness":"moderate"}]}</script>`;
+
 const SHARED_HEAD = [
   HEAD_INIT,
   HEAD_COVER,
+  HEAD_SPECULATION,
   `<meta name="author" content="Eververdants" />`,
   `<meta name="theme-color" content="#060608" />`,
   `<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f3ee" />`,

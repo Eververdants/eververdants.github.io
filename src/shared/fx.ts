@@ -468,6 +468,46 @@ function pxNavReveal(): void {
   wait();
 }
 
+/* ---------- hover prefetch (engines without speculation rules) ----------
+   Firefox/Safari ignore the rules; a <link rel=prefetch> on
+   pointerover still warms the target HTML so their navigation gap
+   shrinks to a parse. Once per href per page. */
+function initHoverPrefetch(): void {
+  const seen = new Set<string>();
+  let timer = 0;
+  let pending: string | null = null;
+  const prefetch = (href: string) => {
+    if (seen.has(href)) return;
+    seen.add(href);
+    const link = document.createElement("link");
+    link.rel = "prefetch";
+    link.href = href;
+    document.head.appendChild(link);
+  };
+  document.addEventListener(
+    "pointerover",
+    (e) => {
+      const a = (e.target as Element | null)?.closest?.("a");
+      if (!a) return;
+      let url: URL;
+      try {
+        url = new URL(a.href, location.href);
+      } catch {
+        return;
+      }
+      if (url.origin !== location.origin) return;
+      pending = url.href;
+      if (timer) return;
+      timer = window.setTimeout(() => {
+        timer = 0;
+        if (pending) prefetch(pending);
+        pending = null;
+      }, 120);
+    },
+    { passive: true },
+  );
+}
+
 function initPixelNav(): void {
   /* Boot after a covered navigation: the head script has already put
      the solid cover up (html.px-boot); dissolve it. */
@@ -524,11 +564,36 @@ function initPixelNav(): void {
 /** Wire every decoration. Safe to call more than once (guarded by the
  * fx-on class) and safe to skip entirely under reduced motion. The
  * reveal scan starts on the next two frames so React's first commit is
- * already in the DOM when the hooks are collected. */
+ * already in the DOM when the hooks are collected.
+ *
+ * Prerendering: while this page renders hidden (speculation rules),
+ * nothing is wired — history APIs and paint-dependent logic don't
+ * belong in a prerendering context, and the navigation flag that a
+ * covering page wrote isn't visible yet anyway. The full boot runs on
+ * activation; if the reader is arriving under the curtain, the cover
+ * goes up synchronously here, before the first visible frame. */
 export function initFx(): void {
   if (typeof window === "undefined") return;
   const root = document.documentElement;
   if (reducedMotion() || root.classList.contains("fx-on")) return;
+
+  const prerendering = document as Document & { prerendering?: boolean };
+  if (prerendering.prerendering) {
+    document.addEventListener(
+      "prerenderingchange",
+      () => {
+        try {
+          if (sessionStorage.getItem(PXNAV_KEY) === "1")
+            root.classList.add("px-boot");
+        } catch {
+          /* storage unavailable — the reveal simply won't run */
+        }
+        initFx();
+      },
+      { once: true },
+    );
+    return;
+  }
 
   /* The transition keyframes reference these filters by id — they must
      exist before html.fx-on turns the animations on. */
@@ -536,6 +601,7 @@ export function initFx(): void {
   root.classList.add("fx-on");
   patchHistoryTransitions();
   initPixelNav();
+  initHoverPrefetch();
 
   const start = () =>
     /* Two frames: React's first commit lands between them, so the
