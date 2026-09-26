@@ -318,16 +318,12 @@ function patchHistoryTransitions(): void {
 const PXNAV_KEY = "px-nav";
 const PX_CELL = 24;
 
-function curtainColors(): string[] {
-  return [
-    "#060608",
-    "#0a0a0e",
-    "#0e0e13",
-    "#101017",
-    "rgba(198,255,77,0.10)",
-    "rgba(89,241,255,0.08)",
-  ];
-}
+/* The curtain's resting pattern: a 2×2 checker of the field's dark
+   tones. It must match the CSS tile in the shared head exactly —
+   the wall the canvas ends on IS the wall the boot cover shows. */
+const CHECKER = ["#060608", "#0b0b10", "#0e0e13", "#090910"];
+const checkerColor = (col: number, row: number): string =>
+  CHECKER[((row & 1) << 1) | (col & 1)];
 
 /** A full-screen canvas mosaic. `dir "in"` floods the screen block by
  * block; `dir "out"` dissolves it away. Steps are discrete — seven
@@ -364,10 +360,10 @@ function runCurtain(dir: "in" | "out", done: () => void): void {
     order[i] = order[j];
     order[j] = t;
   }
-  const colors = curtainColors();
-  const colorOf = (rank: number) => {
-    const r = (rank * 2654435761) % 1000 / 1000;
-    return colors[r < 0.05 ? 4 : r < 0.09 ? 5 : (r * 100) % 1 < 0.4 ? 1 : r * 100 % 1 < 0.7 ? 2 : 3];
+  const colorOf = (rank: number): string => {
+    const col = rank % cols;
+    const row = Math.floor(rank / cols);
+    return checkerColor(col, row);
   };
 
   const STEPS = 7;
@@ -436,10 +432,26 @@ function pxNavReveal(): void {
     document.documentElement.classList.remove("px-boot");
     return;
   }
-  runCurtain("out", () => {
-    document.documentElement.classList.remove("px-boot");
-    document.getElementById("px-curtain")?.remove();
-  });
+  /* The reveal must show CONTENT, not the empty pre-mount shell —
+     wait until the framework has actually mounted (root/app gains
+     children), with a hard timeout so a slow or failed mount can
+     never trap the reader behind the curtain. */
+  const start = performance.now();
+  const mounted = () =>
+    !!document.querySelector("#root > *, #app > *") ||
+    document.readyState === "complete" ||
+    performance.now() - start > 1500;
+  const wait = () => {
+    if (!mounted()) {
+      requestAnimationFrame(wait);
+      return;
+    }
+    runCurtain("out", () => {
+      document.documentElement.classList.remove("px-boot");
+      document.getElementById("px-curtain")?.remove();
+    });
+  };
+  wait();
 }
 
 function initPixelNav(): void {
@@ -456,18 +468,6 @@ function initPixelNav(): void {
       document.getElementById("px-curtain")?.remove();
     }
   });
-
-  /* Chromium carries the old frame across the load itself (cross-
-     document view transitions), so interception would only get in
-     the way. Firefox/Safari get the curtain. No clean API exists
-     for cross-document support; same-document support plus a
-     Chromium engine is the practical proxy. */
-  const brands = (navigator as Navigator & { userAgentData?: { brands?: { brand: string }[] } })
-    .userAgentData?.brands;
-  const crossDocVT =
-    typeof document.startViewTransition === "function" &&
-    !!brands?.some((b) => /Chromium|Google Chrome|Edge/i.test(b.brand));
-  if (crossDocVT) return;
 
   document.addEventListener(
     "click",
