@@ -99,46 +99,41 @@
 }
 
 /* ---------- navigation transitions: the pixel wipe ----------
-   Two paths, one look — the CapCut/Jimeng mosaic:
+   The CapCut/Jimeng mosaic, on two paths:
 
-   · Cross-document jumps between the five entries play the curtain
-     (fx.ts click interception + canvas blocks + the html.px-boot
-     pre-paint cover from the shared head). The curtain is fully
-     deterministic: the screen is covered from the click until the
-     new page dissolves it, so no load stall can ever flash white.
-   · The SPAs' own scene switches (blog index ↔ article, photo
-     detail) run through same-document view transitions: fx.ts wraps
-     their history changes, and the snapshots coarse-step through the
-     SVG pixelate filters injected by fx.ts (4 → 8 → 16 → 32 px
-     blocks, each held as a hard jump). Same document = no load gap,
-     so the real frame can be pixelated safely.
+   · Chromium (cross-document view transitions): the old page
+     coarsens 4 → 8 → 16 → 32 px and *holds* — the browser freezes
+     that mosaic across the whole load of the new document, so no
+     gap can ever show white. At handoff the new page's snapshot
+     (stacked on top, already coarse) refines back to clean. The
+     old image must never fade: a transparent held frame is exactly
+     what produced the white flash before.
+   · Everywhere else: fx.ts intercepts the click and plays the
+     canvas curtain (cover → navigate → dissolve), with the shared
+     head script holding a pre-paint cover across the load.
 
-   Everything is scoped to html.fx-on (no JS → plain navigation) and
-   to no-preference motion. */
+   SPA scene switches (blog index ↔ article) use same-document
+   view transitions on both paths — no load gap, so the real frame
+   is safe to pixelate. */
+@view-transition {
+  navigation: auto;
+}
+
 @keyframes vt-px-out {
   0% {
     filter: url("#pxf4");
-    opacity: 1;
   }
   22% {
     filter: url("#pxf8");
-    opacity: 1;
   }
   48% {
     filter: url("#pxf16");
-    opacity: 1;
   }
   72% {
     filter: url("#pxf32");
-    opacity: 1;
-  }
-  92% {
-    filter: url("#pxf32");
-    opacity: 1;
   }
   100% {
     filter: url("#pxf32");
-    opacity: 0;
   }
 }
 
@@ -159,11 +154,11 @@
 
 @media (prefers-reduced-motion: no-preference) {
   html.fx-on::view-transition-old(root) {
-    animation: vt-px-out 300ms steps(1, end) both;
+    animation: vt-px-out 240ms steps(1, end) both;
   }
 
   html.fx-on::view-transition-new(root) {
-    animation: vt-px-in 320ms steps(1, end) 280ms both;
+    animation: vt-px-in 320ms steps(1, end) both;
   }
 }
 

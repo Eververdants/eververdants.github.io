@@ -457,6 +457,18 @@ function initPixelNav(): void {
     }
   });
 
+  /* Chromium carries the old frame across the load itself (cross-
+     document view transitions), so interception would only get in
+     the way. Firefox/Safari get the curtain. No clean API exists
+     for cross-document support; same-document support plus a
+     Chromium engine is the practical proxy. */
+  const brands = (navigator as Navigator & { userAgentData?: { brands?: { brand: string }[] } })
+    .userAgentData?.brands;
+  const crossDocVT =
+    typeof document.startViewTransition === "function" &&
+    !!brands?.some((b) => /Chromium|Google Chrome|Edge/i.test(b.brand));
+  if (crossDocVT) return;
+
   document.addEventListener(
     "click",
     (e) => {
