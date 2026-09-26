@@ -210,7 +210,11 @@ function initGhostCursor(): void {
    Each one samples the frame into N-px blocks: a tiled dot grid masks
    the source, then a dilate grows every kept dot back into a full
    block — the ordered-mosaic of the CapCut/Jimeng pixel wipe. */
-const PX_SIZES = [4, 8, 16, 32];
+/* 4, 8, 16 and 32 are the rungs the SPA scene switches climb; 6 and 12
+   and 22 fill in the navigation curtain's ladder, which stays fine —
+   past ~22px the sampling drops so much of the page that it stops
+   reading as a mosaic of it. */
+const PX_SIZES = [4, 6, 8, 12, 16, 22, 32];
 
 function injectPixelFilters(): void {
   if (document.getElementById("px-filters")) return;
@@ -300,35 +304,83 @@ function patchHistoryTransitions(): void {
   );
 }
 
-/* ---------- cross-document pixel curtain ----------
-   The ignition curtain. Cross-document view transitions have a hard
-   flaw: the new document's load time is unbounded, and once the old
-   page's out-animation ends the screen shows whatever the new
+/* ---------- cross-document navigation curtain ----------
+   The pixel ignition curtain. Cross-document view transitions have a
+   hard flaw: the new document's load time is unbounded, and once the
+   old page's out-animation ends the screen shows whatever the new
    document has painted — often nothing (white). So inter-entry jumps
-   use a deterministic curtain instead:
+   cover the screen and navigate while covered.
 
-     click → a dense field of tiny blocks materialises out of the
-     click point as grey static (无色) → a second wave ignites them
-     into colour → everything settles onto the page's own field
-     colour → navigate while fully covered → the new page's first
-     frame is that same wall (inline head cover, html.px-boot) → the
-     wall discharges: blocks flare colour, drain to grey, and
-     dissolve away.
+   Two engines, one sequence. Where the browser can hand us a real
+   snapshot of the page (same-document view transitions), the curtain
+   is built out of THE PAGE'S OWN PIXELS — nothing is generated:
 
-   No white is ever possible: something opaque covers the screen from
-   the moment of the click until the new page is actually mounted.
-   SPA scene switches keep the true snapshot pixelation (same-document
-   view transitions, below). */
+     click → the page's own pixels break into blocks and drain to grey
+     (无色), spreading from the click → colour floods back into those
+     same pixels (有色) → the blocks coarsen → navigate behind a flat
+     wall → the new page's own pixels reassemble from the same point,
+     grey first, then colour, then sharp.
+
+   Both halves grow from the point that was clicked: the origin
+   travels with the navigation in sessionStorage, so the wave that
+   closes the old page and the wave that opens the new one share one
+   centre instead of the new page falling back to the middle.
+
+   Engines without startViewTransition get the canvas mosaic instead —
+   same script, same origin, blocks synthesised rather than sampled. */
 const PXNAV_KEY = "px-nav";
+const PX_ORIGIN_KEY = "px-origin";
 const PX_CELL = 10; /* CSS px per block — dense on purpose */
 const PX_MAX_CELLS = 26000; /* per-frame budget guard */
-/* Long enough to read as two beats — the grey field forms, holds, then
-   the colour wave chases it outward. A single beat would just look
-   like noise. */
-const PX_COVER_MS = 520;
-const PX_REVEAL_MS = 500;
+const PX_COVER_MS = 560; /* the two beats plus the landing */
+const PX_REVEAL_MS = 560;
 const PX_MOUNT_CAP = 1200; /* give up waiting for React and reveal */
 const PX_FAILSAFE_MS = 4000; /* never trap the reader behind a wall */
+
+/* ---------- the origin travels with the navigation ----------
+   Stored as fractions of the viewport, so a navigation that lands on
+   a window of a slightly different size still opens on the right
+   spot. Cleared once the arriving page has used it. */
+function pxSaveOrigin(x: number, y: number): void {
+  try {
+    const w = Math.max(1, window.innerWidth);
+    const h = Math.max(1, window.innerHeight);
+    sessionStorage.setItem(
+      PX_ORIGIN_KEY,
+      `${(x / w).toFixed(4)} ${(y / h).toFixed(4)}`,
+    );
+  } catch {
+    /* private mode: the new page just opens from the centre */
+  }
+}
+
+function pxLoadOrigin(): { x: number; y: number } {
+  const fallback = {
+    x: Math.max(1, window.innerWidth) / 2,
+    y: Math.max(1, window.innerHeight) / 2,
+  };
+  try {
+    const raw = sessionStorage.getItem(PX_ORIGIN_KEY);
+    if (!raw) return fallback;
+    const [sx, sy] = raw.split(" ");
+    const fx = Number.parseFloat(sx);
+    const fy = Number.parseFloat(sy);
+    if (!Number.isFinite(fx) || !Number.isFinite(fy)) return fallback;
+    return {
+      x: fx * Math.max(1, window.innerWidth),
+      y: fy * Math.max(1, window.innerHeight),
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+/** Hand the origin to CSS — the curtain's clip circle reads it. */
+function pxSetOriginCss(origin: { x: number; y: number }): void {
+  const root = document.documentElement;
+  root.style.setProperty("--px-x", `${origin.x}px`);
+  root.style.setProperty("--px-y", `${origin.y}px`);
+}
 
 /** True once a covered navigation is underway — a second click must
  * not start a second curtain. */
@@ -612,7 +664,33 @@ function animate(
   };
 }
 
-function pxNavGo(href: string, origin: { x: number; y: number }): void {
+/* ---------- the flat wall ----------
+   The opaque thing that crosses the navigation gap. It is a real
+   element, not a pseudo-element, so it can be part of a view
+   transition snapshot. */
+function pxWall(show: boolean): void {
+  const existing = document.getElementById("px-wall");
+  if (!show) {
+    existing?.remove();
+    return;
+  }
+  if (existing) return;
+  const { field } = schemeFor();
+  const el = document.createElement("div");
+  el.id = "px-wall";
+  el.setAttribute("aria-hidden", "true");
+  /* Inline, not a class: this must be opaque on the very first frame
+     it exists, including in dev where the stylesheet may still be
+     on its way. */
+  el.style.cssText =
+    `position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:3000;` +
+    `pointer-events:none;background:rgb(${field[0]},${field[1]},${field[2]})`;
+  document.documentElement.appendChild(el);
+}
+
+/* ---------- the canvas engine (no startViewTransition) ---------- */
+
+function pxCanvasGo(href: string, origin: { x: number; y: number }): void {
   if (pxNavigating) return;
   if (document.documentElement.classList.contains("px-boot")) return;
   pxNavigating = true;
@@ -622,6 +700,7 @@ function pxNavGo(href: string, origin: { x: number; y: number }): void {
     /* private mode: still run the curtain; the boot cover just won't
        be pre-applied on the next page */
   }
+  pxSaveOrigin(origin.x, origin.y);
   /* A wall is already up — an earlier navigation was refused and the
      reader clicked again. Never tear that wall down to build another
      one (the page would show through for a frame); just go. */
@@ -654,19 +733,155 @@ function pxNavGo(href: string, origin: { x: number; y: number }): void {
   }, PX_COVER_MS + 2200);
 }
 
-/** Drop every trace of a curtain: the CSS wall and the canvas. */
+/** Drop every trace of a curtain: the CSS wall, the canvas, the classes. */
 function pxClear(): void {
-  document.documentElement.classList.remove("px-boot");
+  const root = document.documentElement;
+  root.classList.remove("px-boot", "px-out", "px-in");
   document.getElementById("px-curtain")?.remove();
+  pxWall(false);
 }
 
-function pxNavReveal(): void {
-  const root = document.documentElement;
-  try {
-    sessionStorage.removeItem(PXNAV_KEY);
-  } catch {
-    /* nothing to clear */
+/* ---------- the snapshot engine (real page pixels) ----------
+   A same-document view transition hands us two live snapshots of the
+   real page. The top one carries the pixelate filter and is clipped
+   to a circle that grows from the click, so the mosaic spreads over
+   the untouched page underneath. Nothing is drawn from scratch: every
+   block is a sample of the page the reader was just looking at. */
+function pxVtGo(href: string, origin: { x: number; y: number }): void {
+  const doc = document as VTDocument;
+  const start = doc.startViewTransition;
+  if (typeof start !== "function" || document.hidden) {
+    pxCanvasGo(href, origin);
+    return;
   }
+  if (pxNavigating) return;
+  if (document.documentElement.classList.contains("px-boot")) return;
+  pxNavigating = true;
+  try {
+    sessionStorage.setItem(PXNAV_KEY, "1");
+  } catch {
+    /* private mode: the boot cover just won't be pre-applied */
+  }
+  pxSaveOrigin(origin.x, origin.y);
+  pxSetOriginCss(origin);
+  const root = document.documentElement;
+  /* JS owns the curtain's length so the CSS animation and the release
+     timer can never drift apart. */
+  root.style.setProperty("--px-dur", `${PX_COVER_MS}ms`);
+  root.classList.add("px-out");
+
+  let gone = false;
+  const leave = () => {
+    if (gone) return;
+    gone = true;
+    /* The wall goes up only now, and synchronously: while the
+       transition runs the DOM is not painted at all, so this costs
+       nothing; from the frame the snapshots come down it is what
+       stands between the reader and a re-run of the old page. */
+    pxWall(true);
+    location.href = href;
+  };
+  /* A wall is already up: an earlier navigation was refused and the
+     reader clicked again. Keep it and go, rather than rebuilding it. */
+  if (document.getElementById("px-wall")) {
+    leave();
+    pxNavigating = false;
+    return;
+  }
+  /* If the browser refuses the navigation outright the page is still
+     here behind the wall — hand the flag back so links work again.
+     The wall itself stays: Chromium keeps the old document on screen
+     until the new one commits, and dropping it would flash the page
+     back mid-navigation. */
+  window.setTimeout(() => {
+    pxNavigating = false;
+  }, PX_COVER_MS + 2400);
+
+  /* The update callback must return straight away. A promise held open
+     here does NOT freeze the snapshots — the pseudo-elements are only
+     created once the callback settles, so a held transition paints
+     nothing at all and the screen goes black for its whole duration. */
+  let t: { finished: Promise<unknown> };
+  try {
+    t = start.call(doc, () => undefined) as typeof t;
+  } catch {
+    leave();
+    return;
+  }
+  /* finished covers the case where the transition is skipped outright
+     (another one running, document not visible) — there is no curtain
+     to wait for then, and leaving at once is right. It is guarded by a
+     floor, though, because a transition that settles early for any
+     other reason must not cut the curtain off halfway. The timer is
+     the ordinary cue: in Chromium a played-out root transition does
+     not reliably report itself finished. */
+  const began = performance.now();
+  Promise.resolve(t.finished)
+    .catch(() => undefined)
+    .then(() => {
+      const left = PX_COVER_MS * 0.8 - (performance.now() - began);
+      window.setTimeout(leave, Math.max(0, left));
+    });
+  window.setTimeout(leave, PX_COVER_MS + 120);
+}
+
+/* ---------- arrival ---------- */
+
+/** Cover, then reveal. Returns false when this engine can't run and
+ * the caller should fall back to the canvas. */
+function pxVtReveal(): boolean {
+  const doc = document as VTDocument;
+  const start = doc.startViewTransition;
+  if (typeof start !== "function" || document.hidden) return false;
+
+  const root = document.documentElement;
+  /* The origin of the wave that closed the last page — the new one
+     opens from the same spot. */
+  pxSetOriginCss(pxLoadOrigin());
+  root.style.setProperty("--px-dur", `${PX_REVEAL_MS}ms`);
+  root.classList.add("px-in");
+  pxWall(true);
+  root.classList.remove("px-boot");
+  root.classList.add("px-arrived");
+
+  const failsafe = window.setTimeout(pxClear, PX_FAILSAFE_MS);
+  const began = performance.now();
+  const mounted = () =>
+    !!document.querySelector("#root > *, #app > *") ||
+    performance.now() - began > PX_MOUNT_CAP;
+
+  const wait = () => {
+    if (!mounted()) {
+      requestAnimationFrame(wait);
+      return;
+    }
+    let t: { finished: Promise<unknown> };
+    try {
+      /* The DOM change is what makes the two snapshots differ: before
+         it, the page plus the wall (the flat old frame); after it, the
+         bare page (the new frame the curtain assembles). */
+      t = start.call(doc, () => {
+        pxWall(false);
+        root.classList.remove("px-boot");
+      }) as typeof t;
+    } catch {
+      window.clearTimeout(failsafe);
+      pxClear();
+      return;
+    }
+    Promise.resolve(t.finished)
+      .catch(() => undefined)
+      .then(() => {
+        window.clearTimeout(failsafe);
+        pxClear();
+      });
+  };
+  wait();
+  return true;
+}
+
+function pxCanvasReveal(): void {
+  const root = document.documentElement;
   /* A background tab gets no animation and no wall — the reader isn't
      looking, and a rAF-driven reveal would never run anyway. */
   if (document.hidden) {
@@ -674,7 +889,7 @@ function pxNavReveal(): void {
     return;
   }
 
-  const curtain = createCurtain();
+  const curtain = createCurtain(pxLoadOrigin());
   if (!curtain) {
     pxClear();
     return;
@@ -735,6 +950,26 @@ function pxNavReveal(): void {
     );
   };
   wait();
+}
+
+/** Leave the page behind a curtain. Picks the engine. */
+function pxNavGo(href: string, origin: { x: number; y: number }): void {
+  pxVtGo(href, origin);
+}
+
+/** Arriving under a curtain: open it. Picks the engine. */
+function pxNavReveal(): void {
+  try {
+    sessionStorage.removeItem(PXNAV_KEY);
+  } catch {
+    /* nothing to clear */
+  }
+  if (!pxVtReveal()) pxCanvasReveal();
+  try {
+    sessionStorage.removeItem(PX_ORIGIN_KEY);
+  } catch {
+    /* nothing to clear */
+  }
 }
 
 /* ---------- hover prefetch (engines without speculation rules) ----------
