@@ -1,5 +1,9 @@
 /* /about layout. Shares tokens.css with the hub; nothing here is a
-   general-purpose primitive, so it stays in this file. */
+   general-purpose primitive, so it stays in this file.
+
+   Same sheet as the hub, one column instead of a margin: every section is
+   a ruled zone opened by its label and a line that stops short of the
+   measure, never a panel laid on top of the page. */
 @import "../shared/tokens.css";
 
 .about {
@@ -9,14 +13,16 @@
     calc(var(--header-clearance) + 20px) clamp(18px, 4vw, 40px) 64px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: clamp(34px, 5vw, 52px);
 }
 
+/* ---------- hero ---------- */
 .about__hero {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 10px;
+  padding-bottom: clamp(22px, 3vw, 30px);
+  border-bottom: 2px solid var(--rule-heavy);
 }
 .about__title {
   font-size: var(--text-3xl);
@@ -24,23 +30,50 @@
 }
 .about__subtitle {
   margin: 0;
+  font-family: var(--font-mono);
   font-size: var(--text-sm);
-  color: var(--muted);
+  color: var(--faint);
 }
 .about__lede {
   margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
   font-size: var(--text-lg);
+  line-height: 1.6;
   color: var(--body);
+  max-width: 44ch;
 }
 
+/* ---------- the ruled section ----------
+   `.glass` still hands `.card` a hairline box; on a sheet the sides of a
+   section are not a boundary, so they come back off and the line moves
+   under the label where it does the work of opening a plate. */
 .card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: clamp(20px, 2.6vw, 30px);
+  gap: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 .card__title {
   margin: 0;
+  padding-bottom: 11px;
+  position: relative;
+}
+.card__title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    var(--rule-heavy) 0,
+    var(--rule-heavy) calc(100% - 88px),
+    transparent calc(100% - 88px)
+  );
 }
 
 .mono {
@@ -57,30 +90,48 @@
   text-underline-offset: 3px;
 }
 
-/* ---------- at a glance ---------- */
+/* ---------- at a glance ----------
+   A title block, not four cards: cells that share rules instead of each
+   bringing its own box. */
 .glance {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px 24px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0;
   margin: 0;
+  border-top: 1px solid var(--rule);
+}
+.glance > div {
+  padding: 12px 20px 12px 0;
+  border-right: 1px solid var(--rule-faint);
+  min-width: 0;
+}
+.glance > div:first-child {
+  padding-left: 0;
+}
+.glance > div:last-child {
+  border-right: 0;
+  padding-right: 0;
 }
 .glance dt {
-  font-size: var(--text-xs);
+  font-size: 10px;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--faint);
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 .glance dd {
   margin: 0;
   font-size: var(--text-sm);
   color: var(--body);
+  line-height: 1.5;
 }
 
 .about__prose {
   margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
   font-size: var(--text-lg);
-  line-height: var(--leading-body);
+  line-height: 1.72;
   color: var(--body);
   max-width: var(--measure);
   text-wrap: pretty;
@@ -104,7 +155,7 @@
   margin: 0;
 }
 .edu__meta dt {
-  font-size: var(--text-xs);
+  font-size: 10px;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--faint);
@@ -134,55 +185,82 @@
   color: var(--muted);
 }
 
+/* Two results, so they are set as two lines of one list rather than two
+   boxes side by side — the tier is the thing being read. */
 .results {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   list-style: none;
   margin: 6px 0 0;
   padding: 0;
+  border-top: 1px solid var(--rule);
 }
 .result {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 14px 16px;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  padding: 12px 0;
+  /* `glass` hands every element a four-sided hairline; a row in this list
+     is ruled underneath and nothing else. */
+  border: 0;
+  border-bottom: 1px solid var(--rule-faint);
+  background: transparent;
+  box-shadow: none;
 }
 .result__tier {
+  font-family: var(--font-display);
+  font-weight: 500;
   font-size: var(--text-lg);
+  color: var(--ink);
 }
 .result__scope {
   font-size: var(--text-sm);
   color: var(--muted);
 }
 
-/* ---------- working with me ---------- */
+/* ---------- working with me ----------
+   Deliberately unequal: the list runs as a single ruled column so each
+   item's note can be as long as it needs without a card deciding for it. */
 .items {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 18px 24px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   list-style: none;
   margin: 4px 0 0;
   padding: 0;
+  border-top: 1px solid var(--rule);
+}
+.items > li {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 4px 24px;
+  align-items: baseline;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule-faint);
 }
 .items__title {
-  margin: 0 0 3px;
+  margin: 0;
+  font-family: var(--font-display);
   font-size: var(--text-base);
   font-weight: 600;
   color: var(--ink);
+  line-height: 1.4;
 }
 .items__note {
   margin: 0;
   font-size: var(--text-sm);
   color: var(--muted);
-  line-height: 1.6;
+  line-height: 1.65;
   text-wrap: pretty;
 }
 
 .work__contact {
   margin-top: 6px;
   padding-top: 16px;
-  border-top: 1px solid var(--border-soft);
+  border-top: 1px solid var(--rule);
 }
 .work__wechat {
   display: flex;
@@ -191,56 +269,65 @@
   gap: 10px;
 }
 .work__wechat .kicker {
-  font-size: 10.5px;
+  font-size: 10px;
 }
 .work__note {
   font-size: var(--text-sm);
   color: var(--faint);
 }
 
-/* ---------- elsewhere ---------- */
+/* ---------- elsewhere ----------
+   A ruled index of exits. The marker is a bar of spot ink on the left of
+   each row, which is the plate's own gesture, rather than a bullet that
+   belongs to no system. */
 .elsewhere {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 4px 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 clamp(20px, 4vw, 44px);
   list-style: none;
   margin: 0;
   padding: 0;
+  border-top: 1px solid var(--rule);
+}
+.elsewhere > li {
+  border-bottom: 1px solid var(--rule-faint);
 }
 .elsewhere a {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  margin-inline: -12px;
-  border-radius: var(--r-md);
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
   font-size: var(--text-sm);
   color: var(--body);
-  transition: background-color var(--dur-2) var(--ease-out);
-}
-@supports (corner-shape: squircle) {
-  .elsewhere a {
-    corner-shape: squircle;
-  }
-}
-.elsewhere a:hover {
-  background: var(--accent-soft);
   text-decoration: none;
+  transition: color var(--dur-2) var(--ease-out);
 }
 .elsewhere a::before {
   content: "";
-  width: 5px;
-  height: 5px;
-  border-radius: var(--r-full);
-  background: var(--accent);
+  width: 14px;
+  height: 1px;
+  align-self: center;
   flex: none;
+  background: var(--accent);
+  transition: width var(--dur-2) var(--ease-out);
+}
+.elsewhere a:hover {
+  color: var(--accent-ink);
+}
+.elsewhere a:hover::before {
+  width: 26px;
 }
 
 .about__back {
-  margin: 10px 0 0;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-soft);
+  margin: 4px 0 0;
   font-size: var(--text-sm);
+}
+.about__back a {
+  color: var(--faint);
+  text-decoration: none;
+}
+.about__back a:hover {
+  color: var(--ink);
 }
 
 /* ---------- footer ---------- */
@@ -261,6 +348,21 @@
     grid-template-columns: minmax(0, 1fr);
     align-items: start;
   }
+  .edu__meta {
+    gap: 22px;
+  }
+  .items > li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .elsewhere {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .glance > div {
+    border-right: 0;
+    padding-inline: 0;
+    border-bottom: 1px solid var(--rule-faint);
+  }
 }
 
 @media print {
@@ -269,9 +371,6 @@
     max-width: none;
   }
   .card {
-    background: #fff;
-    border-color: #ddd;
-    backdrop-filter: none;
     break-inside: avoid;
   }
   .about__back,

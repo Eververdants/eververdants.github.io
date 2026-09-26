@@ -14,6 +14,9 @@ site-topbar {
   font-family: var(--font-sans);
 }
 
+/* The bar is the plate's title block: one strip of the sheet held in place
+ * while you scroll, so it keeps a hairline border and a square corner and
+ * earns its blur only because content genuinely passes underneath it. */
 .stb-bar {
   display: flex;
   align-items: center;
@@ -21,22 +24,12 @@ site-topbar {
   gap: 16px;
   height: 62px;
   padding-inline: clamp(14px, 2vw, 22px);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-flat);
   background: var(--glass-fill);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   box-shadow: var(--glass-shadow);
-}
-
-@supports (corner-shape: squircle) {
-  .stb-bar,
-  .stb-menu,
-  .stb-icon,
-  .stb-search,
-  .stb-toggle {
-    corner-shape: squircle;
-  }
 }
 
 .stb-bar a {
@@ -53,15 +46,23 @@ site-topbar {
 .stb-brand img {
   width: 32px;
   height: 32px;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-flat);
   object-fit: cover;
   border: 1px solid var(--glass-border);
+  /* The avatar is a saturated mint glyph; dropped to a warm duotone it
+     reads as a plate stamp instead of a sticker on top of the sheet. */
+  filter: grayscale(1) sepia(0.5) hue-rotate(-13deg) contrast(1.08)
+    saturate(0.72) brightness(0.98);
 }
+
+/* The wordmark is set as a masthead would be: the display serif at its
+ * natural optical size, letterspaced rather than bold. Weight is carried
+ * by the typeface and the tracking, not by a heavier number. */
 .stb-wordmark {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 17px;
-  letter-spacing: 0.1em;
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: 0.2em;
   color: var(--ink);
   white-space: nowrap;
 }
@@ -83,17 +84,19 @@ site-topbar {
 .stb-link:hover {
   color: var(--ink);
 }
+/* Current page is marked the way a plate marks its own section: a short
+ * rule in the spot ink, drawn from the centre out. A dot would be an
+ * icon; a rule is a piece of the layout's vocabulary. */
 .stb-link::after {
   content: "";
   position: absolute;
-  left: 50%;
+  left: 0;
+  right: 0;
   bottom: -2px;
-  width: 5px;
-  height: 5px;
-  border-radius: var(--r-full);
+  height: 2px;
   background: var(--accent);
   opacity: 0;
-  transform: translate(-50%, 4px) scale(0.6);
+  transform: scaleX(0.25);
   transition:
     opacity var(--dur-2) var(--ease-out),
     transform var(--dur-2) var(--ease-out);
@@ -103,7 +106,7 @@ site-topbar {
 }
 .stb-link[aria-current="page"]::after {
   opacity: 1;
-  transform: translate(-50%, 0) scale(1);
+  transform: scaleX(1);
 }
 
 .stb-tools {
@@ -118,13 +121,14 @@ site-topbar {
   background: var(--border);
 }
 
+/* Language switch: two ruled cells sharing one divider, not a pill sliding
+ * between two halves. The pressed state is ink, the idle state is faint. */
 .stb-lang {
   display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 3px;
-  border-radius: var(--r-full);
-  border: 1px solid var(--border-soft);
+  align-items: stretch;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-flat);
+  overflow: hidden;
 }
 .stb-lang button {
   appearance: none;
@@ -135,19 +139,24 @@ site-topbar {
   font-size: 12.5px;
   font-weight: 600;
   line-height: 1;
-  padding: 6px 9px;
-  border-radius: var(--r-full);
-  color: var(--muted);
+  padding: 7px 10px;
+  color: var(--faint);
   transition:
     background-color var(--dur-2) var(--ease-out),
     color var(--dur-2) var(--ease-out);
 }
+.stb-lang button + button {
+  border-left: 1px solid var(--rule);
+}
 .stb-lang button[aria-pressed="true"] {
-  background: var(--accent-soft);
-  color: var(--accent-ink);
+  background: var(--ink);
+  color: var(--bg);
 }
 .stb-lang button:hover {
   color: var(--ink);
+}
+.stb-lang button[aria-pressed="true"]:hover {
+  color: var(--bg);
 }
 
 .stb-icon {
@@ -160,16 +169,16 @@ site-topbar {
   border: 1px solid transparent;
   background: transparent;
   color: var(--muted);
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   transition:
     color var(--dur-2) var(--ease-out),
     background-color var(--dur-2) var(--ease-out),
     border-color var(--dur-2) var(--ease-out);
 }
 .stb-icon:hover {
-  color: var(--ink);
+  color: var(--accent-ink);
   background: var(--accent-soft);
-  border-color: var(--border-soft);
+  border-color: var(--accent-line);
 }
 .stb-icon svg {
   width: 18px;
@@ -188,7 +197,7 @@ site-topbar {
   border: 1px solid transparent;
   background: transparent;
   color: var(--muted);
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   font: inherit;
   font-size: 13px;
   transition:
@@ -197,9 +206,9 @@ site-topbar {
     border-color var(--dur-2) var(--ease-out);
 }
 .stb-search:hover {
-  color: var(--ink);
+  color: var(--accent-ink);
   background: var(--accent-soft);
-  border-color: var(--border-soft);
+  border-color: var(--accent-line);
 }
 .stb-search svg {
   width: 16px;
@@ -233,7 +242,7 @@ site-topbar {
 @media (max-width: 720px) {
   .stb-bar {
     height: 56px;
-    border-radius: var(--r-lg);
+    border-radius: var(--r-flat);
   }
   .stb-nav,
   .stb-tools {
@@ -244,8 +253,8 @@ site-topbar {
     place-items: center;
     width: 38px;
     height: 38px;
-    border: 1px solid var(--border-soft);
-    border-radius: var(--r-md);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-sm);
     background: transparent;
     color: var(--ink);
     cursor: pointer;
@@ -260,7 +269,7 @@ site-topbar {
     right: 0;
     top: calc(100% + 8px);
     padding: 8px;
-    border-radius: var(--r-lg);
+    border-radius: var(--r-flat);
     background: var(--glass-fill-strong);
     border: 1px solid var(--glass-border);
     backdrop-filter: blur(var(--glass-blur));
@@ -275,7 +284,7 @@ site-topbar {
     align-items: center;
     height: 44px;
     padding-inline: 12px;
-    border-radius: var(--r-md);
+    border-radius: var(--r-sm);
     font-size: 15px;
     color: var(--body);
     text-decoration: none;
@@ -287,6 +296,7 @@ site-topbar {
   .stb-menu a[aria-current="page"] {
     color: var(--accent-ink);
     font-weight: 600;
+    box-shadow: inset 2px 0 0 var(--accent);
   }
   .stb-menu-foot {
     display: flex;

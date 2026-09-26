@@ -2,19 +2,37 @@
    Eververdants — shared design system
    ------------------------------------------------------------
    Single source of truth for every entry (hub, /about, /blog,
-   /projects, /photos): palette, materials, corner geometry, the
-   concentric-ring motif, type scale, elevation and motion.
+   /projects, /photos): palette, surfaces, rules, the drafting
+   motif, type scale, elevation and motion.
 
    Plain custom properties + component classes only — no Tailwind
    directives — so the vanilla-TS sub-site can consume it exactly
    like the React ones. Import it FIRST in each entry stylesheet.
+
+   ART DIRECTION — the drawing plate
+   ---------------------------------
+   The page is not a stack of objects sitting on top of a background;
+   it is one sheet, and everything on it is drawn *into* the sheet.
+   Hierarchy is carried by ink weight, rules and margin — the way a
+   printer or a draughtsman carries it — never by drop shadows,
+   rounded panels or frosted glass. Two inks only: a warm black for
+   everything that speaks, and red-oxide for everything that marks a
+   place (index numerals, the availability flag, a live rule).
+   Consequences that are worth stating, because they undo earlier
+   decisions: panels have no fill and no radius, the graph paper is
+   meant to be *seen* rather than glimpsed under a card, and the
+   concentric rings survive only as construction lines that a
+   compass would have drawn before the plate was inked.
    ============================================================ */
 @import "./topbar.css";
 @import "./palette.css";
 
 /* ---------- palette ----------
-   One warm neutral family (never mixing warm and cool greys) with a
-   single desaturated teal accent. Dark is a warm ink, never #000. */
+   Cream paper, warm black ink, one red-oxide spot. Every neutral in
+   both themes is the same warm hue family — no cool grey appears
+   anywhere, which is what stops a cream page reading as a template.
+   Contrast floors are checked, not assumed: --faint is the lightest
+   colour allowed to carry text, and it clears 4.5:1 on paper. */
 :root {
   color-scheme: light;
 
@@ -26,57 +44,85 @@
   --ink: #1a1917;
   --body: #37352f;
   --muted: #6a665c;
-  --faint: #8d887c;
+  --faint: #6f6a5e;
+  --fainter: #726d60;
+  /* the faintest ink there is — decoration and placeholders only,
+     never a run of text a person has to read */
+  --faintest: #8f897b;
 
-  --border: #ddd8cc;
-  --border-soft: #e6e2d8;
-  --border-strong: #c8c3b6;
+  --border: #d9d4c6;
+  --border-soft: #e4e0d5;
+  --border-strong: #b9b3a3;
 
-  --accent: #0e7a86;
-  --accent-ink: #0a5f68;
-  --accent-soft: color-mix(in oklab, var(--accent) 9%, transparent);
-  --accent-line: color-mix(in oklab, var(--accent) 34%, transparent);
+  /* red-oxide: the printer's second ink. 5.6:1 on paper, so it is
+     allowed to carry a link at body size. */
+  --accent: #a8402a;
+  --accent-ink: #8b3120;
+  --accent-hover: #8b3120;
+  --accent-soft: color-mix(in oklab, var(--accent) 8%, transparent);
+  --accent-line: color-mix(in oklab, var(--accent) 38%, transparent);
 
-  /* quiet translucent surfaces ----------------------------------
-     Glass here is a material cue, not a light show: a small blur, a
-     fill that reads almost solid, one hairline border, one soft
-     shadow. No specular edge, no saturation boost, no sheen sweep. */
-  --glass-fill: color-mix(in oklab, var(--surface) 84%, transparent);
-  --glass-fill-strong: color-mix(in oklab, var(--surface) 93%, transparent);
-  --glass-blur: 10px;
-  --glass-border: color-mix(in oklab, var(--ink) 10%, transparent);
-  --glass-shadow: 0 1px 2px color-mix(in oklab, var(--ink) 5%, transparent);
-  --glass-shadow-lift:
-    0 2px 6px color-mix(in oklab, var(--ink) 8%, transparent);
+  /* rules — the actual hierarchy mechanism. `--rule` is the working
+     hairline; `--rule-heavy` closes a plate the way a press rule does. */
+  --rule: color-mix(in oklab, var(--ink) 17%, transparent);
+  --rule-faint: color-mix(in oklab, var(--ink) 9%, transparent);
+  --rule-heavy: var(--ink);
+  --rule-mark: color-mix(in oklab, var(--ink) 34%, transparent);
 
-  /* the site surface: graph paper ---------------------------------
-     One square grid behind every page — the single thing all five
-     entries now share visually. */
-  --grid-line: color-mix(in oklab, var(--ink) 5.5%, transparent);
+  /* translucent surfaces survive only where chrome genuinely floats
+     above moving content — the top bar and the command palette. Cards
+     are not floating, so they are not translucent. */
+  --glass-fill: color-mix(in oklab, var(--bg) 88%, transparent);
+  --glass-fill-strong: color-mix(in oklab, var(--bg) 95%, transparent);
+  --glass-blur: 12px;
+  --glass-border: var(--rule);
+  --glass-shadow: 0 1px 0 color-mix(in oklab, var(--ink) 4%, transparent);
+  --glass-shadow-lift: 0 2px 4px color-mix(in oklab, var(--ink) 7%, transparent);
+
+  /* the site surface: graph paper, minor cell plus a major line every
+     fifth cell, exactly as on a pad. Panels no longer paint over it. */
+  --grid-line: color-mix(in oklab, var(--ink) 5%, transparent);
+  --grid-major: color-mix(in oklab, var(--ink) 9.5%, transparent);
   --grid-size: 28px;
 
-  /* concentric rings --------------------------------------------
-    Kept as a small marker (.ring-mark) rather than a backdrop; the
-    large decorative ring fields are inert. */
+  /* layout module — spacing snaps to the paper, so a panel's edge
+     lands on a printed line instead of drifting between two. */
+  --cell: var(--grid-size);
+
+  /* construction rings — retired as scenery, kept as the compass
+     marks that .arc and .ring-mark draw. */
   --ring-color: color-mix(in oklab, var(--ink) 13%, transparent);
   --ring-gap: 26px;
   --ring-weight: 1px;
 
   /* corner geometry ---------------------------------------------
-     Radii vary by nesting depth — softer containers, tighter inner
-     controls. `corner-shape: squircle` (superellipse, continuous
-     curvature) is layered on top where the browser supports it. */
-  --r-xs: 12px;
-  --r-sm: 18px;
-  --r-md: 26px;
-  --r-lg: 36px;
-  --r-xl: 48px;
-  --r-2xl: 64px;
+     A printed sheet has square corners, so content is square now:
+     the plate radii collapsed to 2px and `corner-shape: squircle`
+     no longer has anything to round. Radius survives only on the
+     small controls you click, where it tells them apart from rules. */
+  --r-flat: 2px;
+  --r-xs: 3px;
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-xl: 2px;
+  --r-2xl: 2px;
   --r-full: 999px;
 
-  /* type --------------------------------------------------------- */
+  /* type ---------------------------------------------------------
+     Three voices, and they are not interchangeable:
+       --font-display  Fraunces, the plate's voice — names, titles,
+                       and the running text of an essay.
+       --font-sans     Inter, demoted to interface — nav, buttons,
+                       table cells, anything operational.
+       --font-mono     machine readouts: counts, ids, code.
+     Fraunces carries a live `opsz` axis in the self-hosted cut, so
+     the display sizes are pulled toward the high-contrast end that
+     only shows up above ~60px. */
   --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-display: "Fraunces", Georgia, "Songti SC", serif;
+  --font-display: "Fraunces", "Songti SC", "Noto Serif CJK SC",
+    "Source Han Serif SC", "SimSun", Georgia, serif;
+  --font-read: var(--font-display);
   --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas,
     monospace;
 
@@ -89,18 +135,26 @@
   --text-3xl: clamp(2.3rem, 1.5rem + 3.4vw, 4rem);
   --text-display: clamp(2.8rem, 1.6rem + 5.2vw, 5.6rem);
 
-  --leading-tight: 1.08;
-  --leading-snug: 1.3;
-  --leading-body: 1.75;
-  --leading-read: 1.85;
+  --leading-tight: 1.04;
+  --leading-snug: 1.28;
+  --leading-body: 1.72;
+  --leading-read: 1.8;
 
-  --tracking-tight: -0.035em;
-  --tracking-caps: 0.16em;
+  --tracking-tight: -0.028em;
+  --tracking-caps: 0.17em;
+  /* Fraunces' `opsz` axis runs the way a real cut does: low is the
+     sturdy text design, high is the narrow, high-contrast display
+     design. Browsers already map it to font-size, so it is only
+     overridden where a size should be drawn as something larger. */
+  --opsz-name: 144;
 
   /* measure: prose never runs wider than ~68 characters */
   --measure: 68ch;
-  --shell: 1140px;
+  --shell: 1180px;
   --shell-narrow: 760px;
+  /* the plate's binding margin: the left column is where index
+     numerals and standing data live, and it is deliberately wide */
+  --margin-note: 132px;
 
   /* elevation / stacking scale — no magic numbers in components */
   --z-below: -1;
@@ -133,27 +187,35 @@
   --ink: #ece9e0;
   --body: #c6c1b4;
   --muted: #9c968a;
-  --faint: #7a7468;
+  --faint: #8e887a;
+  --fainter: #8a8477;
+  --faintest: #6e685c;
 
-  --border: #302d27;
-  --border-soft: #29261f;
-  --border-strong: #3d392f;
+  --border: #38352d;
+  --border-soft: #2b2822;
+  --border-strong: #4a453b;
 
-  --accent: #46b7c2;
-  --accent-ink: #6ac9d2;
+  --accent: #e0785a;
+  --accent-ink: #eda087;
+  --accent-hover: #eda087;
   --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
-  --accent-line: color-mix(in oklab, var(--accent) 42%, transparent);
+  --accent-line: color-mix(in oklab, var(--accent) 44%, transparent);
 
-  --glass-fill: color-mix(in oklab, var(--surface) 86%, transparent);
-  --glass-fill-strong: color-mix(in oklab, var(--surface) 94%, transparent);
-  --glass-border: color-mix(in oklab, var(--ink) 13%, transparent);
-  --glass-shadow: 0 1px 2px color-mix(in oklab, #000000 34%, transparent);
-  --glass-shadow-lift:
-    0 2px 6px color-mix(in oklab, #000000 44%, transparent);
+  --rule: color-mix(in oklab, var(--ink) 20%, transparent);
+  --rule-faint: color-mix(in oklab, var(--ink) 11%, transparent);
+  --rule-heavy: var(--ink);
+  --rule-mark: color-mix(in oklab, var(--ink) 40%, transparent);
 
-  --grid-line: color-mix(in oklab, var(--ink) 5%, transparent);
+  --glass-fill: color-mix(in oklab, var(--bg) 90%, transparent);
+  --glass-fill-strong: color-mix(in oklab, var(--surface) 96%, transparent);
+  --glass-border: var(--rule);
+  --glass-shadow: 0 1px 0 color-mix(in oklab, #000000 30%, transparent);
+  --glass-shadow-lift: 0 2px 4px color-mix(in oklab, #000000 42%, transparent);
 
-  --ring-color: color-mix(in oklab, var(--ink) 11%, transparent);
+  --grid-line: color-mix(in oklab, var(--ink) 4.5%, transparent);
+  --grid-major: color-mix(in oklab, var(--ink) 8.5%, transparent);
+
+  --ring-color: color-mix(in oklab, var(--ink) 12%, transparent);
 }
 
 /* ---------- fonts (self-hosted; Google Fonts is unreachable on CN
@@ -181,17 +243,24 @@
 }
 
 /* ---------- base ---------- */
-/* The graph-paper surface lives on the root canvas rather than a
-   z-index:-1 pseudo-element: as a pseudo it escaped into the root stacking
-   context and some entries' own backgrounds painted straight over it, so the
-   grid appeared on one page and vanished on another. On `html` with a fixed
-   attachment it is one rule, always behind everything, and never scrolls. */
+/* The graph paper lives on the root canvas rather than a z-index:-1
+   pseudo-element: as a pseudo it escaped into the root stacking context
+   and some entries' own backgrounds painted straight over it. On `html`
+   with a fixed attachment it is one rule, always behind everything, and
+   it never scrolls — so the sheet feels like a surface you are reading,
+   not a pattern that slides past. */
 html {
   background-color: var(--bg);
   background-image:
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
     linear-gradient(var(--grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-  background-size: var(--grid-size) var(--grid-size);
+  background-size:
+    calc(var(--grid-size) * 5) calc(var(--grid-size) * 5),
+    calc(var(--grid-size) * 5) calc(var(--grid-size) * 5),
+    var(--grid-size) var(--grid-size),
+    var(--grid-size) var(--grid-size);
   background-attachment: fixed;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
@@ -199,7 +268,7 @@ html {
 
 body {
   margin: 0;
-  background-color: var(--bg);
+  background-color: transparent;
   color: var(--body);
   font-family: var(--font-sans);
   font-size: var(--text-base);
@@ -231,70 +300,81 @@ html.theme-anim * {
 }
 
 /* ---------- materials ----------
-   Two weights: a card and a heavier panel for overlays. Both are a
-   near-solid tinted surface with one hairline border and one small
-   shadow — translucency enough to register as glass over the grid,
-   nothing more. */
+   `.glass` used to mean "paint a white rounded panel here". Under the
+   plate direction a panel is not an object, so the class now paints
+   nothing at all and keeps only a hairline. Every call site across the
+   five entries picks this up without an edit — which is the same
+   one-rule-deep trick .ring-field and .rise already use.
+   Translucency is left exactly where it earns its place: the floating
+   chrome in topbar.css and palette.css, which sets these properties
+   itself and is untouched by this. */
 .glass,
 .glass-panel,
 .glass-bar {
   position: relative;
-  background: var(--glass-fill);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  box-shadow: var(--glass-shadow);
+  background: transparent;
+  border: 1px solid var(--rule);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
+/* The one exception: a block that genuinely sits above other content
+   (the contact plate) gets a sheet of heavier paper under it, so it
+   reads as laid on top rather than printed in place. */
 .glass-panel {
-  background: var(--glass-fill-strong);
+  background: color-mix(in oklab, var(--surface) 72%, transparent);
+  border-color: var(--rule);
 }
 
 .glass-bar {
   box-shadow: var(--glass-shadow);
 }
 
-/* Interactive glass: a border and shadow shift on hover, a small settle on
-   press. No lift — the cards stay where they are. */
+/* Interactive glass: the rule darkens and thickens to a drawn line,
+   and the plate slides a hair toward its own index numeral. No lift,
+   no shadow growth — nothing here pretends to leave the paper. */
 .glass-press {
   transition:
-    box-shadow var(--dur-2) var(--ease-out),
     border-color var(--dur-2) var(--ease-out),
     background-color var(--dur-2) var(--ease-out);
 }
 .glass-press:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--glass-shadow-lift);
+  border-color: var(--rule-mark);
+  background: color-mix(in oklab, var(--surface) 55%, transparent);
 }
 .glass-press:active {
-  transform: translateY(0) scale(0.995);
+  background: color-mix(in oklab, var(--surface) 78%, transparent);
 }
 
-/* Retired: the specular sweep and the large decorative ring fields. Both
-   stayed in the markup of every entry, so switching them off here rather
-   than editing thirty call sites keeps the quiet version one change deep. */
+/* Retired: the specular sweep and the large decorative ring fields.
+   Both stayed in the markup of every entry, so switching them off here
+   rather than editing thirty call sites keeps the quiet version one
+   change deep. */
 .glass-sheen::after {
   content: none;
 }
 
 /* ---------- corner geometry ----------
-   Continuous-curvature (superellipse) corners where supported; every
-   browser still gets a sane circular arc of the same radius otherwise. */
+     Content is square. The squircle layer is kept only for the small
+     controls, where a continuous curve still reads better than a hard
+     mitre — and it is harmless everywhere else. */
 @supports (corner-shape: squircle) {
-  .glass,
-  .glass-panel,
-  .glass-bar,
-  .sq,
+  .btn,
+  .chip,
   .sq-sm,
-  .sq-md,
-  .sq-lg,
-  .sq-xl {
+  .sq-md {
     corner-shape: squircle;
   }
 }
 
-.sq {
-  border-radius: var(--r-lg);
+.sq,
+.sq-sm,
+.sq-md,
+.sq-lg,
+.sq-xl,
+.sq-2xl {
+  border-radius: var(--r-flat);
 }
 .sq-sm {
   border-radius: var(--r-sm);
@@ -305,63 +385,128 @@ html.theme-anim * {
 .sq-lg {
   border-radius: var(--r-lg);
 }
-.sq-xl {
-  border-radius: var(--r-xl);
-}
-.sq-2xl {
-  border-radius: var(--r-2xl);
-}
 
-/* ---------- concentric rings ---------- */
-
-/* Retired. The full-bleed ring fields read as scenery on a wide viewport —
-   huge arcs sweeping behind the title — and the graph paper now carries the
-   background role. The element stays in the markup, drawing nothing, so no
-   entry has to be edited to turn it off. */
-.ring-field {
-  display: none;
+/* Referenced directly from utility classes in the blog markup. It was
+   never declared, so every `rounded-[var(--radius-card)]` resolved to
+   nothing at computed-value time — the cards only looked square by
+   accident. Declared now so the intent is explicit. */
+:root {
+  --radius-card: var(--r-flat);
 }
 
-/* A single ring pair — the small marker used beside headings and on
-   portal cards. Purely decorative, so hidden from assistive tech. */
+/* ---------- the plate and its rules ----------
+   A plate is a ruled zone of the sheet, not a card. It is opened by a
+   heavy rule at the head and closed by a hairline at the foot; the
+   sides stay open so the paper runs through it. */
+.rule {
+  height: 1px;
+  border: 0;
+  margin: 0;
+  background: var(--rule);
+}
+.rule--faint {
+  background: var(--rule-faint);
+}
+.rule--heavy {
+  height: 2px;
+  background: var(--rule-heavy);
+}
+
+/* A rule that fades out before the margin, the way a drawn line stops
+   when the hand lifts. Full-bleed borders are the default nobody
+   chose; a rule that stops short is a decision. */
+.rule--stops {
+  background: linear-gradient(
+    90deg,
+    var(--rule) 0,
+    var(--rule) calc(100% - 96px),
+    transparent
+  );
+}
+
+/* Crop marks. Four printer's marks at the corners of a plate, drawn
+   with two pseudo-elements — the small geometry a press uses to say
+   "trim here". Decorative, so kept off the accessibility tree. */
+.marks::before,
+.marks::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  opacity: 0.85;
+}
+.marks::before {
+  top: -1px;
+  left: -1px;
+  border-top: 1px solid var(--rule-mark);
+  border-left: 1px solid var(--rule-mark);
+}
+.marks::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 1px solid var(--rule-mark);
+  border-right: 1px solid var(--rule-mark);
+}
+
+/* Construction arc — the concentric-ring motif kept honest. A single
+   quarter arc, dashed the way a compass line is left on a drawing
+   before it is inked over, bleeding off one corner of the plate. */
+.arc {
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  border-radius: var(--r-full);
+  border: 1px dashed color-mix(in oklab, var(--ink) 13%, transparent);
+  pointer-events: none;
+  z-index: var(--z-base);
+}
+.arc::after {
+  content: "";
+  position: absolute;
+  inset: 46px;
+  border-radius: var(--r-full);
+  border: 1px solid color-mix(in oklab, var(--ink) 7%, transparent);
+}
+
+/* A single ring pair — the small marker beside headings. Now read as a
+   datum point rather than an icon: one hairline circle, one inked dot. */
 .ring-mark {
   position: relative;
   display: inline-block;
-  width: 22px;
-  height: 22px;
+  width: 13px;
+  height: 13px;
   flex: none;
   border-radius: var(--r-full);
-  border: 1px solid var(--accent-line);
-}
-.ring-mark::before {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border-radius: var(--r-full);
-  border: 1px solid var(--accent-line);
+  border: 1px solid var(--rule-mark);
 }
 .ring-mark::after {
   content: "";
   position: absolute;
-  inset: 9px;
+  inset: 4px;
   border-radius: var(--r-full);
   background: var(--accent);
 }
 
-/* Concentric divider — one long line that resolves into arcs. */
+/* Concentric divider — one long line that lifts off at both ends. */
 .ring-rule {
   height: 1px;
   border: 0;
   background: linear-gradient(
     90deg,
     transparent,
-    var(--border) 18%,
-    var(--border) 82%,
+    var(--rule) 14%,
+    var(--rule) 86%,
     transparent
   );
 }
 
 /* ---------- typography helpers ---------- */
+/* Optical size is left to the browser's own mapping from font-size, which
+   is what the axis is for: a 24px title gets the text cut and a 90px name
+   gets the display cut, without either needing to be told. `.display`
+   therefore sets no `font-variation-settings` at all, so a `font-weight`
+   declared at a call site keeps working. */
 .display {
   font-family: var(--font-display);
   font-weight: 500;
@@ -371,12 +516,29 @@ html.theme-anim * {
   text-wrap: balance;
 }
 
-.kicker {
-  font-size: var(--text-xs);
+/* The plate index numeral: the spot ink, set in the display face at a
+ * weight heavy enough to hold its hairlines at margin size. It hangs in
+ * the binding margin and numbers the plate the way a drawing does. */
+.index {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-lg);
+  line-height: 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+}
+
+/* Small caps label — the standing text of the plate. Uppercase, spaced,
+   and in the interface voice so it never competes with a title. */
+.kicker,
+.label {
+  font-family: var(--font-sans);
+  font-size: 10.5px;
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--faint);
 }
 
 .num {
@@ -443,57 +605,89 @@ html.theme-anim * {
 
 /* ---------- shared components ----------
    Small primitives that more than one entry needs. Anything specific to a
-   single page stays in that page's stylesheet. */
+   single page stays in that page's stylesheet.
+
+   A button here is a stamped label, not a raised pill: square corners, a
+   1px ink border, no fill until you touch it. */
 .btn {
   appearance: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 15px;
+  padding: 9px 14px;
   font: inherit;
+  font-family: var(--font-sans);
   font-size: var(--text-sm);
   font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--ink);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
   text-decoration: none;
   transition:
     background-color var(--dur-2) var(--ease-out),
     border-color var(--dur-2) var(--ease-out),
-    transform var(--dur-1) var(--ease-out);
+    color var(--dur-2) var(--ease-out);
 }
 .btn:hover {
   background: var(--accent-soft);
-  border-color: var(--accent-line);
+  border-color: var(--accent);
+  color: var(--accent-ink);
 }
 .btn:active {
-  transform: scale(0.985);
+  transform: translateY(1px);
 }
 .btn--ghost {
+  border-color: var(--rule);
+  color: var(--muted);
+}
+.btn--ghost:hover {
+  color: var(--ink);
+  border-color: var(--border-strong);
   background: transparent;
 }
 
+/* A link that is underlined by the plate's own rule rather than by a
+   browser default — the hairline sits on the baseline grid. */
+.link-rule {
+  color: var(--accent-ink);
+  text-decoration: none;
+  background-image: linear-gradient(var(--accent-line), var(--accent-line));
+  background-size: 100% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size var(--dur-2) var(--ease-out);
+}
+.link-rule:hover {
+  background-size: 100% 2px;
+}
+
+/* Tags. A flag, not a pill: square, hairline on two sides only, so a row
+   of them reads as a list of ruled entries rather than a cloud of chips. */
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 0 18px;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 .chip {
-  padding: 5px 10px;
+  padding: 4px 0;
+  font-family: var(--font-sans);
   font-size: var(--text-sm);
   color: var(--muted);
-  background: var(--surface-2);
-  border: 1px solid var(--border-soft);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--rule-faint);
 }
 
-/* Entrance animation — retired. Content appears where it is, already painted — a staggered
-   entrance on every page is exactly the ceremony this site is meant to
-   stop performing. The class names stay on the elements so removing the
-   motion is one rule rather than a sweep of edits. */
+/* Entrance animation — retired. Content appears where it is, already
+   painted — a staggered entrance on every page is exactly the ceremony
+   this site is meant to stop performing. The class names stay on the
+   elements so removing the motion is one rule rather than a sweep. */
 .rise,
 .rise-1,
 .rise-2,
@@ -503,24 +697,20 @@ html.theme-anim * {
   animation: none;
 }
 
-
 /* ---------- transparency preferences ----------
-   Glass is an affordance, not a requirement: users who ask for less
-   transparency (or on browsers without backdrop-filter) get a solid
-   sheet with the same corners and borders. */
+   Glass is an affordance, not a requirement: the two places that still
+   use it go opaque for users who ask for less transparency, and on
+   browsers without backdrop-filter. */
 @supports not (backdrop-filter: blur(1px)) {
-  .glass,
-  .glass-panel,
   .glass-bar {
-    background: var(--surface);
+    background: var(--bg);
   }
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .glass,
-  .glass-panel,
-  .glass-bar {
-    background: var(--surface);
+  .glass-bar,
+  .glass-panel {
+    background: var(--bg);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }

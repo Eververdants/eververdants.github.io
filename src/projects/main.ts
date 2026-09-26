@@ -12,7 +12,6 @@
 import "./style.css";
 import data from "./data/repos.json";
 import type { Dataset, Repo } from "./lib/types";
-import { langColor } from "./lib/langs";
 import { esc, fmtCount, lastActive, timeAgo } from "./lib/format";
 import { repoDesc, ui } from "./lib/i18n";
 import { getPrefs, initPrefs, pick, subscribePrefs } from "../shared/prefs";
@@ -113,7 +112,7 @@ function renderFeatured() {
                 <h3 class="feat__name">${esc(r.name)}<span class="arrow" aria-hidden="true">↗</span></h3>
                 <p class="feat__desc">${esc(repoDesc(l, r.description, r.blurbEn, r.blurbZh))}</p>
                 <div class="feat__meta">
-                  <span class="mono lang-chip"><span class="lang-dot" style="background:${langColor(r.language)}"></span>${esc(r.language)}</span>
+                  <span class="mono lang-chip">${esc(r.language)}</span>
                   <span class="mono num">★ ${fmtCount(r.stars)}</span>
                   <span class="mono num">↺ ${timeAgo(l, r.pushedAt)}</span>
                 </div>
@@ -277,7 +276,7 @@ function renderLedger() {
         }
       </div>
       <div class="row__meta">
-        <span class="mono lang-chip"><span class="lang-dot" style="background:${langColor(r.language)}"></span>${esc(r.language)}</span>
+        <span class="mono lang-chip">${esc(r.language)}</span>
         <span class="mono num">★ ${fmtCount(r.stars)}</span>
         <span class="mono num">↺ ${timeAgo(l, r.pushedAt)}</span>
         <span class="row__link">${esc(u.open)} <span class="arrow" aria-hidden="true">↗</span></span>

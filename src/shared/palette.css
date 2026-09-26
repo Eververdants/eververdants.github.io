@@ -37,19 +37,13 @@
 .palette__box {
   display: flex;
   flex-direction: column;
-  border-radius: var(--r-xl);
+  border-radius: var(--r-flat);
   background: var(--glass-fill-strong);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   box-shadow: var(--glass-shadow-lift);
   overflow: hidden;
-}
-
-@supports (corner-shape: squircle) {
-  .palette__box {
-    corner-shape: squircle;
-  }
 }
 
 .palette__field {
@@ -125,22 +119,20 @@
   align-items: baseline;
   gap: 4px 14px;
   padding: 9px 11px;
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   text-decoration: none;
   color: var(--body);
   transition: background-color var(--dur-1) var(--ease-out);
 }
-@supports (corner-shape: squircle) {
-  .palette__row a {
-    corner-shape: squircle;
-  }
-}
+/* The highlighted row is marked with a bar of spot ink against the left
+ * edge — the same gesture the plate uses for "you are here" — rather than
+ * an outline that would thicken the box. */
 .palette__row a:hover,
 .palette__row--on a {
   background: var(--accent-soft);
 }
 .palette__row--on a {
-  box-shadow: inset 0 0 0 1px var(--accent-line);
+  box-shadow: inset 2px 0 0 var(--accent);
 }
 .palette__title {
   font-size: var(--text-base);

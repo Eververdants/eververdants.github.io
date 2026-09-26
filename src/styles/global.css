@@ -15,31 +15,35 @@
   --code-bg: #f0ede4;
   --code-border: #e0dcd2;
   --muted-2: #6b675d;
-  --fainter: #9a968b;
-  --faintest: #aaa59a;
+  --fainter: #7d776a;
+  --faintest: #8f897b;
   --border-faint: #e2dfd6;
   --folio: #f7f5ef;
   --card-bg: #fffdf7;
   --card-border: #e2dfd6;
-  --card-shadow:
-    0 1px 2px rgba(20, 20, 20, 0.03), 0 8px 24px -12px rgba(20, 20, 20, 0.06);
-  --card-shadow-hover:
-    0 2px 4px rgba(20, 20, 20, 0.04), 0 16px 40px -16px rgba(20, 20, 20, 0.1);
+  /* Shadows, where they exist at all, are tinted with the paper's own
+     warm black rather than a neutral grey, so they never go ashy. */
+  --card-shadow: 0 1px 0 color-mix(in oklab, var(--ink) 4%, transparent);
+  --card-shadow-hover: 0 2px 4px color-mix(in oklab, var(--ink) 7%, transparent);
   /* one source of truth for reading metrics */
   --text-body: clamp(16.5px, 1vw + 0.5rem, 19px);
-  --text-leading: 1.9;
-  --code-ink: #b45309;
-  --tok-kw: #8a5a2b;
-  --tok-str: #557a3c;
-  --tok-num: #b45309;
-  --tok-fn: #0e7a86;
-  --tok-type: #4f5d9c;
-  --tok-com: #9a968b;
-  --tok-var: #a06a2f;
-  --progress-track: rgba(0, 0, 0, 0.05);
-  --progress-fill: #1a1917;
-  --scrollbar-thumb: rgba(30, 28, 24, 0.38);
-  --scrollbar-thumb-hover: rgba(30, 28, 24, 0.6);
+  --text-leading: 1.82;
+  --code-ink: #8b3120;
+  /* Syntax palette, held inside the plate's own inks: the spot red for
+     keywords and numbers, an olive for strings, graphite for types. No
+     blue-violet anywhere — that pairing is the surest tell of a
+     generated theme. */
+  --tok-kw: #a8402a;
+  --tok-str: #4f6b3a;
+  --tok-num: #8b3120;
+  --tok-fn: #2f5d63;
+  --tok-type: #5a5346;
+  --tok-com: #8f897b;
+  --tok-var: #7a5230;
+  --progress-track: color-mix(in oklab, var(--ink) 7%, transparent);
+  --progress-fill: var(--ink);
+  --scrollbar-thumb: color-mix(in oklab, var(--ink) 28%, transparent);
+  --scrollbar-thumb-hover: color-mix(in oklab, var(--ink) 46%, transparent);
 }
 
 [data-theme="dark"] {
@@ -50,28 +54,26 @@
   --code-bg: #1f1d18;
   --code-border: #2b2922;
   --muted-2: #8f897b;
-  --fainter: #6e685c;
-  --faintest: #5c574d;
+  --fainter: #807a6d;
+  --faintest: #6e685c;
   --border-faint: #26241d;
   --folio: #ece9e0;
   --card-bg: #201e1a;
   --card-border: #302d27;
-  --card-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
-  --card-shadow-hover:
-    0 2px 0 rgba(255, 255, 255, 0.06), 0 16px 40px -16px rgba(0, 0, 0, 0.6);
-  --code-ink: #eab308;
-  --tok-kw: #d9a05b;
-  --tok-str: #9cc27a;
-  --tok-num: #eab308;
-  --tok-fn: #46b7c2;
-  --tok-type: #8ea2e8;
+  --card-shadow: 0 1px 0 color-mix(in oklab, #000000 30%, transparent);
+  --card-shadow-hover: 0 2px 4px color-mix(in oklab, #000000 44%, transparent);
+  --code-ink: #e0785a;
+  --tok-kw: #e0785a;
+  --tok-str: #9db87a;
+  --tok-num: #d99a6a;
+  --tok-fn: #6fb3bb;
+  --tok-type: #b3aa97;
   --tok-com: #6e685c;
   --tok-var: #c9996a;
-  --progress-track: rgba(255, 255, 255, 0.08);
-  --progress-fill: #ece9e0;
-  --scrollbar-thumb: rgba(235, 232, 223, 0.35);
-  --scrollbar-thumb-hover: rgba(235, 232, 223, 0.6);
+  --progress-track: color-mix(in oklab, var(--ink) 12%, transparent);
+  --progress-fill: var(--ink);
+  --scrollbar-thumb: color-mix(in oklab, var(--ink) 30%, transparent);
+  --scrollbar-thumb-hover: color-mix(in oklab, var(--ink) 50%, transparent);
 }
 
 @theme {
@@ -107,19 +109,25 @@
 
 
 
-/* ---- article reader: light technical layout ----
-   The reading page is 米白 + gray grid, dark ink, functional — not the
-   dark cinematic editorial of the rest of the site. The markdown renderer
-   outputs plain HTML (p/blockquote/ul/strong/em/code/a/hr); preflight
-   resets it, so the reader styles it here. */
+/* ---- article reader ----
+   Set as a piece of continuous text, not as a web page wearing a serif
+   headline: the running voice is the display face at its text optical
+   size, so Latin gets Fraunces and Chinese falls through to a Song/Ming
+   cut — the same pairing a printed essay carries. The interface around it
+   stays in the sans, which is what keeps the two voices distinct. */
 
 .article-content {
-  font-family: var(--font-sans);
+  font-family: var(--font-read);
+  font-weight: 400;
   font-size: var(--text-body);
   line-height: var(--text-leading);
   color: var(--body);
-  max-width: 72ch;
+  max-width: 66ch;
   text-wrap: pretty;
+  font-kerning: normal;
+  /* The renderer emits no wrapper for a counter, so the running section
+     number is carried by the h2 rule below and reset here. */
+  counter-reset: sect;
 }
 
 .article-content > :first-child {
@@ -132,31 +140,51 @@
   margin: 0 0 1.25em;
 }
 
+/* Section heads are drawn, not boxed: a hairline above the first one only
+   where it genuinely opens a new movement of the essay. */
 .article-content h2 {
-  margin: clamp(40px, 6vh, 64px) 0 clamp(16px, 2.5vh, 24px);
-  padding-top: clamp(24px, 3.5vh, 36px);
-  border-top: 1px solid var(--border-soft);
-  font-size: clamp(20px, 1.6vw, 26px);
-  font-weight: 700;
-  line-height: 1.3;
+  margin: clamp(44px, 6.5vh, 72px) 0 clamp(16px, 2.5vh, 24px);
+  padding: 0;
+  border: 0;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 1.9vw, 30px);
+  font-weight: 600;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
   color: var(--ink);
+  text-wrap: balance;
 }
 
+.article-content h2::before {
+  content: counter(sect, decimal-leading-zero);
+  counter-increment: sect;
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: var(--accent);
+}
 .article-content h3 {
-  margin: clamp(28px, 4.5vh, 44px) 0 clamp(12px, 2vh, 20px);
-  font-size: clamp(17px, 1.3vw, 20px);
+  margin: clamp(30px, 4.5vh, 46px) 0 clamp(12px, 2vh, 20px);
+  font-family: var(--font-display);
+  font-size: clamp(18px, 1.4vw, 22px);
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.32;
+  letter-spacing: -0.012em;
   color: var(--ink);
 }
 
 .article-content h4 {
-  margin: clamp(20px, 3vh, 28px) 0 clamp(8px, 1.2vh, 12px);
-  font-size: 16px;
+  margin: clamp(22px, 3vh, 30px) 0 clamp(8px, 1.2vh, 12px);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
   font-weight: 600;
   line-height: 1.45;
-  letter-spacing: 0.02em;
-  color: var(--ink);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
 }
 
 .article-content h4::before {
@@ -164,6 +192,8 @@
   margin-right: 0.5em;
   color: var(--accent);
   font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .article-content strong {
@@ -171,14 +201,15 @@
   color: var(--ink);
 }
 
+/* A quoted passage is set off by indentation and a rule, the way a
+   compositor does it — no tinted box, no rounded corner, no left bar three
+   pixels wide, which is the callout every generated page reaches for. */
 .article-content blockquote {
-  margin: 0 0 1.25em;
-  padding: clamp(14px, 2vw, 22px) clamp(16px, 2.5vw, 26px);
-  border-left: 3px solid var(--accent);
-  border-radius: 0 8px 8px 0;
-  background: var(--accent-soft);
+  margin: 0 0 1.4em;
+  padding: 0 clamp(16px, 2.5vw, 26px);
+  border-left: 1px solid var(--rule-mark);
+  color: var(--ink);
   font-style: italic;
-  color: var(--ink-2);
 }
 
 /* Chinese quotes never italic — italics are western noise for CJK glyphs */
@@ -208,41 +239,52 @@
   margin-bottom: 0.35em;
 }
 
+/* Links are marked by a rule that sits on the baseline rather than a
+   browser underline, so they stay legible without turning the page blue. */
 .article-content a {
-  color: var(--accent);
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
-  text-underline-offset: 3px;
+  color: var(--accent-ink);
+  text-decoration: none;
+  background-image: linear-gradient(
+    color-mix(in oklab, var(--accent) 42%, transparent),
+    color-mix(in oklab, var(--accent) 42%, transparent)
+  );
+  background-size: 100% 1px;
+  background-position: 0 96%;
+  background-repeat: no-repeat;
+  transition:
+    color var(--dur-2) var(--ease-out),
+    background-size var(--dur-2) var(--ease-out);
 }
 
 .article-content a:hover {
   color: var(--accent-hover);
+  background-size: 100% 2px;
 }
 
 .article-content code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 0.85em;
   color: var(--code-ink);
   background: var(--code-bg);
   padding: 0.12em 0.35em;
-  border-radius: 5px;
+  border-radius: var(--r-xs);
   border: 1px solid var(--code-border);
 }
 
 /* Code blocks — a header strip (language badge left, copy button right)
-   over a horizontally scrollable code body. The button lives in flow (not
-   absolute) so it stays put while wide code scrolls underneath, and every
-   token span is colored by the syntax highlighter in markdown.ts. */
+   over a horizontally scrollable code body, squared off and held by a
+   hairline instead of lifted on a shadow. The button lives in flow (not
+   absolute) so it stays put while wide code scrolls underneath. */
 .article-content pre {
   position: relative;
-  margin: 0 0 1.5em;
+  margin: 0 0 1.6em;
   padding: 0;
   background: var(--pre-bg);
   border: 1px solid var(--border-faint);
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
   font-size: clamp(13px, 0.95vw, 15px);
-  box-shadow: var(--card-shadow);
+  box-shadow: none;
 }
 
 .article-content .code-head {
@@ -456,17 +498,16 @@
   background: var(--border-soft);
 }
 
-/* Tables (pipe-table syntax) — a rounded hairline frame (separate borders
-   so the radius can breathe), field-tinted header, zebra rows, and a hover
-   wash that transitions in on the cells (tr has no box in table layout, so
-   the highlight and its transition live on td). */
+/* Tables (pipe-table syntax) — a square hairline frame, a header band
+   closed by a press rule, and zebra rows in the paper's own tint rather
+   than a grey. */
 .article-content table {
   width: 100%;
-  margin: 0 0 1.5em;
+  margin: 0 0 1.6em;
   border-collapse: separate;
   border-spacing: 0;
   border: 1px solid var(--border-faint);
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
   font-size: 0.92em;
   line-height: 1.65;
@@ -496,22 +537,11 @@
 .article-content thead th {
   background: var(--field);
   color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 0.86em;
   font-weight: 600;
-  border-bottom: 1.5px solid var(--border-strong);
-}
-
-/* explicit corner rounding — belt & suspenders under overflow: hidden */
-.article-content thead th:first-child {
-  border-top-left-radius: 12px;
-}
-.article-content thead th:last-child {
-  border-top-right-radius: 12px;
-}
-.article-content tbody tr:last-child td:first-child {
-  border-bottom-left-radius: 12px;
-}
-.article-content tbody tr:last-child td:last-child {
-  border-bottom-right-radius: 12px;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid var(--rule-heavy);
 }
 
 .article-content tbody tr:nth-child(even) td {
@@ -522,26 +552,33 @@
   background: var(--accent-soft);
 }
 
-/* Images (figure syntax) — rounded, hairline-framed, caption below. */
+/* Images (figure syntax) — a print laid on the sheet: square hairline
+   mount, caption beneath in the small-caps voice the site uses for
+   standing data. */
 .article-content figure {
-  margin: 2.5em auto;
+  margin: 2.6em auto;
   text-align: center;
 }
 
 .article-content figure img {
   max-width: 100%;
   height: auto;
-  border-radius: 12px;
-  border: 1px solid var(--border-faint);
+  display: block;
+  margin-inline: auto;
+  border-radius: 0;
+  border: 1px solid var(--rule);
   background: var(--chip);
   cursor: zoom-in;
 }
 
 .article-content figcaption {
   margin-top: 10px;
-  font-size: 11px;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 600;
   letter-spacing: 0.12em;
-  color: var(--fainter);
+  text-transform: uppercase;
+  color: var(--faint);
 }
 
 /* Desktop TOC — a self-scrolling container capped so a long article never

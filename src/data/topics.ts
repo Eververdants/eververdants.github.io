@@ -46,7 +46,7 @@ export const topics: BlogTopic[] = [
       en: "Build. Break. Learn. Repeat.",
       zh: "造。拆。学。再一遍。",
     },
-    color: "#3f6fd4",
+    color: "#2f5d63",
     photos: [
       { en: "night build", zh: "深夜构建" },
       { en: "wires", zh: "接线" },
@@ -61,7 +61,7 @@ export const topics: BlogTopic[] = [
       en: "Words outlast empires. Use them well.",
       zh: "文字比帝国更长久。用好它们。",
     },
-    color: "#c2572e",
+    color: "#a8402a",
     photos: [
       { en: "the rose", zh: "那朵玫瑰" },
       { en: "the fox", zh: "那只狐狸" },
@@ -76,7 +76,7 @@ export const topics: BlogTopic[] = [
       en: "The people write history. Never forget who.",
       zh: "人民书写历史。别忘了是谁。",
     },
-    color: "#8a7d3f",
+    color: "#8a6a2a",
     photos: [
       { en: "old stone", zh: "旧日的石" },
       { en: "the archive", zh: "档案室" },
@@ -91,7 +91,7 @@ export const topics: BlogTopic[] = [
       en: "Tear off the mask. Then speak.",
       zh: "撕开面具。然后说话。",
     },
-    color: "#0e7a86",
+    color: "#6b4a3f",
     photos: [
       { en: "the crowd", zh: "人群" },
       { en: "the mirror", zh: "镜子" },

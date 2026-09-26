@@ -27,3 +27,6 @@ public/works.json
 public/site.json
 public/llms-full.txt
 dist/search.json
+
+# 安全扫描缓存（Mimosa 插件本地产物）
+.mimosa/

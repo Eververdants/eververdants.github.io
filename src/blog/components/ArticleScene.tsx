@@ -536,14 +536,14 @@ export default function ArticleScene({
 
         {/* header */}
         <header className="mt-[clamp(40px,7vh,72px)]">
-          <h1 className="rise rise-1 font-sans text-[clamp(26px,3.4vw,44px)] font-bold leading-[1.15] tracking-[-0.01em] text-[var(--ink)] [text-wrap:balance]">
+          <h1 className="rise rise-1 font-fraunces text-[clamp(29px,3.7vw,52px)] font-semibold leading-[1.05] tracking-[-0.028em] text-[var(--ink)] [text-wrap:balance]">
             {post.title.split("\n").join(" ")}
           </h1>
           <div className="rise rise-2 mt-[clamp(18px,3vh,28px)] flex flex-wrap gap-2">
             {post.tagLabels.map((label, i) => (
               <span
                 key={post.tags[i] ?? label}
-                className="rounded-full border border-[var(--border-soft)] px-3 py-1 text-[10px] font-medium tracking-[0.2em] text-[var(--muted-2)]"
+                className="border border-[var(--rule)] px-2.5 py-1 text-[10px] font-medium tracking-[0.18em] text-[var(--faint)]"
               >
                 {label.toUpperCase()}
               </span>
@@ -558,7 +558,7 @@ export default function ArticleScene({
           <details className="mobile-toc mb-[clamp(24px,4vh,40px)] border-b border-[var(--border)] pb-[10px] lg:hidden">
             <summary className="flex cursor-pointer select-none items-center gap-2 py-1 text-[10px] font-semibold tracking-[0.3em] text-[var(--fainter)]">
               {t.onThisPage()}
-              <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[9px] tabular-nums tracking-[0.1em] text-[var(--accent)]">
+              <span className="border border-[var(--accent-line)] px-1.5 py-0.5 text-[9px] tabular-nums tracking-[0.1em] text-[var(--accent)]">
                 {toc.length}
               </span>
             </summary>
@@ -596,7 +596,7 @@ export default function ArticleScene({
               </p>
               <button
                 onClick={() => setRetry((n) => n + 1)}
-                className="mt-5 inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-4 py-2 text-[10px] font-semibold tracking-[0.24em] text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                className="mt-5 inline-flex items-center gap-2 border border-[var(--border-strong)] px-4 py-2 text-[10px] font-semibold tracking-[0.24em] text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
               >
                 {t.retry} ↻
               </button>
@@ -668,10 +668,10 @@ export default function ArticleScene({
         {/* ---- footer: author · tags · related ---- */}
         <div className="mt-[clamp(56px,10vh,96px)] border-t border-[var(--border)] pt-[clamp(24px,4vh,40px)]">
           {/* author card — byline from frontmatter, site name as fallback */}
-          <div className="flex items-center gap-4 rounded-[var(--radius-card)] border border-[var(--border-faint)] bg-[var(--card-bg)] p-[clamp(16px,2.5vw,22px)]">
+          <div className="flex items-center gap-4 border-l-2 border-[var(--rule-heavy)] py-1 pl-[clamp(14px,2.2vw,20px)]">
             <span
               aria-hidden
-              className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--accent)_35%,transparent)] bg-[var(--accent-soft)] font-fraunces text-[15px] italic leading-none text-[var(--accent)]"
+              className="flex h-10 w-10 flex-none items-center justify-center border border-[var(--rule)] font-fraunces text-[15px] italic leading-none text-[var(--accent)]"
             >
               {sectionSymbol}
             </span>
@@ -708,7 +708,7 @@ export default function ArticleScene({
                     <a
                       key={id}
                       href={`/blog/topic/${encodeURIComponent(id)}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--chip)] px-3.5 py-1.5 text-[10px] font-medium tracking-[0.18em] text-[var(--muted-2)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                      className="inline-flex items-center gap-2 border border-[var(--rule)] px-3 py-1.5 text-[10px] font-medium tracking-[0.18em] text-[var(--muted-2)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
                     >
                       <span
                         aria-hidden
@@ -736,7 +736,7 @@ export default function ArticleScene({
                   <a
                     key={tag}
                     href={`/blog?tag=${encodeURIComponent(tag)}`}
-                    className="rounded-full border border-[var(--border)] bg-[var(--chip)] px-3.5 py-1.5 text-[10px] font-medium tracking-[0.18em] text-[var(--muted-2)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                    className="border border-[var(--rule)] px-3 py-1.5 text-[10px] font-medium tracking-[0.18em] text-[var(--muted-2)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
                   >
                     {post.tagLabels[i]?.toUpperCase() ?? tag.toUpperCase()}
                   </a>
@@ -760,9 +760,9 @@ export default function ArticleScene({
                       e.preventDefault();
                       onOpen(r.slug);
                     }}
-                    className="group rounded-[var(--radius-card)] border border-[var(--border-faint)] bg-[var(--card-bg)] p-4 text-left transition-all duration-300 hover:-translate-y-[1px] hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--border-faint))]"
+                    className="group border-t border-[var(--rule-faint)] px-0 py-4 text-left transition-colors duration-300 hover:border-t-2 hover:border-t-[var(--accent)]"
                   >
-                    <p className="line-clamp-2 text-[13px] font-semibold leading-[1.5] text-[var(--ink-2)] transition-colors group-hover:text-[var(--accent)]">
+                    <p className="line-clamp-2 text-[13px] font-semibold leading-[1.5] text-[var(--body)] transition-colors group-hover:text-[var(--accent)]">
                       {r.title.split("\n").join(" ")}
                     </p>
                     <p className="mt-2 text-[10px] tracking-[0.16em] text-[var(--fainter)]">
@@ -789,7 +789,7 @@ export default function ArticleScene({
               <span className="inline-flex items-center gap-1 text-[10px] tracking-[0.3em] text-[var(--fainter)] transition-transform duration-300 group-hover:-translate-x-1">
                 {t.previous}
               </span>
-              <span className="mt-2 block font-medium text-[var(--ink-2)] transition-colors group-hover:text-[var(--accent)]">
+              <span className="mt-2 block font-medium text-[var(--body)] transition-colors group-hover:text-[var(--accent)]">
                 {prev.title.split("\n").join(" ")}
               </span>
             </a>
@@ -808,7 +808,7 @@ export default function ArticleScene({
               <span className="inline-flex items-center gap-1 text-[10px] tracking-[0.3em] text-[var(--fainter)] transition-transform duration-300 group-hover:translate-x-1">
                 {t.next}
               </span>
-              <span className="mt-2 block font-medium text-[var(--ink-2)] transition-colors group-hover:text-[var(--accent)]">
+              <span className="mt-2 block font-medium text-[var(--body)] transition-colors group-hover:text-[var(--accent)]">
                 {next.title.split("\n").join(" ")}
               </span>
             </a>

@@ -21,6 +21,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding-bottom: clamp(20px, 3vw, 28px);
+  border-bottom: 2px solid var(--rule-heavy);
 }
 .blog-index__title {
   font-size: var(--text-3xl);
@@ -68,12 +70,18 @@
   color: var(--accent-ink);
 }
 
-/* ---------- controls ---------- */
+/* ---------- controls ----------
+   The toolbar is a strip of the sheet, not a panel dropped on it: the
+   `glass sq-lg` box the markup carries is opened up into a rule above and
+   below, and the search field becomes a drawn line to write on. */
 .blog-index__controls {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: clamp(14px, 2vw, 20px);
+  gap: 14px;
+  padding: 16px 0 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .blog-index__search {
   position: relative;
@@ -82,7 +90,7 @@
 }
 .blog-index__search svg {
   position: absolute;
-  left: 14px;
+  left: 0;
   width: 17px;
   height: 17px;
   pointer-events: none;
@@ -94,29 +102,24 @@
   font: inherit;
   font-size: var(--text-sm);
   color: var(--ink);
-  padding: 11px 70px 11px 40px;
-  background: var(--field);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  padding: 9px 62px 9px 28px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
   outline: none;
-  transition:
-    border-color var(--dur-2) var(--ease-out),
-    box-shadow var(--dur-2) var(--ease-out);
-}
-@supports (corner-shape: squircle) {
-  .blog-index__search input {
-    corner-shape: squircle;
-  }
+  transition: border-color var(--dur-2) var(--ease-out);
 }
 .blog-index__search input::-webkit-search-cancel-button {
   display: none;
 }
 .blog-index__search input::placeholder {
-  color: var(--faintest);
+  color: var(--faint);
 }
 .blog-index__search input:focus-visible {
-  border-color: var(--accent-line);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  outline: none;
+  border-bottom-color: var(--accent);
+  box-shadow: 0 1px 0 var(--accent);
 }
 .blog-index__search kbd,
 .blog-index__clear {
@@ -127,11 +130,11 @@
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.06em;
-  padding: 4px 6px;
+  padding: 3px 5px;
+  border: 1px solid var(--rule);
   border-radius: var(--r-xs);
-  border: 1px solid var(--border-strong);
-  background: var(--chip);
-  color: var(--fainter);
+  background: transparent;
+  color: var(--faint);
   pointer-events: none;
 }
 .blog-index__clear {
@@ -152,23 +155,26 @@
     color var(--dur-2) var(--ease-out);
 }
 .blog-index__clear:hover {
-  background: var(--chip);
+  background: var(--accent-soft);
   color: var(--ink);
 }
 
+/* Filter flags: square, hairline, and marked by ink weight rather than by
+   a tinted fill — the active one is stamped, the rest are just listed. */
 .blog-index__filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 6px;
 }
 .filter-chip {
   appearance: none;
   cursor: pointer;
   font: inherit;
   font-size: var(--text-sm);
-  padding: 5px 11px;
-  border: 1px solid var(--border-soft);
-  background: var(--surface-2);
+  padding: 5px 10px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-flat);
+  background: transparent;
   color: var(--muted);
   transition:
     color var(--dur-2) var(--ease-out),
@@ -180,9 +186,9 @@
   color: var(--ink);
 }
 .filter-chip--on {
-  border-color: var(--accent-line);
-  background: var(--accent-soft);
-  color: var(--accent-ink);
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--bg);
   font-weight: 600;
 }
 .blog-index__showing {
@@ -228,48 +234,55 @@
   color: var(--faint);
 }
 
-/* ---------- topics ---------- */
+/* ---------- topics ----------
+   A ruled index in two columns, not a grid of boxes: the count sits at the
+   right end of the row the way it does in a contents list. */
 .blog-index__topics {
   padding-top: clamp(20px, 3vh, 30px);
-  border-top: 1px solid var(--border-soft);
+  border-top: 1px solid var(--rule);
 }
 .blog-index__topics h2 {
-  margin: 0;
+  margin: 0 0 12px;
 }
 .blog-index__topics ul {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 clamp(20px, 4vw, 44px);
   list-style: none;
-  margin: 10px 0 0;
+  margin: 0;
   padding: 0;
+  border-top: 1px solid var(--rule-faint);
 }
 .blog-index__topic {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border: 1px solid var(--border-soft);
-  background: var(--card-bg);
+  align-items: baseline;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--rule-faint);
   color: var(--body);
   font-size: var(--text-sm);
   text-decoration: none;
-  transition:
-    border-color var(--dur-2) var(--ease-out),
-    transform var(--dur-2) var(--ease-out);
+  transition: color var(--dur-2) var(--ease-out);
 }
 .blog-index__topic:hover {
-  border-color: var(--accent-line);
-  transform: translateY(-1px);
+  color: var(--accent-ink);
+  text-decoration: none;
 }
 .blog-index__topic-name {
-  color: var(--ink);
+  color: inherit;
   font-weight: 550;
 }
 .blog-index__topic .num {
   margin-inline-start: auto;
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--faint);
+}
+
+@media (max-width: 620px) {
+  .blog-index__topics ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .blog-index__foot {
@@ -278,7 +291,7 @@
   gap: 8px 20px;
   align-items: baseline;
   padding-top: clamp(20px, 3vh, 30px);
-  border-top: 1px solid var(--border-soft);
+  border-top: 1px solid var(--rule);
   font-size: var(--text-sm);
   color: var(--faint);
 }
@@ -291,7 +304,10 @@
   color: var(--accent-ink);
 }
 
-/* ---------- ring back-to-top / reading dial ---------- */
+/* ---------- ring back-to-top / reading dial ----------
+   It floats over running text, so unlike the plates it keeps an opaque
+   ground — but paper, not glass: a disc cut from the sheet with one
+   hairline, and the dial drawn on it. */
 .back-to-top {
   position: fixed;
   right: clamp(14px, 2.5vw, 28px);
@@ -303,17 +319,18 @@
   height: 44px;
   appearance: none;
   cursor: pointer;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--rule);
   border-radius: var(--r-full);
-  background: var(--glass-fill);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  box-shadow: var(--glass-shadow);
+  background: var(--bg);
+  box-shadow: none;
   color: var(--muted);
-  transition: color var(--dur-2) var(--ease-out);
+  transition:
+    color var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out);
 }
 .back-to-top:hover {
   color: var(--accent-ink);
+  border-color: var(--accent-line);
 }
 .back-to-top svg {
   position: absolute;
@@ -327,7 +344,7 @@
   stroke-width: 1.5;
 }
 .back-to-top__track {
-  stroke: var(--border);
+  stroke: var(--rule-faint);
 }
 .back-to-top__fill {
   stroke: var(--accent);
@@ -336,14 +353,6 @@
 .back-to-top span {
   font-size: 14px;
   line-height: 1;
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .back-to-top {
-    background: var(--surface);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
 }
 
 /* ---------- print ---------- */

@@ -7,9 +7,11 @@
  * things in each column, with counts so you know how deep a section goes
  * before opening it.
  *
- * No scroll library, no canvas, no intro. Everything below is present in the
- * prerendered HTML, which is the point: a crawler or a language model reading
- * this page gets the whole navigation graph in one pass. */
+ * It is laid out as one sheet: a masthead, then a numbered plate per
+ * destination, each held in the left margin by its index numeral. No scroll
+ * library, no canvas, no intro. Everything below is present in the
+ * prerendered HTML, which is the point: a crawler or a language model
+ * reading this page gets the whole navigation graph in one pass. */
 
 import { useEffect, useMemo, useState } from "react";
 import { getDeck } from "../data/articles";
@@ -121,28 +123,39 @@ export default function Hub() {
       <site-topbar active="home" search />
       <site-palette />
 
-      <main id="main" className="hub">
-        {/* ---------- identity ---------- */}
-        <section className="identity rise" aria-labelledby="hub-name">
-          <div className="identity__mark">
-            <span className="ring-field" aria-hidden="true" />
-            <img
-              src="/assets/avatar.webp"
-              alt="Eververdants"
-              width={72}
-              height={72}
-              fetchPriority="high"
-            />
-          </div>
+      {/* One sheet, trimmed with crop marks at two corners. */}
+      <div className="sheet marks">
+        <main id="main" className="hub">
+          {/* ---------- masthead ---------- */}
+          <section className="masthead rise" aria-labelledby="hub-name">
+            {/* A compass line left on the drawing: the ring motif as
+                construction geometry rather than scenery. */}
+            <span className="arc masthead__arc" aria-hidden="true" />
 
-          <div className="identity__text">
-            <h1 id="hub-name" className="display identity__name">
-              {c.name}
-            </h1>
-            <p className="identity__role">
-              {c.chineseName} · {c.role}
-            </p>
-            <p className="lede identity__tagline">{c.tagline}</p>
+            <div className="masthead__lead">
+              <div className="identity__mark">
+                <img
+                  src="/assets/avatar.webp"
+                  alt="Eververdants"
+                  width={72}
+                  height={72}
+                  fetchPriority="high"
+                />
+              </div>
+
+              <div className="masthead__text">
+                <h1 id="hub-name" className="display masthead__name">
+                  {c.name}
+                </h1>
+                <p className="masthead__role">
+                  {c.chineseName}
+                  <span className="masthead__sep" aria-hidden="true" />
+                  {c.role}
+                </p>
+              </div>
+            </div>
+
+            <p className="lede masthead__tagline">{c.tagline}</p>
 
             <dl className="facts">
               <div>
@@ -159,182 +172,224 @@ export default function Hub() {
               </div>
             </dl>
 
+            {/* Availability is the one line that changes, so it is set
+                below the standing data rather than squeezed into a fourth
+                column of a table that otherwise never moves. */}
             <p className="availability">
-              <span className="availability__dot" aria-hidden="true" />
-              {c.availability}
+              <span className="availability__flag" aria-hidden="true" />
+              <span className="availability__state">{c.availability}</span>
               <span className="availability__note">{c.availabilityNote}</span>
             </p>
-          </div>
-        </section>
+          </section>
 
-        {/* ---------- portals ---------- */}
-        <div className="portals">
-          <article className="portal portal--wide glass sq-xl glass-sheen rise rise-1">
-            <header className="portal__head">
-              <span className="ring-mark" aria-hidden="true" />
-              <h2 className="display portal__title">{c.portals.writing.label}</h2>
-              <span className="portal__count num">
-                {posts.length} {c.meta.essays}
-              </span>
-              <a className="portal__cta" href="/blog/">
-                {c.portals.writing.cta} <span aria-hidden="true">→</span>
-              </a>
-            </header>
-            <p className="portal__blurb">{c.portals.writing.blurb}</p>
-            <ul className="feed">
-              {posts.slice(0, 3).map((p) => (
-                <li key={p.slug}>
-                  <a className="feed__row" href={`/blog/${p.slug}/`}>
-                    <span className="feed__meta num">
-                      {shortDate(p.date)} · {p.read}
-                    </span>
-                    <span className="feed__title">{inline(p.title)}</span>
-                    <span className="feed__tag">{p.category}</span>
-                  </a>
-                </li>
-              ))}
-              {posts.length === 0 && (
-                <li className="feed__empty">{c.portals.writing.empty}</li>
-              )}
-            </ul>
-          </article>
-
-          <article className="portal glass sq-xl glass-sheen rise rise-2">
-            <header className="portal__head">
-              <span className="ring-mark" aria-hidden="true" />
-              <h2 className="display portal__title">{c.portals.works.label}</h2>
-              <span className="portal__count num">
-                {repos.length} {c.meta.repos}
-              </span>
-              <a className="portal__cta" href="/projects/">
-                {c.portals.works.cta} <span aria-hidden="true">→</span>
-              </a>
-            </header>
-            <p className="portal__blurb">{c.portals.works.blurb}</p>
-            <ul className="feed">
-              {repos.slice(0, 3).map((r) => (
-                <li key={r.name}>
-                  <a
-                    className="feed__row"
-                    href={r.url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <span className="feed__meta num">
-                      ★ {r.stars} · {r.language ?? "—"}
-                    </span>
-                    <span className="feed__title">{r.name}</span>
-                    <span className="feed__tag">
-                      {clip(pickRepoBlurb(r, lang), 120)}
-                    </span>
-                  </a>
-                </li>
-              ))}
-              {repos.length === 0 && (
-                <li className="feed__empty">{c.portals.works.empty}</li>
-              )}
-            </ul>
-          </article>
-
-          <article className="portal glass sq-xl glass-sheen rise rise-3">
-            <header className="portal__head">
-              <span className="ring-mark" aria-hidden="true" />
-              <h2 className="display portal__title">{c.portals.about.label}</h2>
-              <a className="portal__cta" href="/about/">
-                {c.portals.about.cta} <span aria-hidden="true">→</span>
-              </a>
-            </header>
-            <p className="portal__blurb">{c.portals.about.blurb}</p>
-            {awardLine && (
-              <p className="portal__line">
-                <span className="kicker">{c.portals.about.award}</span>
-                {awardLine}
-              </p>
-            )}
-            <ul className="chips">
-              {resume.focus.slice(0, 6).map((f) => (
-                <li key={f.en} className="chip sq-sm">
-                  {pick(lang, f.en, f.zh)}
-                </li>
-              ))}
-            </ul>
-          </article>
-
-          <article className="portal portal--wide glass sq-xl glass-sheen rise rise-4">
-            <header className="portal__head">
-              <span className="ring-mark" aria-hidden="true" />
-              <h2 className="display portal__title">
-                {c.portals.photos.label}
-              </h2>
-              <span className="portal__count num">
-                {works.length} {c.meta.series}
-              </span>
-              <a className="portal__cta" href="/photos/">
-                {c.portals.photos.cta} <span aria-hidden="true">→</span>
-              </a>
-            </header>
-            <p className="portal__blurb">{c.portals.photos.blurb}</p>
-            <ul className="strip">
-              {works.slice(0, 3).map((w) => (
-                <li key={w.slug}>
-                  <a className="strip__cell" href={`/photos/work/${w.slug}/`}>
-                    <img
-                      src={`/${w.cover}`}
-                      alt={lang === "zh" ? (w.titleZh ?? w.title) : w.title}
-                      loading="lazy"
-                      decoding="async"
-                      width={320}
-                      height={213}
-                    />
-                    <span className="strip__label">
-                      {lang === "zh" ? (w.titleZh ?? w.title) : w.title}
-                    </span>
-                  </a>
-                </li>
-              ))}
-              {works.length === 0 && (
-                <li className="feed__empty">{c.portals.photos.empty}</li>
-              )}
-            </ul>
-          </article>
-        </div>
-
-        {/* ---------- contact ---------- */}
-        <section className="contact glass-panel sq-xl rise rise-5" aria-labelledby="hub-contact">
-          <div>
-            <h2 id="hub-contact" className="display contact__title">
-              {c.contact.heading}
-            </h2>
-            <p className="lede contact__pitch">{c.contact.pitch}</p>
-          </div>
-          <div className="contact__actions">
-            <div className="contact__wechat">
-              <span className="kicker">{c.contact.wechat}</span>
-              <code className="contact__handle">{resume.contact.wechat}</code>
-              <button
-                type="button"
-                className="btn sq-md"
-                onClick={copyWechat}
-                aria-live="polite"
-              >
-                {copied === "done"
-                  ? c.contact.copied
-                  : copied === "failed"
-                    ? c.contact.copyFailed
-                    : c.contact.copy}
-              </button>
+          {/* ---------- writing ---------- */}
+          <section className="plate rise rise-1" aria-labelledby="plate-writing">
+            <div className="plate__no index" aria-hidden="true">
+              01
             </div>
-            <a
-              className="btn btn--ghost sq-md"
-              href={resume.contact.href}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {c.contact.github} · {resume.contact.handle}
-            </a>
-          </div>
-        </section>
-      </main>
+            <div className="plate__body">
+              <header className="plate__head">
+                <h2 id="plate-writing" className="display plate__title">
+                  {c.portals.writing.label}
+                </h2>
+                <span className="plate__count num">
+                  {posts.length} {c.meta.essays}
+                </span>
+                <a className="plate__cta" href="/blog/">
+                  {c.portals.writing.cta}
+                </a>
+              </header>
+              <hr className="rule plate__rule" />
+              <p className="plate__blurb">{c.portals.writing.blurb}</p>
+              <ul className="feed">
+                {posts.slice(0, 3).map((p) => (
+                  <li key={p.slug}>
+                    <a className="feed__row" href={`/blog/${p.slug}/`}>
+                      <span className="feed__title">{inline(p.title)}</span>
+                      <span className="feed__meta num">
+                        {shortDate(p.date)}
+                        <span aria-hidden="true"> · </span>
+                        {p.read}
+                      </span>
+                      <span className="feed__tag">{p.category}</span>
+                    </a>
+                  </li>
+                ))}
+                {posts.length === 0 && (
+                  <li className="feed__empty">{c.portals.writing.empty}</li>
+                )}
+              </ul>
+            </div>
+          </section>
+
+          {/* ---------- works ---------- */}
+          <section className="plate rise rise-2" aria-labelledby="plate-works">
+            <div className="plate__no index" aria-hidden="true">
+              02
+            </div>
+            <div className="plate__body">
+              <header className="plate__head">
+                <h2 id="plate-works" className="display plate__title">
+                  {c.portals.works.label}
+                </h2>
+                <span className="plate__count num">
+                  {repos.length} {c.meta.repos}
+                </span>
+                <a className="plate__cta" href="/projects/">
+                  {c.portals.works.cta}
+                </a>
+              </header>
+              <hr className="rule plate__rule" />
+              <p className="plate__blurb">{c.portals.works.blurb}</p>
+              <ul className="ledger">
+                {repos.slice(0, 4).map((r) => (
+                  <li key={r.name}>
+                    <a
+                      className="ledger__row"
+                      href={r.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <span className="ledger__name">{r.name}</span>
+                      <span className="ledger__stat num">
+                        {r.language ?? "—"}
+                        <span aria-hidden="true"> · </span>
+                        {r.stars}
+                      </span>
+                      <span className="ledger__blurb">
+                        {clip(pickRepoBlurb(r, lang), 150)}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+                {repos.length === 0 && (
+                  <li className="feed__empty">{c.portals.works.empty}</li>
+                )}
+              </ul>
+            </div>
+          </section>
+
+          {/* ---------- photographs ---------- */}
+          <section className="plate rise rise-3" aria-labelledby="plate-photos">
+            <div className="plate__no index" aria-hidden="true">
+              03
+            </div>
+            <div className="plate__body">
+              <header className="plate__head">
+                <h2 id="plate-photos" className="display plate__title">
+                  {c.portals.photos.label}
+                </h2>
+                <span className="plate__count num">
+                  {works.length} {c.meta.series}
+                </span>
+                <a className="plate__cta" href="/photos/">
+                  {c.portals.photos.cta}
+                </a>
+              </header>
+              <hr className="rule plate__rule" />
+              <p className="plate__blurb">{c.portals.photos.blurb}</p>
+              <ul className="strip">
+                {works.slice(0, 3).map((w) => (
+                  <li key={w.slug}>
+                    <a className="strip__cell" href={`/photos/work/${w.slug}/`}>
+                      <span className="strip__frame">
+                        <img
+                          src={`/${w.cover}`}
+                          alt={lang === "zh" ? (w.titleZh ?? w.title) : w.title}
+                          loading="lazy"
+                          decoding="async"
+                          width={320}
+                          height={213}
+                        />
+                      </span>
+                      <span className="strip__label">
+                        {lang === "zh" ? (w.titleZh ?? w.title) : w.title}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+                {works.length === 0 && (
+                  <li className="feed__empty">{c.portals.photos.empty}</li>
+                )}
+              </ul>
+            </div>
+          </section>
+
+          {/* ---------- about ---------- */}
+          <section className="plate rise rise-4" aria-labelledby="plate-about">
+            <div className="plate__no index" aria-hidden="true">
+              04
+            </div>
+            <div className="plate__body">
+              <header className="plate__head">
+                <h2 id="plate-about" className="display plate__title">
+                  {c.portals.about.label}
+                </h2>
+                <a className="plate__cta" href="/about/">
+                  {c.portals.about.cta}
+                </a>
+              </header>
+              <hr className="rule plate__rule" />
+              <p className="plate__blurb">{c.portals.about.blurb}</p>
+              {awardLine && (
+                <p className="plate__note">
+                  <span className="kicker">{c.portals.about.award}</span>
+                  {awardLine}
+                </p>
+              )}
+              <ul className="chips">
+                {resume.focus.slice(0, 6).map((f) => (
+                  <li key={f.en} className="chip">
+                    {pick(lang, f.en, f.zh)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+
+          {/* ---------- contact ---------- */}
+          <section
+            className="contact rise rise-5"
+            aria-labelledby="hub-contact"
+          >
+            <div className="plate__no index" aria-hidden="true">
+              05
+            </div>
+            <div className="plate__body">
+              <h2 id="hub-contact" className="display contact__title">
+                {c.contact.heading}
+              </h2>
+              <p className="lede contact__pitch">{c.contact.pitch}</p>
+              <div className="contact__actions">
+                <div className="contact__wechat">
+                  <span className="kicker">{c.contact.wechat}</span>
+                  <code className="contact__handle">{resume.contact.wechat}</code>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={copyWechat}
+                    aria-live="polite"
+                  >
+                    {copied === "done"
+                      ? c.contact.copied
+                      : copied === "failed"
+                        ? c.contact.copyFailed
+                        : c.contact.copy}
+                  </button>
+                </div>
+                <a
+                  className="btn btn--ghost"
+                  href={resume.contact.href}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {c.contact.github} · {resume.contact.handle}
+                </a>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
 
       <footer className="foot shell">
         <hr className="ring-rule" />
