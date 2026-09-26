@@ -99,24 +99,22 @@
 }
 
 /* ---------- navigation transitions: the pixel wipe ----------
-   The CapCut/Jimeng-style mosaic: the outgoing page's snapshot
-   coarsens through the SVG pixelate filters (4 → 8 → 16 → 32 px
-   blocks, each step held as a hard jump — the discrete mosaic is
-   the look), the incoming page then resolves from 32 px back to
-   clean. Works for cross-document jumps between the five entries
-   and for the SPAs' own scene switches (fx.ts wraps their
-   history changes in a transition).
+   Two paths, one look — the CapCut/Jimeng mosaic:
 
-   The keyframes reference filters injected by fx.ts into every
-   page — so the pseudo animations are scoped to html.fx-on and a
-   no-JS page simply falls back to the browser's plain crossfade.
-   (@view-transition itself must sit at the stylesheet's top level
-   per spec; the reduced-motion gate is applied by scoping the
-   pseudo-element rules instead.) */
-@view-transition {
-  navigation: auto;
-}
+   · Cross-document jumps between the five entries play the curtain
+     (fx.ts click interception + canvas blocks + the html.px-boot
+     pre-paint cover from the shared head). The curtain is fully
+     deterministic: the screen is covered from the click until the
+     new page dissolves it, so no load stall can ever flash white.
+   · The SPAs' own scene switches (blog index ↔ article, photo
+     detail) run through same-document view transitions: fx.ts wraps
+     their history changes, and the snapshots coarse-step through the
+     SVG pixelate filters injected by fx.ts (4 → 8 → 16 → 32 px
+     blocks, each held as a hard jump). Same document = no load gap,
+     so the real frame can be pixelated safely.
 
+   Everything is scoped to html.fx-on (no JS → plain navigation) and
+   to no-preference motion. */
 @keyframes vt-px-out {
   0% {
     filter: url("#pxf4");
@@ -166,6 +164,15 @@
 
   html.fx-on::view-transition-new(root) {
     animation: vt-px-in 320ms steps(1, end) 280ms both;
+  }
+}
+
+/* Boot cover fallback: if the motion layer never runs (JS off), the
+   solid cover from the head script is removed here instead — it is
+   plain screen colour, never content-hiding. */
+@media (prefers-reduced-motion: reduce) {
+  html.px-boot::after {
+    display: none;
   }
 }
 

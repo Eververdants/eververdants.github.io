@@ -300,6 +300,199 @@ function patchHistoryTransitions(): void {
   );
 }
 
+/* ---------- cross-document pixel wipe ----------
+   The CapCut/Jimeng curtain. Cross-document view transitions have a
+   hard flaw: the new document's load time is unbounded, and once the
+   old page's out-animation ends the screen shows whatever the new
+   document has painted — often nothing (white). So inter-entry jumps
+   use a deterministic curtain instead:
+
+     click → blocks flood the frozen page (240ms) → navigate while
+     fully covered → the new page boots under a solid cover (inline
+     head script + html.px-boot, before first paint) → the blocks
+     dissolve away (320ms).
+
+   No white is ever possible: the cover exists from the click to the
+   reveal, across the navigation. SPA scene switches keep the true
+   snapshot pixelation (same-document view transitions, below). */
+const PXNAV_KEY = "px-nav";
+const PX_CELL = 24;
+
+function curtainColors(): string[] {
+  return [
+    "#060608",
+    "#0a0a0e",
+    "#0e0e13",
+    "#101017",
+    "rgba(198,255,77,0.10)",
+    "rgba(89,241,255,0.08)",
+  ];
+}
+
+/** A full-screen canvas mosaic. `dir "in"` floods the screen block by
+ * block; `dir "out"` dissolves it away. Steps are discrete — seven
+ * visible frames, like reference frames dropped on purpose. */
+function runCurtain(dir: "in" | "out", done: () => void): void {
+  const canvas = document.createElement("canvas");
+  canvas.id = "px-curtain";
+  canvas.setAttribute("aria-hidden", "true");
+  canvas.style.cssText = "position:fixed;inset:0;z-index:3000;pointer-events:none";
+  document.documentElement.appendChild(canvas);
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    canvas.remove();
+    done();
+    return;
+  }
+  ctx.scale(dpr, dpr);
+
+  const cols = Math.ceil(w / PX_CELL);
+  const rows = Math.ceil(h / PX_CELL);
+  const total = cols * rows;
+  const order = new Array(total);
+  for (let i = 0; i < total; i++) order[i] = i;
+  /* Fisher–Yates with Math.random: decoration timing, not secrets. */
+  for (let i = total - 1; i > 0; i--) {
+    const j = (Math.random() * (i + 1)) | 0;
+    const t = order[i];
+    order[i] = order[j];
+    order[j] = t;
+  }
+  const colors = curtainColors();
+  const colorOf = (rank: number) => {
+    const r = (rank * 2654435761) % 1000 / 1000;
+    return colors[r < 0.05 ? 4 : r < 0.09 ? 5 : (r * 100) % 1 < 0.4 ? 1 : r * 100 % 1 < 0.7 ? 2 : 3];
+  };
+
+  const STEPS = 7;
+  let step = dir === "in" ? 1 : STEPS;
+  const draw = () => {
+    /* Stateless redraw: `shown` is how many of the shuffled blocks are
+       on screen. "in" floods from the front; "out" empties from the
+       front, so the reveal order mirrors the cover order. */
+    ctx.clearRect(0, 0, w, h);
+    const shown = Math.ceil((step / STEPS) * total);
+    const from = dir === "in" ? 0 : total - shown;
+    const to = dir === "in" ? shown : total;
+    for (let k = from; k < to; k++) {
+      const rank = order[k];
+      const x = (rank % cols) * PX_CELL;
+      const y = Math.floor(rank / cols) * PX_CELL;
+      ctx.fillStyle = colorOf(rank);
+      ctx.fillRect(x, y, PX_CELL, PX_CELL);
+    }
+  };
+
+  const start = performance.now();
+  const tick = () => {
+    const dur = dir === "in" ? 240 : 320;
+    const p = Math.min((performance.now() - start) / dur, 1);
+    const next =
+      dir === "in"
+        ? Math.max(1, Math.floor(p * STEPS))
+        : STEPS - Math.floor(p * STEPS);
+    if (next !== step) {
+      step = next;
+      draw();
+    }
+    if (p < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      step = dir === "in" ? STEPS : 0;
+      draw(); /* exact final frame: full cover / fully gone */
+      done();
+    }
+  };
+  draw(); /* first frame: a scattering in, full cover out */
+  requestAnimationFrame(tick);
+}
+
+function pxNavGo(href: string): void {
+  if (document.documentElement.classList.contains("px-boot")) return;
+  try {
+    sessionStorage.setItem(PXNAV_KEY, "1");
+  } catch {
+    /* private mode: still run the curtain; the boot cover just won't
+       be pre-applied on the next page */
+  }
+  runCurtain("in", () => {
+    location.href = href;
+  });
+}
+
+function pxNavReveal(): void {
+  try {
+    sessionStorage.removeItem(PXNAV_KEY);
+  } catch {
+    /* nothing to clear */
+  }
+  if (document.hidden) {
+    document.documentElement.classList.remove("px-boot");
+    return;
+  }
+  runCurtain("out", () => {
+    document.documentElement.classList.remove("px-boot");
+    document.getElementById("px-curtain")?.remove();
+  });
+}
+
+function initPixelNav(): void {
+  /* Boot after a covered navigation: the head script has already put
+     the solid cover up (html.px-boot); dissolve it. */
+  if (document.documentElement.classList.contains("px-boot")) {
+    requestAnimationFrame(() => pxNavReveal());
+  }
+
+  addEventListener("pageshow", (e) => {
+    /* bfcache restore: the page may come back frozen mid-curtain. */
+    if ((e as PageTransitionEvent).persisted) {
+      document.documentElement.classList.remove("px-boot");
+      document.getElementById("px-curtain")?.remove();
+    }
+  });
+
+  document.addEventListener(
+    "click",
+    (e) => {
+      if (e.defaultPrevented) return;
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
+        return;
+      const a = (e.target as Element | null)?.closest?.("a");
+      if (!a) return;
+      const href = a.getAttribute("href");
+      if (!href || href.startsWith("#")) return;
+      if (a.target && a.target !== "_self") return;
+      if (a.hasAttribute("download")) return;
+      if (a.relList?.contains("external")) return;
+      let url: URL;
+      try {
+        url = new URL(a.href, location.href);
+      } catch {
+        return;
+      }
+      if (url.origin !== location.origin) return;
+      if (
+        url.pathname === location.pathname &&
+        url.search === location.search &&
+        url.hash === location.hash
+      )
+        return;
+      /* The blog/photos SPAs handle their own internal links through
+         pushState (defaultPrevented); native navigations get the
+         curtain. */
+      e.preventDefault();
+      pxNavGo(url.href);
+    },
+    false,
+  );
+}
+
 /* ---------- entry point ---------- */
 
 /** Wire every decoration. Safe to call more than once (guarded by the
@@ -316,6 +509,7 @@ export function initFx(): void {
   injectPixelFilters();
   root.classList.add("fx-on");
   patchHistoryTransitions();
+  initPixelNav();
 
   const start = () =>
     /* Two frames: React's first commit lands between them, so the

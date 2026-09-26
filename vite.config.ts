@@ -89,8 +89,16 @@ function subSiteEntryFallbackPlugin() {
    precedence). Keep the two in step. */
 const HEAD_INIT = `<script>(function(){try{var q=new URLSearchParams(location.search);var t=q.get("theme");t=(t==="dark"||t==="light")?t:localStorage.getItem("blog-theme");if(t===null)t="dark";document.documentElement.dataset.theme=t;var l=q.get("lang");l=(l==="en"||l==="zh")?l:localStorage.getItem("blog-lang");document.documentElement.lang=l==="zh"?"zh-Hans":"en";}catch(e){document.documentElement.dataset.theme="dark"}})();</script>`;
 
+/* Pre-paint cover for the pixel navigation curtain: when the previous
+   page covered itself before jumping here, this must be on the very
+   first frame — a stylesheet-loaded cover would let the browser's
+   default white flash through on slow loads. The dark background
+   inline is the same anti-FOUC guard. */
+const HEAD_COVER = `<style>html{background:#060608}html[data-theme="light"]{background:#f2f3ee}html.px-boot::after{content:"";position:fixed;inset:0;z-index:3000;pointer-events:none;background:#060608}</style><script>(function(){try{var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;if(!reduce&&sessionStorage.getItem("px-nav")==="1"){document.documentElement.classList.add("px-boot")}}catch(e){}})();</script>`;
+
 const SHARED_HEAD = [
   HEAD_INIT,
+  HEAD_COVER,
   `<meta name="author" content="Eververdants" />`,
   `<meta name="theme-color" content="#060608" />`,
   `<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f3ee" />`,
