@@ -92,18 +92,16 @@ const HEAD_INIT = `<script>(function(){try{var q=new URLSearchParams(location.se
 const SHARED_HEAD = [
   HEAD_INIT,
   `<meta name="author" content="Eververdants" />`,
-  `<meta name="theme-color" content="#0a0c0f" />`,
-  `<meta name="theme-color" media="(prefers-color-scheme: light)" content="#eae6d5" />`,
+  `<meta name="theme-color" content="#060608" />`,
+  `<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f3ee" />`,
   `<link rel="icon" href="/favicon.svg" type="image/svg+xml" />`,
   `<link rel="icon" href="/favicon.png" type="image/png" />`,
   `<link rel="apple-touch-icon" href="/apple-touch-icon.png" />`,
   `<link rel="manifest" href="/site.webmanifest" />`,
-  /* Self-hosted pixel faces: one static file each. crossorigin is
-     required even same-origin because font fetches are always
-     CORS-mode. The old Inter/Fraunces files stay on disk but nothing
-     links them any more. */
-  `<link rel="preload" href="/fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin />`,
-  `<link rel="preload" href="/fonts/vt323-latin.woff2" as="font" type="font/woff2" crossorigin />`,
+  /* Self-hosted variable Inter covers every display and UI weight.
+     crossorigin is required even same-origin because font fetches
+     are always CORS-mode. */
+  `<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />`,
   /* Machine-readable surface that generative engines follow. */
   `<link rel="alternate" type="application/rss+xml" title="Eververdants — Blog" href="https://eververdants.github.io/rss.xml" />`,
   `<link rel="alternate" type="application/json" title="Site & identity" href="https://eververdants.github.io/site.json" />`,

@@ -49,21 +49,17 @@ site-topbar {
   border-radius: var(--r-flat);
   object-fit: cover;
   border: 1px solid var(--glass-border);
-  /* The avatar is a saturated mint glyph; dropped to a warm duotone it
-     reads as a plate stamp instead of a sticker on top of the sheet. */
-  filter: grayscale(1) sepia(0.5) hue-rotate(-13deg) contrast(1.08)
-    saturate(0.72) brightness(0.98);
+  /* The mint original already sits in the surge's palette — no
+     filter, just the hairline frame. */
 }
 
-/* The wordmark is the machine's nameplate: the pixel face at its one
- * size, letterspaced to sit on the character grid. No weight axis —
- * the face carries itself. */
+/* The wordmark is the machine's nameplate: the heavy grotesk, set
+ * tight and slightly tracked out so it reads as a logotype. */
 .stb-wordmark {
-  font-family: var(--font-pixel);
-  font-weight: 400;
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 13.5px;
+  letter-spacing: 0.06em;
   color: var(--ink);
   white-space: nowrap;
 }

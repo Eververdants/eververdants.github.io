@@ -1,5 +1,5 @@
 /* ============================================================
-   Shared motion layer — the terminal's micro-interactions
+   Shared motion layer — the surge's micro-interactions
    ------------------------------------------------------------
    Everything here is presentation only and everything degrades:
      · Scroll reveals key off [data-fx] / [data-reveal]. The hidden
@@ -7,29 +7,32 @@
        shared/fx.ts — so without JS nothing is ever hidden.
      · prefers-reduced-motion: reduce gets the visible state forced
        back and every animation/transition dropped.
-   The vocabulary: characters dissolve in on a stepped timing (the
-   pixel fade), display type splits into red/blue phosphor ghosts
-   on hover and in one rare ambient glitch, a small hollow square
-   trails the pointer like a selection marquee, and the page boots
-   once with a short power-on dissolve.
+   The vocabulary: sections and characters dissolve in on a stepped
+   timing (the pixel fade — opacity only, no sliding), the page
+   boots once with a short power-on dissolve, and a small hollow
+   square trails the pointer like a selection marquee.
    ============================================================ */
 
-/* ---------- scroll reveal ---------- */
+/* ---------- scroll reveal: the pixel dissolve ---------- */
 @media (prefers-reduced-motion: no-preference) {
   html.fx-on [data-fx]:not([data-fx="chars"]):not(.fx-in),
   html.fx-on [data-reveal]:not(.is-in) {
     opacity: 0;
-    transform: translateY(10px);
   }
 
   html.fx-on [data-fx].fx-in:not([data-fx="chars"]),
   html.fx-on [data-reveal].is-in {
-    opacity: 1;
-    transform: none;
-    transition:
-      opacity 420ms var(--ease-out),
-      transform 420ms var(--ease-out);
-    transition-delay: var(--reveal-delay, var(--fx-delay, 0ms));
+    animation: fx-dissolve 480ms steps(8, end) both;
+    animation-delay: var(--reveal-delay, var(--fx-delay, 0ms));
+  }
+
+  @keyframes fx-dissolve {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   /* Character dissolve: fx.ts splits the element's text into .fx-ch
@@ -38,18 +41,14 @@
   html.fx-on [data-fx="chars"] .fx-ch {
     display: inline-block;
     opacity: 0;
-    transform: translateY(0.18em);
   }
   html.fx-on [data-fx="chars"].fx-in .fx-ch {
     opacity: 1;
-    transform: none;
-    transition:
-      opacity 320ms var(--ease-out),
-      transform 320ms var(--ease-out);
-    transition-delay: calc(var(--fx-i, 0) * 30ms);
+    transition: opacity 300ms steps(5, end);
+    transition-delay: calc(var(--fx-i, 0) * 32ms);
   }
 
-  /* One-time power-on: the screen warms up in five visible steps.
+  /* One-time power-on: the field surfaces in five visible steps.
      Opacity only — a body filter would turn it into the containing
      block for the fixed top bar and make it jump. */
   html.fx-on body {
@@ -66,48 +65,6 @@
   }
 }
 
-/* ---------- glitch vocabulary ----------
-   The dream ink shows only while the screen slips: a two-pixel
-   phosphor/violet split plus a two-step jitter. It lives on hover
-   of display type and on the rare ambient pass fx.ts schedules. */
-@keyframes fx-jitter {
-  0% {
-    translate: 0 0;
-  }
-  25% {
-    translate: -1px 0;
-  }
-  50% {
-    translate: 1px 0;
-  }
-  75% {
-    translate: 0 -1px;
-  }
-  100% {
-    translate: 0 0;
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .display {
-    transition: text-shadow 140ms steps(2, end);
-  }
-  .display:hover,
-  .display:focus-visible {
-    text-shadow:
-      2px 0 0 var(--accent-2),
-      -2px 0 0 var(--accent);
-    animation: fx-jitter 260ms steps(2, end) 1;
-  }
-
-  .fx-glitching {
-    text-shadow:
-      2px 0 0 var(--accent-2),
-      -2px 0 0 var(--accent) !important;
-    animation: fx-jitter 220ms steps(2, end) 1;
-  }
-}
-
 /* ---------- ghost cursor ----------
    A hollow square that trails the pointer with a little lag — the
    marquee you never drew. Pointer-transparent, decorative, and only
@@ -118,7 +75,7 @@
   top: 0;
   width: 14px;
   height: 14px;
-  z-index: calc(var(--z-crt) + 5);
+  z-index: calc(var(--z-toast) + 5);
   pointer-events: none;
   border: 1px solid var(--accent);
   opacity: 0;

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges">
-  <!-- Pixel "W" on the dark tube: one green phosphor glyph, no antialiasing. -->
-  <rect width="16" height="16" fill="#0a0c0f"/>
-  <g fill="#6bf190">
+  <!-- Pixel "W" on the dark field: one lime spot glyph, no antialiasing. -->
+  <rect width="16" height="16" fill="#060608"/>
+  <g fill="#c6ff4d">
     <!-- left stem -->
     <rect x="2" y="3" width="2" height="10"/>
     <!-- right stem -->

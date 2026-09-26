@@ -1,7 +1,7 @@
 /* Shared motion engine — one implementation for all five entries.
  *
  * Framework-free on purpose (the /projects entry is vanilla TS and the
- * React entries just call this once from their bootstrap). It wires four
+ * React entries just call this once from their bootstrap). It wires three
  * decorations, all of them no-ops when the reader asks for less motion:
  *
  *   1. scroll reveals   — [data-fx] dissolves in once, on a stepped
@@ -9,12 +9,10 @@
  *                         existing hooks) gets the same treatment under
  *                         its own .is-in class.
  *   2. character reveal — [data-fx="chars"] splits its text into cells
- *                         that fade up one after another. The original
- *                         string is preserved on aria-label so the
- *                         accessible name never changes.
- *   3. ambient glitch   — [data-fx-glitch] targets slip once every
- *                         7–12 seconds for a fraction of a second.
- *   4. ghost cursor     — a hollow square trailing the pointer, fine
+ *                         that dissolve in one after another. The
+ *                         original string is preserved on aria-label so
+ *                         the accessible name never changes.
+ *   3. ghost cursor     — a hollow square trailing the pointer, fine
  *                         pointers only.
  *
  * Everything the CSS keys off lives behind `html.fx-on`, added here —
@@ -126,39 +124,10 @@ function initReveals(): void {
   mo.observe(document.body, { childList: true, subtree: true });
 }
 
-/* ---------- ambient glitch ---------- */
-
-function initAmbientGlitch(): void {
-  /* Re-queried on every pass: the top bar re-renders on language/theme
-     changes, so a cached list would go stale after the first one. */
-  const slip = () => {
-    const targets = document.querySelectorAll<HTMLElement>(
-      "[data-fx-glitch]",
-    );
-    if (targets.length > 0) {
-      targets.forEach((el) => {
-        el.classList.add("fx-glitching");
-        setTimeout(() => el.classList.remove("fx-glitching"), 240);
-      });
-    }
-    schedule();
-  };
-
-  function schedule() {
-    /* Decoration timing only — nothing here keys off randomness for
-       security, so Math.random is the honest tool. */
-    const wait = 7000 + Math.random() * 5000;
-    setTimeout(() => {
-      if (document.hidden) {
-        schedule();
-        return;
-      }
-      slip();
-    }, wait);
-  }
-
-  schedule();
-}
+/* ---------- ambient glitch ----------
+   Retired with the terminal direction. The surge's atmosphere is the
+   dissolve, not the glitch; the hook ([data-fx-glitch]) is simply
+   ignored now. */
 
 /* ---------- ghost cursor ---------- */
 
@@ -254,7 +223,6 @@ export function initFx(): void {
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
         initReveals();
-        initAmbientGlitch();
         initGhostCursor();
       }),
     );
