@@ -101,15 +101,17 @@
   box-shadow: 3px 3px 0 var(--accent-2-soft);
 }
 
-/* ---------- navigation transitions: the pixel wipe ----------
-   The CapCut/Jimeng mosaic, one deterministic path for every
-   browser (fx.ts click interception):
+/* ---------- navigation transitions ----------
+   Inter-entry jumps run the ignition curtain (fx.ts click
+   interception): a dense field of tiny blocks materialises as grey
+   static out of the click point, ignites into colour, settles onto
+   the page's field colour, and the next page opens by discharging
+   that wall back to nothing.
 
-     click → canvas blocks flood the frozen page (240ms), ending on
-     a fixed checker → navigate while fully covered → the new page's
-     first frame is the same checker (inline head cover, html.px-boot)
-     → once React has actually mounted the content, the blocks
-     dissolve away (320ms).
+     click → blocks appear grey (无色) → colour wave → opaque field
+     wall → navigate → the new page's first frame is the same wall
+     (inline head cover, html.px-boot) → once React has actually
+     mounted the content, the blocks flare colour and dissolve.
 
    Cross-document view transitions were evaluated and rejected: they
    snapshot the new page before its framework mounts, and this site's
@@ -118,35 +120,39 @@
 
    SPA scene switches (blog index ↔ article) still use same-document
    view transitions — the framework commits inside the transition's
-   callback there, so the real frame is pixelated. */
+   callback there, so the real frame is pixelated. They carry the same
+   signature as the curtain: the outgoing scene drains to grey as it
+   breaks up, the incoming one floods back into colour. */
 
 @keyframes vt-px-out {
   0% {
+    /* The outgoing scene starts fully saturated — it drains as it
+       breaks up. No saturate() call needed for the identity value. */
     filter: url("#pxf4");
   }
-  22% {
-    filter: url("#pxf8");
+  24% {
+    filter: url("#pxf8") saturate(0.72);
   }
-  48% {
-    filter: url("#pxf16");
+  52% {
+    filter: url("#pxf16") saturate(0.34);
   }
-  72% {
-    filter: url("#pxf32");
+  78% {
+    filter: url("#pxf32") saturate(0.06);
   }
   100% {
-    filter: url("#pxf32");
+    filter: url("#pxf32") saturate(0) brightness(1.25);
   }
 }
 
 @keyframes vt-px-in {
   0% {
-    filter: url("#pxf32");
+    filter: url("#pxf32") saturate(0) brightness(1.25);
   }
-  30% {
-    filter: url("#pxf16");
+  34% {
+    filter: url("#pxf16") saturate(1.35) brightness(1.06);
   }
-  60% {
-    filter: url("#pxf8");
+  68% {
+    filter: url("#pxf8") saturate(1.7) brightness(1.02);
   }
   100% {
     filter: none;

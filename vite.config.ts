@@ -92,11 +92,15 @@ const HEAD_INIT = `<script>(function(){try{var q=new URLSearchParams(location.se
 /* Pre-paint cover for the pixel navigation curtain: when the previous
    page covered itself before jumping here, this must be on the very
    first frame — a stylesheet-loaded cover would let the browser's
-   default white flash through on slow loads. The cover is the same
-   48px checker the canvas curtain ends on, so the handoff from the
-   curtain to this static tile is seamless; the dark background
-   inline is the anti-FOUC guard. */
-const HEAD_COVER = `<style>html{background:#060608}html[data-theme="light"]{background:#f2f3ee}html.px-boot::after{content:"";position:fixed;inset:0;z-index:3000;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2748%27%20height=%2748%27%20shape-rendering=%27crispEdges%27%3E%3Crect%20x=%270%27%20y=%270%27%20width=%2724%27%20height=%2724%27%20fill=%27%23060608%27/%3E%3Crect%20x=%2724%27%20y=%270%27%20width=%2724%27%20height=%2724%27%20fill=%27%230b0b10%27/%3E%3Crect%20x=%270%27%20y=%2724%27%20width=%2724%27%20height=%2724%27%20fill=%27%230e0e13%27/%3E%3Crect%20x=%2724%27%20y=%2724%27%20width=%2724%27%20height=%2724%27%20fill=%27%23090910%27/%3E%3C/svg%3E") 0 0/48px 48px;animation:px-crawl 1.6s steps(4) infinite}@keyframes px-crawl{to{background-position:96px 96px}}</style><script>(function(){try{var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;if(!reduce&&sessionStorage.getItem("px-nav")==="1"){document.documentElement.classList.add("px-boot")}}catch(e){}})();</script>`;
+   default white flash through on slow loads. The cover is the flat
+   field colour the canvas curtain settles on, so the handoff is
+   literally the same pixels; the inline background is the anti-FOUC
+   guard. Keep the two colours in step with --bg in tokens.css and
+   with SCHEMES.field in src/shared/fx.ts.
+   The reduced-motion escape is inline on purpose: if the reader asked
+   for less motion, fx.ts never runs, so nothing would ever take a
+   cover put up by this script back down. */
+const HEAD_COVER = `<style>html{background:#060608}html[data-theme="light"]{background:#f2f3ee}html.px-boot::after{content:"";position:fixed;inset:0;z-index:3000;pointer-events:none;background:#060608}html[data-theme="light"].px-boot::after{background:#f2f3ee}@media (prefers-reduced-motion:reduce){html.px-boot::after{display:none}}</style><script>(function(){try{var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;if(!reduce&&sessionStorage.getItem("px-nav")==="1"){document.documentElement.classList.add("px-boot")}}catch(e){}})();</script>`;
 
 /* Prerender same-origin pages on hover intent (Chromium): by the time
    the click lands, the target page — including its framework render —

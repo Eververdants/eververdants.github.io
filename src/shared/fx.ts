@@ -300,170 +300,439 @@ function patchHistoryTransitions(): void {
   );
 }
 
-/* ---------- cross-document pixel wipe ----------
-   The CapCut/Jimeng curtain. Cross-document view transitions have a
-   hard flaw: the new document's load time is unbounded, and once the
-   old page's out-animation ends the screen shows whatever the new
+/* ---------- cross-document pixel curtain ----------
+   The ignition curtain. Cross-document view transitions have a hard
+   flaw: the new document's load time is unbounded, and once the old
+   page's out-animation ends the screen shows whatever the new
    document has painted — often nothing (white). So inter-entry jumps
    use a deterministic curtain instead:
 
-     click → blocks flood the frozen page (240ms) → navigate while
-     fully covered → the new page boots under a solid cover (inline
-     head script + html.px-boot, before first paint) → the blocks
-     dissolve away (320ms).
+     click → a dense field of tiny blocks materialises out of the
+     click point as grey static (无色) → a second wave ignites them
+     into colour → everything settles onto the page's own field
+     colour → navigate while fully covered → the new page's first
+     frame is that same wall (inline head cover, html.px-boot) → the
+     wall discharges: blocks flare colour, drain to grey, and
+     dissolve away.
 
-   No white is ever possible: the cover exists from the click to the
-   reveal, across the navigation. SPA scene switches keep the true
-   snapshot pixelation (same-document view transitions, below). */
+   No white is ever possible: something opaque covers the screen from
+   the moment of the click until the new page is actually mounted.
+   SPA scene switches keep the true snapshot pixelation (same-document
+   view transitions, below). */
 const PXNAV_KEY = "px-nav";
-const PX_CELL = 24;
+const PX_CELL = 10; /* CSS px per block — dense on purpose */
+const PX_MAX_CELLS = 26000; /* per-frame budget guard */
+/* Long enough to read as two beats — the grey field forms, holds, then
+   the colour wave chases it outward. A single beat would just look
+   like noise. */
+const PX_COVER_MS = 520;
+const PX_REVEAL_MS = 500;
+const PX_MOUNT_CAP = 1200; /* give up waiting for React and reveal */
+const PX_FAILSAFE_MS = 4000; /* never trap the reader behind a wall */
 
-/* The curtain's resting pattern: a 2×2 checker of the field's dark
-   tones. It must match the CSS tile in the shared head exactly —
-   the wall the canvas ends on IS the wall the boot cover shows. */
-const CHECKER = ["#060608", "#0b0b10", "#0e0e13", "#090910"];
-const checkerColor = (col: number, row: number): string =>
-  CHECKER[((row & 1) << 1) | (col & 1)];
+/** True once a covered navigation is underway — a second click must
+ * not start a second curtain. */
+let pxNavigating = false;
 
-/** A full-screen canvas mosaic. `dir "in"` floods the screen block by
- * block; `dir "out"` dissolves it away. Steps are discrete — seven
- * visible frames, like reference frames dropped on purpose. */
-function runCurtain(dir: "in" | "out", done: () => void): void {
+type RGB = readonly [number, number, number];
+
+/* Two schemes, keyed off html[data-theme] — the wall the curtain ends
+   on is the page's own background, so the handoff to the next page's
+   cover (and out of it) is invisible. Keep these in step with --bg in
+   tokens.css and with the inline head cover in vite.config.ts. */
+interface Scheme {
+  field: RGB;
+  greys: RGB[]; /* the 无色 ramp: static, before ignition */
+  chroma: RGB[]; /* the 有色 ramp: cyan → violet → lime */
+  spark: RGB; /* a few blocks flare harder than the rest */
+}
+
+/** Interpolate a stop list into a flat lookup table once, so the
+ * per-frame hot loop only ever indexes an array. */
+function ramp(stops: RGB[], n = 24): RGB[] {
+  const out: RGB[] = [];
+  const seg = stops.length - 1;
+  for (let i = 0; i < n; i++) {
+    const t = (i / (n - 1)) * seg;
+    const k = Math.min(seg - 1, Math.floor(t));
+    const f = t - k;
+    const a = stops[k];
+    const b = stops[k + 1];
+    out.push([
+      Math.round(a[0] + (b[0] - a[0]) * f),
+      Math.round(a[1] + (b[1] - a[1]) * f),
+      Math.round(a[2] + (b[2] - a[2]) * f),
+    ]);
+  }
+  return out;
+}
+
+const SCHEMES: Record<"dark" | "light", Scheme> = {
+  dark: {
+    field: [6, 6, 8],
+    greys: [
+      [24, 25, 31],
+      [42, 44, 53],
+      [62, 65, 76],
+      [88, 92, 106],
+    ],
+    chroma: ramp([
+      [89, 241, 255],
+      [110, 168, 255],
+      [167, 139, 250],
+      [198, 255, 77],
+    ]),
+    spark: [236, 255, 255],
+  },
+  light: {
+    field: [242, 243, 238],
+    greys: [
+      [150, 153, 144],
+      [186, 189, 178],
+      [216, 218, 209],
+      [239, 240, 233],
+    ],
+    chroma: ramp([
+      [14, 116, 144],
+      [31, 95, 139],
+      [61, 90, 158],
+      [68, 112, 14],
+    ]),
+    spark: [4, 52, 68],
+  },
+};
+
+function schemeFor(): Scheme {
+  return document.documentElement.dataset.theme === "light"
+    ? SCHEMES.light
+    : SCHEMES.dark;
+}
+
+/* The curtain is drawn as one ImageData of cols×rows — a single pixel
+   per block — then blitted up with smoothing off. Nearest-neighbour
+   upscaling is what makes the blocks crisp, and it means the frame
+   costs one drawImage instead of tens of thousands of fillRects.
+   Because the upscale does the work, the bitmap needs no devicePixel-
+   Ratio scaling at all: blocks stay exact on every display. */
+interface Curtain {
+  el: HTMLCanvasElement;
+  /** Cover: grey static appears, colour ignites, settles to field. */
+  cover: (p: number) => void;
+  /** Reveal: colour flares, drains to grey, dissolves. */
+  reveal: (p: number) => void;
+  /** Full opaque wall, breathing — the wait for the new page. */
+  hold: (t: number) => void;
+}
+
+function createCurtain(origin?: { x: number; y: number }): Curtain | null {
+  const w = Math.max(1, window.innerWidth);
+  const h = Math.max(1, window.innerHeight);
+  let cell = PX_CELL;
+  while (Math.ceil(w / cell) * Math.ceil(h / cell) > PX_MAX_CELLS) cell += 2;
+  const cols = Math.ceil(w / cell);
+  const rows = Math.ceil(h / cell);
+  const total = cols * rows;
+
   const canvas = document.createElement("canvas");
   canvas.id = "px-curtain";
   canvas.setAttribute("aria-hidden", "true");
-  canvas.style.cssText = "position:fixed;inset:0;z-index:3000;pointer-events:none";
-  document.documentElement.appendChild(canvas);
-
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  canvas.width = w * dpr;
-  canvas.height = h * dpr;
-  /* Without an explicit CSS size the canvas renders at its bitmap
-     size — on any display scaling ≠ 100% (dpr 1.25/1.5) that is
-     LARGER than the viewport, and the curtain then covers only the
-     top-left corner while the rest of the screen flashes bare. */
-  canvas.style.width = `${w}px`;
-  canvas.style.height = `${h}px`;
+  /* 3001, above the head script's CSS wall (3000): while both are up
+     the canvas must win, or the handoff would show the CSS wall
+     instead of the curtain.
+     · 100vw/100vh rather than inset:0 — viewport units don't subtract
+       the classic scrollbar, and `inset:0` does, which left a bare
+       10–15px gutter of live page down the right edge (the bitmap is
+       sized from innerWidth, so the two must agree).
+     · Explicit width/height rather than the bitmap size, so a display
+       scale ≠ 100% can't render the curtain larger than the screen.
+     · image-rendering: pixelated because the bitmap is one pixel per
+       block and the compositor then upscales it — without this the
+       blocks would come out smooth on a HiDPI panel. */
+  canvas.style.cssText =
+    "position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:3001;pointer-events:none;image-rendering:pixelated";
+  canvas.width = w;
+  canvas.height = h;
   const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    canvas.remove();
-    done();
-    return;
-  }
-  ctx.scale(dpr, dpr);
+  if (!ctx) return null;
 
-  const cols = Math.ceil(w / PX_CELL);
-  const rows = Math.ceil(h / PX_CELL);
-  const total = cols * rows;
-  const order = new Array(total);
-  for (let i = 0; i < total; i++) order[i] = i;
-  /* Fisher–Yates with Math.random: decoration timing, not secrets. */
-  for (let i = total - 1; i > 0; i--) {
-    const j = (Math.random() * (i + 1)) | 0;
-    const t = order[i];
-    order[i] = order[j];
-    order[j] = t;
-  }
-  const colorOf = (rank: number): string => {
-    const col = rank % cols;
-    const row = Math.floor(rank / cols);
-    return checkerColor(col, row);
-  };
+  const buf = document.createElement("canvas");
+  buf.width = cols;
+  buf.height = rows;
+  const bctx = buf.getContext("2d");
+  if (!bctx) return null;
+  const img = bctx.createImageData(cols, rows);
+  const data = img.data;
 
-  const STEPS = 7;
-  let step = dir === "in" ? 1 : STEPS;
-  const draw = () => {
-    /* Stateless redraw: `shown` is how many of the shuffled blocks are
-       on screen. "in" floods from the front; "out" empties from the
-       front, so the reveal order mirrors the cover order. */
+  /* Per-cell constants, computed once: when the cell is reached by
+     the wave, which grey it starts as, which colour it ignites to. */
+  const ox = origin ? origin.x : w / 2;
+  const oy = origin ? origin.y : h / 2;
+  const far =
+    Math.max(
+      Math.hypot(ox, oy),
+      Math.hypot(w - ox, oy),
+      Math.hypot(ox, h - oy),
+      Math.hypot(w - ox, h - oy),
+    ) || 1;
+  const birth = new Float32Array(total);
+  const tone = new Float32Array(total);
+  const hue = new Float32Array(total);
+  const spark = new Float32Array(total);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const i = r * cols + c;
+      const d =
+        Math.hypot((c + 0.5) * cell - ox, (r + 0.5) * cell - oy) / far;
+      /* Noise on the wavefront: a clean circle reads as a ripple,
+         a jittered one reads as a field catching fire. */
+      birth[i] = clamp01(d * 0.9 + (Math.random() - 0.5) * 0.16);
+      tone[i] = Math.random();
+      /* The colour index tracks distance, with only a little jitter:
+         a shot-silk sweep reads as designed, per-cell random hues
+         would read as television snow. */
+      hue[i] = clamp01(d * 0.78 + (Math.random() - 0.5) * 0.16);
+      spark[i] = Math.random();
+    }
+  }
+
+  const blit = () => {
+    bctx.putImageData(img, 0, 0);
+    ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, w, h);
-    const shown = Math.ceil((step / STEPS) * total);
-    const from = dir === "in" ? 0 : total - shown;
-    const to = dir === "in" ? shown : total;
-    for (let k = from; k < to; k++) {
-      const rank = order[k];
-      const x = (rank % cols) * PX_CELL;
-      const y = Math.floor(rank / cols) * PX_CELL;
-      ctx.fillStyle = colorOf(rank);
-      ctx.fillRect(x, y, PX_CELL, PX_CELL);
-    }
+    ctx.drawImage(buf, 0, 0, cols * cell, rows * cell);
   };
 
-  const start = performance.now();
-  const tick = () => {
-    const dur = dir === "in" ? 240 : 320;
-    const p = Math.min((performance.now() - start) / dur, 1);
-    const next =
-      dir === "in"
-        ? Math.max(1, Math.floor(p * STEPS))
-        : STEPS - Math.floor(p * STEPS);
-    if (next !== step) {
-      step = next;
-      draw();
+  const cover = (p: number) => {
+    const { field, greys, chroma, spark: sc } = schemeFor();
+    const gn = greys.length - 1;
+    const cn = chroma.length - 1;
+    for (let i = 0; i < total; i++) {
+      const b = birth[i];
+      /* Two beats, then the landing: grey static fills the screen by
+         0.42 and sits there for a moment, the colour wave leaves the
+         origin at 0.52, and from 0.84 everything cools onto the
+         page's own field colour. Levels are quantised so the field
+         snaps rather than fades — digital, not filmic. */
+      const a = quant(span(p, b * 0.26, 0.16), 3);
+      const c = quant(span(p, b * 0.26 + 0.52, 0.24), 4);
+      const s = span(p, 0.84, 0.16);
+      const g = greys[(tone[i] * gn) | 0];
+      const t = spark[i] > 0.94 ? sc : chroma[(hue[i] * cn) | 0];
+      const o = i * 4;
+      data[o] = mix(mix(g[0], t[0], c), field[0], s);
+      data[o + 1] = mix(mix(g[1], t[1], c), field[1], s);
+      data[o + 2] = mix(mix(g[2], t[2], c), field[2], s);
+      data[o + 3] = a * 255;
     }
+    blit();
+  };
+
+  const reveal = (p: number) => {
+    const { field, greys, chroma, spark: sc } = schemeFor();
+    const gn = greys.length - 1;
+    const cn = chroma.length - 1;
+    for (let i = 0; i < total; i++) {
+      const b = birth[i];
+      const f = quant(span(p, b * 0.44, 0.2), 2);
+      const g = span(p, b * 0.44 + 0.22, 0.34);
+      const gc = greys[(tone[i] * gn) | 0];
+      const t = spark[i] > 0.94 ? sc : chroma[(hue[i] * cn) | 0];
+      /* field → colour is the discharge; colour → grey → gone is the
+         drain, so the wave leaves grey embers behind it. The drain
+         only half-desaturates, so the ring keeps its colour while it
+         is still opaque and greys out as it thins. */
+      const o = i * 4;
+      data[o] = mix(mix(field[0], t[0], f), gc[0], g * 0.45);
+      data[o + 1] = mix(mix(field[1], t[1], f), gc[1], g * 0.45);
+      data[o + 2] = mix(mix(field[2], t[2], f), gc[2], g * 0.45);
+      data[o + 3] = (1 - g) * 255;
+    }
+    blit();
+  };
+
+  const hold = (t: number) => {
+    const { field, chroma } = schemeFor();
+    const cn = chroma.length - 1;
+    /* A slow band of colour crossing the wall: proof that the page is
+       alive while the framework mounts under it. Never transparent —
+       the wall must stay opaque until there is something behind it. */
+    const band = ((t / 1400) % 1) * (rows + 30) - 15;
+    for (let r = 0; r < rows; r++) {
+      const k = Math.max(0, 1 - Math.abs(r - band) / 5);
+      for (let c = 0; c < cols; c++) {
+        const i = r * cols + c;
+        const tw = ((t / 900 + spark[i]) % 1) < 0.1 ? 0.6 : 0;
+        const m = Math.min(1, k * 0.35 + tw);
+        const ch = chroma[(hue[i] * cn) | 0];
+        const o = i * 4;
+        data[o] = mix(field[0], ch[0], m);
+        data[o + 1] = mix(field[1], ch[1], m);
+        data[o + 2] = mix(field[2], ch[2], m);
+        data[o + 3] = 255;
+      }
+    }
+    blit();
+  };
+
+  return { el: canvas, cover, reveal, hold };
+}
+
+const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v);
+/** Where `p` sits inside the window [start, start+len], as 0…1. */
+const span = (p: number, start: number, len: number): number =>
+  clamp01((p - start) / len);
+/** Snap to `steps` levels — the stepped look the effect is after. */
+const quant = (v: number, steps: number): number =>
+  Math.ceil(v * steps) / steps;
+const mix = (a: number, b: number, t: number): number => a + (b - a) * t;
+
+/** Drive a 0→1 render over `dur` ms. Returns a cancel handle. */
+function animate(
+  render: (p: number) => void,
+  dur: number,
+  done: () => void,
+): () => void {
+  const start = performance.now();
+  let raf = 0;
+  const step = () => {
+    const p = Math.min((performance.now() - start) / dur, 1);
+    render(p);
     if (p < 1) {
-      requestAnimationFrame(tick);
+      raf = requestAnimationFrame(step);
     } else {
-      step = dir === "in" ? STEPS : 0;
-      draw(); /* exact final frame: full cover / fully gone */
+      raf = 0;
       done();
     }
   };
-  draw(); /* first frame: a scattering in, full cover out */
-  requestAnimationFrame(tick);
+  render(0);
+  raf = requestAnimationFrame(step);
+  return () => {
+    if (raf !== 0) cancelAnimationFrame(raf);
+    raf = 0;
+  };
 }
 
-function pxNavGo(href: string): void {
+function pxNavGo(href: string, origin: { x: number; y: number }): void {
+  if (pxNavigating) return;
   if (document.documentElement.classList.contains("px-boot")) return;
+  pxNavigating = true;
   try {
     sessionStorage.setItem(PXNAV_KEY, "1");
   } catch {
     /* private mode: still run the curtain; the boot cover just won't
        be pre-applied on the next page */
   }
-  runCurtain("in", () => {
+  /* A wall is already up — an earlier navigation was refused and the
+     reader clicked again. Never tear that wall down to build another
+     one (the page would show through for a frame); just go. */
+  if (document.getElementById("px-curtain")) {
     location.href = href;
-  });
+    return;
+  }
+  const curtain = createCurtain(origin);
+  if (!curtain) {
+    /* No canvas — no curtain, but never a swallowed click. */
+    location.href = href;
+    return;
+  }
+  document.documentElement.appendChild(curtain.el);
+  animate(
+    (p) => curtain.cover(p),
+    PX_COVER_MS,
+    () => {
+      location.href = href;
+    },
+  );
+  /* If the browser refuses the navigation (blocked, a scheme it won't
+     follow) the page is still here behind the wall. Give the flag back
+     so the reader can click again — but leave the wall standing:
+     Chrome keeps the old document on screen until the new one
+     commits, and clearing it here would flash the old page back
+     mid-navigation. */
+  window.setTimeout(() => {
+    pxNavigating = false;
+  }, PX_COVER_MS + 2200);
+}
+
+/** Drop every trace of a curtain: the CSS wall and the canvas. */
+function pxClear(): void {
+  document.documentElement.classList.remove("px-boot");
+  document.getElementById("px-curtain")?.remove();
 }
 
 function pxNavReveal(): void {
+  const root = document.documentElement;
   try {
     sessionStorage.removeItem(PXNAV_KEY);
   } catch {
     /* nothing to clear */
   }
+  /* A background tab gets no animation and no wall — the reader isn't
+     looking, and a rAF-driven reveal would never run anyway. */
   if (document.hidden) {
-    document.documentElement.classList.remove("px-boot");
+    pxClear();
     return;
   }
-  /* The reveal must show CONTENT, not the empty pre-mount shell —
-     wait until the framework has actually mounted (root/app gains
-     children), with a hard timeout so a slow or failed mount can
-     never trap the reader behind the curtain. */
+
+  const curtain = createCurtain();
+  if (!curtain) {
+    pxClear();
+    return;
+  }
+  /* Order matters: the canvas paints a full opaque wall BEFORE the CSS
+     wall is dropped, and it sits above it, so there is never a frame
+     where the un-mounted page shows through. */
+  root.appendChild(curtain.el);
+  curtain.cover(1);
+  root.classList.remove("px-boot");
+  /* Keeps the one-time boot fade out of the reveal's way. */
+  root.classList.add("px-arrived");
+
+  let stopHold = () => {};
+  let stopReveal: (() => void) | null = null;
+  /* If anything at all goes wrong — mount never happens, a frame
+     throws — the wall comes down rather than trapping the reader. */
+  const failsafe = window.setTimeout(() => {
+    stopHold();
+    stopReveal?.();
+    pxClear();
+  }, PX_FAILSAFE_MS);
+
+  let last = 0;
+  const t0 = performance.now();
+  const holdStep = (t: number) => {
+    /* Throttled: this can run for a second on a cold load. */
+    if (t - last >= 40) {
+      last = t;
+      curtain.hold(t - t0);
+    }
+    rafHold = requestAnimationFrame(holdStep);
+  };
+  let rafHold = requestAnimationFrame(holdStep);
+  stopHold = () => {
+    if (rafHold !== 0) cancelAnimationFrame(rafHold);
+    rafHold = 0;
+  };
+
   const start = performance.now();
   const mounted = () =>
     !!document.querySelector("#root > *, #app > *") ||
-    document.readyState === "complete" ||
-    performance.now() - start > 1500;
+    performance.now() - start > PX_MOUNT_CAP;
   const wait = () => {
     if (!mounted()) {
       requestAnimationFrame(wait);
       return;
     }
-    /* Order matters: runCurtain paints the full checker synchronously
-       BEFORE the CSS cover class is dropped, so there is no paint
-       between the two walls — the dissolve uncovers the live page
-       directly. The px-arrived marker keeps the boot fade (which
-       would otherwise start the moment px-boot is dropped) out of
-       the dissolve's way. */
-    runCurtain("out", () => {
-      document.documentElement.classList.remove("px-boot");
-      document.getElementById("px-curtain")?.remove();
-    });
-    document.documentElement.classList.add("px-arrived");
-    document.documentElement.classList.remove("px-boot");
+    stopHold();
+    stopReveal = animate(
+      (p) => curtain.reveal(p),
+      PX_REVEAL_MS,
+      () => {
+        window.clearTimeout(failsafe);
+        stopReveal = null;
+        pxClear();
+      },
+    );
   };
   wait();
 }
@@ -518,8 +787,8 @@ function initPixelNav(): void {
   addEventListener("pageshow", (e) => {
     /* bfcache restore: the page may come back frozen mid-curtain. */
     if ((e as PageTransitionEvent).persisted) {
-      document.documentElement.classList.remove("px-boot");
-      document.getElementById("px-curtain")?.remove();
+      pxNavigating = false;
+      pxClear();
     }
   });
 
@@ -543,17 +812,23 @@ function initPixelNav(): void {
         return;
       }
       if (url.origin !== location.origin) return;
-      if (
-        url.pathname === location.pathname &&
-        url.search === location.search &&
-        url.hash === location.hash
-      )
+      /* Same document, different fragment: that's an in-page jump, not
+         a page change — let the browser scroll instead of reloading
+         the whole entry behind a curtain. */
+      if (url.pathname === location.pathname && url.search === location.search)
         return;
       /* The blog/photos SPAs handle their own internal links through
          pushState (defaultPrevented); native navigations get the
          curtain. */
       e.preventDefault();
-      pxNavGo(url.href);
+      /* The curtain is born where the click landed. A keyboard
+         activation reports 0,0 — fall back to the link itself so the
+         wave doesn't start in the corner. */
+      const box = a.getBoundingClientRect();
+      pxNavGo(url.href, {
+        x: e.clientX || box.left + box.width / 2,
+        y: e.clientY || box.top + box.height / 2,
+      });
     },
     false,
   );
