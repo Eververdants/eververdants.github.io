@@ -180,15 +180,29 @@ function initGhostCursor(): void {
   const hotSelectors =
     "a, button, [role='button'], input, textarea, select, label, summary";
 
+  /* The trail loop runs only while the ghost is actually catching up;
+     once it settles the frame stops, so an idle page costs nothing
+     (and headless capture can find a quiet frame). The next
+     pointermove restarts it. */
+  let pendingMove = false;
   const tick = () => {
     gx += (x - gx) * 0.22;
     gy += (y - gy) * 0.22;
     ghost.style.transform = `translate(${gx}px, ${gy}px)`;
-    if (seen) {
-      const el = document.elementFromPoint(gx, gy);
-      ghost.classList.toggle("fx-cursor-hot", !!el?.closest?.(hotSelectors));
+    const el = document.elementFromPoint(gx, gy);
+    ghost.classList.toggle("fx-cursor-hot", !!el?.closest?.(hotSelectors));
+    const settled =
+      Math.abs(x - gx) < 0.5 && Math.abs(y - gy) < 0.5 && !pendingMove;
+    if (settled) {
+      raf = 0;
+      return;
     }
+    pendingMove = false;
     raf = requestAnimationFrame(tick);
+  };
+
+  const wake = () => {
+    if (raf === 0) raf = requestAnimationFrame(tick);
   };
 
   addEventListener(
@@ -196,13 +210,14 @@ function initGhostCursor(): void {
     (e) => {
       x = e.clientX;
       y = e.clientY;
+      pendingMove = true;
       if (!seen) {
         seen = true;
         gx = x;
         gy = y;
         ghost.classList.add("fx-cursor-on");
-        raf = requestAnimationFrame(tick);
       }
+      wake();
     },
     { passive: true },
   );
@@ -212,7 +227,10 @@ function initGhostCursor(): void {
   document.documentElement.addEventListener("pointerleave", () => {
     ghost.classList.remove("fx-cursor-on");
     seen = false;
-    cancelAnimationFrame(raf);
+    if (raf !== 0) {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    }
     ghost.style.transform = "translate(-100px, -100px)";
   });
 }

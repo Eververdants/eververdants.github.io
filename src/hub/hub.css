@@ -577,9 +577,11 @@
     display: none;
   }
   /* The divider is drawn between two items on one line; once the line is
-     allowed to break it would be left hanging at the end of the first. */
+     allowed to break it would be left hanging at the end of the first.
+     Hidden with visibility rather than display so the two text runs keep
+     their flex gap — display:none would merge them into one item. */
   .masthead__sep {
-    display: none;
+    visibility: hidden;
   }
   .strip {
     grid-template-columns: minmax(0, 1fr);
