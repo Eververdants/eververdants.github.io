@@ -18,6 +18,7 @@ import { getPrefs, initPrefs, pick, subscribePrefs } from "../shared/prefs";
 import type { Lang } from "../shared/prefs";
 import { defineTopBar } from "../shared/topbar";
 import { definePalette } from "../shared/palette";
+import { initFx } from "../shared/fx";
 import { applyHead, breadcrumbLd, PERSON, SITE } from "../shared/seo";
 
 /* Language + theme live in blog-lang / blog-theme, so a reader's choices carry
@@ -481,6 +482,10 @@ function renderBody() {
 
 function boot() {
   document.documentElement.classList.add("is-js");
+  /* Motion layer first: it adds html.fx-on before the skeleton paints,
+     so nothing flashes visible and then hides. initReveal() below keeps
+     owning the [data-reveal] lifecycle across language re-renders. */
+  initFx();
   readUrl();
   renderSkeleton();
   renderBody();

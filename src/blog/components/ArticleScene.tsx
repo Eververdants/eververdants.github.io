@@ -586,6 +586,7 @@ export default function ArticleScene({
             <article
               key={lang}
               className="article-content min-w-0"
+              data-fx
               onClick={onArticleClick}
               dangerouslySetInnerHTML={{ __html: html }}
             />

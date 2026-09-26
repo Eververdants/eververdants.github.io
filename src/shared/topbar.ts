@@ -105,7 +105,7 @@ class SiteTopBar extends HTMLElement {
       <div class="stb-bar">
         <a class="stb-brand" href="/" aria-label="${esc(pick(lang, "Eververdants — home", "Eververdants —— 首页"))}">
           <img src="/assets/avatar.webp" alt="" width="32" height="32" />
-          <span class="stb-wordmark">EVERVERDANTS</span>
+          <span class="stb-wordmark" data-fx-glitch>EVERVERDANTS</span>
         </a>
         <nav class="stb-nav" aria-label="${esc(pick(lang, "Primary", "主导航"))}">
           ${NAV.map(link).join("")}

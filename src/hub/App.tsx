@@ -13,7 +13,7 @@
  * prerendered HTML, which is the point: a crawler or a language model
  * reading this page gets the whole navigation graph in one pass. */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { getDeck } from "../data/articles";
 import { resume } from "../data/resume";
 import { getWorks } from "../photos/data/works";
@@ -127,8 +127,8 @@ export default function Hub() {
       <div className="sheet marks">
         <main id="main" className="hub">
           {/* ---------- masthead ---------- */}
-          <section className="masthead rise" aria-labelledby="hub-name">
-            {/* A compass line left on the drawing: the ring motif as
+          <section className="masthead rise" data-fx aria-labelledby="hub-name">
+            {/* A guide box left on the screen: the arc motif as
                 construction geometry rather than scenery. */}
             <span className="arc masthead__arc" aria-hidden="true" />
 
@@ -144,7 +144,11 @@ export default function Hub() {
               </div>
 
               <div className="masthead__text">
-                <h1 id="hub-name" className="display masthead__name">
+                <h1
+                  id="hub-name"
+                  className="display masthead__name"
+                  data-fx="chars"
+                >
                   {c.name}
                 </h1>
                 <p className="masthead__role">
@@ -183,7 +187,11 @@ export default function Hub() {
           </section>
 
           {/* ---------- writing ---------- */}
-          <section className="plate rise rise-1" aria-labelledby="plate-writing">
+          <section
+            className="plate rise rise-1"
+            data-fx
+            aria-labelledby="plate-writing"
+          >
             <div className="plate__no index" aria-hidden="true">
               01
             </div>
@@ -223,7 +231,12 @@ export default function Hub() {
           </section>
 
           {/* ---------- works ---------- */}
-          <section className="plate rise rise-2" aria-labelledby="plate-works">
+          <section
+            className="plate rise rise-2"
+            data-fx
+            style={{ "--fx-delay": "60ms" } as CSSProperties}
+            aria-labelledby="plate-works"
+          >
             <div className="plate__no index" aria-hidden="true">
               02
             </div>
@@ -270,7 +283,12 @@ export default function Hub() {
           </section>
 
           {/* ---------- photographs ---------- */}
-          <section className="plate rise rise-3" aria-labelledby="plate-photos">
+          <section
+            className="plate rise rise-3"
+            data-fx
+            style={{ "--fx-delay": "120ms" } as CSSProperties}
+            aria-labelledby="plate-photos"
+          >
             <div className="plate__no index" aria-hidden="true">
               03
             </div>
@@ -316,7 +334,12 @@ export default function Hub() {
           </section>
 
           {/* ---------- about ---------- */}
-          <section className="plate rise rise-4" aria-labelledby="plate-about">
+          <section
+            className="plate rise rise-4"
+            data-fx
+            style={{ "--fx-delay": "180ms" } as CSSProperties}
+            aria-labelledby="plate-about"
+          >
             <div className="plate__no index" aria-hidden="true">
               04
             </div>
@@ -350,6 +373,7 @@ export default function Hub() {
           {/* ---------- contact ---------- */}
           <section
             className="contact rise rise-5"
+            data-fx
             aria-labelledby="hub-contact"
           >
             <div className="plate__no index" aria-hidden="true">

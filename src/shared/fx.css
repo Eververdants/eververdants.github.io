@@ -1,0 +1,163 @@
+/* ============================================================
+   Shared motion layer — the terminal's micro-interactions
+   ------------------------------------------------------------
+   Everything here is presentation only and everything degrades:
+     · Scroll reveals key off [data-fx] / [data-reveal]. The hidden
+       state only exists under `html.fx-on`, a class added by
+       shared/fx.ts — so without JS nothing is ever hidden.
+     · prefers-reduced-motion: reduce gets the visible state forced
+       back and every animation/transition dropped.
+   The vocabulary: characters dissolve in on a stepped timing (the
+   pixel fade), display type splits into red/blue phosphor ghosts
+   on hover and in one rare ambient glitch, a small hollow square
+   trails the pointer like a selection marquee, and the page boots
+   once with a short power-on dissolve.
+   ============================================================ */
+
+/* ---------- scroll reveal ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  html.fx-on [data-fx]:not([data-fx="chars"]):not(.fx-in),
+  html.fx-on [data-reveal]:not(.is-in) {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  html.fx-on [data-fx].fx-in:not([data-fx="chars"]),
+  html.fx-on [data-reveal].is-in {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 420ms var(--ease-out),
+      transform 420ms var(--ease-out);
+    transition-delay: var(--reveal-delay, var(--fx-delay, 0ms));
+  }
+
+  /* Character dissolve: fx.ts splits the element's text into .fx-ch
+     spans (original text preserved on aria-label, spans hidden from
+     the tree). Each cell fades up on its own step of the grid. */
+  html.fx-on [data-fx="chars"] .fx-ch {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.18em);
+  }
+  html.fx-on [data-fx="chars"].fx-in .fx-ch {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 320ms var(--ease-out),
+      transform 320ms var(--ease-out);
+    transition-delay: calc(var(--fx-i, 0) * 30ms);
+  }
+
+  /* One-time power-on: the screen warms up in five visible steps.
+     Opacity only — a body filter would turn it into the containing
+     block for the fixed top bar and make it jump. */
+  html.fx-on body {
+    animation: fx-boot 300ms steps(5, end) both;
+  }
+
+  @keyframes fx-boot {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* ---------- glitch vocabulary ----------
+   The dream ink shows only while the screen slips: a two-pixel
+   phosphor/violet split plus a two-step jitter. It lives on hover
+   of display type and on the rare ambient pass fx.ts schedules. */
+@keyframes fx-jitter {
+  0% {
+    translate: 0 0;
+  }
+  25% {
+    translate: -1px 0;
+  }
+  50% {
+    translate: 1px 0;
+  }
+  75% {
+    translate: 0 -1px;
+  }
+  100% {
+    translate: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .display {
+    transition: text-shadow 140ms steps(2, end);
+  }
+  .display:hover,
+  .display:focus-visible {
+    text-shadow:
+      2px 0 0 var(--accent-2),
+      -2px 0 0 var(--accent);
+    animation: fx-jitter 260ms steps(2, end) 1;
+  }
+
+  .fx-glitching {
+    text-shadow:
+      2px 0 0 var(--accent-2),
+      -2px 0 0 var(--accent) !important;
+    animation: fx-jitter 220ms steps(2, end) 1;
+  }
+}
+
+/* ---------- ghost cursor ----------
+   A hollow square that trails the pointer with a little lag — the
+   marquee you never drew. Pointer-transparent, decorative, and only
+   created on fine pointers by fx.ts. */
+#fx-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 14px;
+  height: 14px;
+  z-index: calc(var(--z-crt) + 5);
+  pointer-events: none;
+  border: 1px solid var(--accent);
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out);
+  will-change: transform;
+}
+#fx-cursor::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translate(2px, 2px);
+  border: 1px solid var(--accent-2);
+  opacity: 0.45;
+}
+#fx-cursor.fx-cursor-on {
+  opacity: 0.5;
+}
+#fx-cursor.fx-cursor-hot {
+  opacity: 0.95;
+  box-shadow: 3px 3px 0 var(--accent-2-soft);
+}
+
+/* ---------- reduced motion ----------
+   The belt under the guard above: if fx-on ever lands on the root of
+   a reader who asked for less motion, nothing stays hidden and
+   nothing moves. */
+@media (prefers-reduced-motion: reduce) {
+  html.fx-on [data-fx],
+  html.fx-on [data-fx] .fx-ch,
+  html.fx-on [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+  html.fx-on body {
+    animation: none !important;
+  }
+  #fx-cursor {
+    display: none;
+  }
+}

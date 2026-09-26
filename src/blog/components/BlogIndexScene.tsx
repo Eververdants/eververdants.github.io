@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { journal, journalZh, topics, type JournalPost } from "../../data/journal";
 import { sections } from "../../data/sections";
 import { getDeck, searchPosts } from "../../data/articles";
@@ -191,7 +191,7 @@ export default function BlogIndexScene({
 
   return (
     <section data-article className="blog-index">
-      <header className="blog-index__head rise">
+      <header className="blog-index__head rise" data-fx>
         <span className="ring-mark" aria-hidden="true" />
         <h1 className="display blog-index__title">
           {pick(lang, "Blog", "博客")}
@@ -205,7 +205,11 @@ export default function BlogIndexScene({
       </header>
 
       {/* ---------- controls ---------- */}
-      <div className="blog-index__controls glass sq-lg rise rise-1">
+      <div
+        className="blog-index__controls glass sq-lg rise rise-1"
+        data-fx
+        style={{ "--fx-delay": "60ms" } as CSSProperties}
+      >
         <div className="blog-index__search">
           <label className="visually-hidden" htmlFor="blog-search">
             {t.searchLabel}
@@ -315,7 +319,11 @@ export default function BlogIndexScene({
           {searching ? t.noMatch : activeTag ? t.noTag : t.empty}
         </p>
       ) : grouped ? (
-        <div className="blog-index__groups">
+        <div
+        className="blog-index__groups"
+        data-fx
+        style={{ "--fx-delay": "120ms" } as CSSProperties}
+      >
           {grouped.map(({ section, posts }) => (
             <section key={section.id} className="blog-index__group">
               <h2 className="blog-index__group-title">

@@ -649,18 +649,12 @@ button.chip[aria-pressed="true"] {
   transform: scaleX(1);
 }
 
-/* ---------- 显现动画：已停用 ----------
-   Retired for the same reason it was retired on the other four entries: a
-   staggered entrance is ceremony, and a sheet of paper does not fade itself
-   into view. The `data-reveal` attributes and the observer stay in the
-   markup so turning the motion back on is one rule, not a sweep of edits —
-   which is also why this is safe for the prerendered document. */
-.is-js [data-reveal],
-.is-js [data-reveal].is-in {
-  opacity: 1;
-  transform: none;
-  transition: none;
-}
+/* ---------- 显现动画：交给共享动效层 ----------
+   The staggered entrance is back, powered by shared/fx.css + fx.ts under
+   html.fx-on (added only when the reader allows motion). The markup hooks
+   (`data-reveal`, `--reveal-delay`) and the observer in main.ts are the
+   same ones this file retired earlier — only the neutralising rule is
+   gone. */
 .ledger .row {
   animation: none;
 }

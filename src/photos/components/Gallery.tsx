@@ -44,7 +44,10 @@ export function Gallery() {
 
   return (
     <>
-      <section className="gallery-hero glass-panel sq-xl glass-sheen rise">
+      <section
+        className="gallery-hero glass-panel sq-xl glass-sheen rise"
+        data-fx
+      >
         <span className="ring-field" aria-hidden="true" />
         <p className="kicker">{t.overline(estYear(works))}</p>
         <div className="gallery-head">
@@ -95,7 +98,7 @@ export function Gallery() {
       {filtered.length === 0 ? (
         <p className="gallery-empty">{t.empty}</p>
       ) : (
-        <div className="gallery-grid" key={active}>
+        <div className="gallery-grid" key={active} data-fx>
           {filtered.map((w, i) => (
             <WorkCard key={w.slug} work={w} index={i} />
           ))}

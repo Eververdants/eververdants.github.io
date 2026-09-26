@@ -7,7 +7,7 @@
  * All facts come from src/data/resume.ts so the hub's About portal and this
  * page cannot state different things about the same school or award. */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { resume } from "../data/resume";
 import { usePrefs } from "../shared/prefs-react";
 import { pick } from "../shared/prefs";
@@ -70,7 +70,7 @@ export default function AboutPage() {
       <site-palette />
 
       <main id="main" className="about">
-        <header className="about__hero rise">
+        <header className="about__hero rise" data-fx>
           <span className="ring-mark" aria-hidden="true" />
           <h1 className="display about__title">{c.title}</h1>
           <p className="about__subtitle">{c.subtitle}</p>
@@ -78,7 +78,7 @@ export default function AboutPage() {
         </header>
 
         {/* ---------- at a glance ---------- */}
-        <section className="card glass sq-xl rise rise-1" aria-labelledby="glance">
+        <section className="card glass sq-xl rise rise-1" data-fx aria-labelledby="glance">
           <h2 id="glance" className="kicker card__title">
             {c.sections.glance}
           </h2>
@@ -108,7 +108,7 @@ export default function AboutPage() {
         </section>
 
         {/* ---------- bio ---------- */}
-        <section className="card glass sq-xl rise rise-2" aria-labelledby="bio">
+        <section className="card glass sq-xl rise rise-2" data-fx style={{ "--fx-delay": "50ms" } as CSSProperties} aria-labelledby="bio">
           <h2 id="bio" className="kicker card__title">
             {c.sections.bio}
           </h2>
@@ -116,7 +116,7 @@ export default function AboutPage() {
         </section>
 
         {/* ---------- education ---------- */}
-        <section className="card glass sq-xl rise rise-3" aria-labelledby="education">
+        <section className="card glass sq-xl rise rise-3" data-fx style={{ "--fx-delay": "100ms" } as CSSProperties} aria-labelledby="education">
           <h2 id="education" className="kicker card__title">
             {c.sections.education}
           </h2>
@@ -139,7 +139,7 @@ export default function AboutPage() {
 
         {/* ---------- awards ---------- */}
         {award && (
-          <section className="card glass sq-xl rise rise-4" aria-labelledby="awards">
+          <section className="card glass sq-xl rise rise-4" data-fx aria-labelledby="awards">
             <h2 id="awards" className="kicker card__title">
               {c.sections.awards}
             </h2>
@@ -160,7 +160,7 @@ export default function AboutPage() {
         )}
 
         {/* ---------- focus ---------- */}
-        <section className="card glass sq-xl rise rise-4" aria-labelledby="focus">
+        <section className="card glass sq-xl rise rise-4" data-fx style={{ "--fx-delay": "50ms" } as CSSProperties} aria-labelledby="focus">
           <h2 id="focus" className="kicker card__title">
             {c.sections.focus}
           </h2>
@@ -174,7 +174,7 @@ export default function AboutPage() {
         </section>
 
         {/* ---------- working with me ---------- */}
-        <section className="card glass sq-xl rise rise-5" aria-labelledby="work">
+        <section className="card glass sq-xl rise rise-5" data-fx style={{ "--fx-delay": "100ms" } as CSSProperties} aria-labelledby="work">
           <h2 id="work" className="kicker card__title">
             {c.sections.work}
           </h2>
@@ -209,7 +209,7 @@ export default function AboutPage() {
         </section>
 
         {/* ---------- elsewhere ---------- */}
-        <section className="card glass sq-xl rise rise-5" aria-labelledby="elsewhere">
+        <section className="card glass sq-xl rise rise-5" data-fx style={{ "--fx-delay": "150ms" } as CSSProperties} aria-labelledby="elsewhere">
           <h2 id="elsewhere" className="kicker card__title">
             {c.sections.elsewhere}
           </h2>
