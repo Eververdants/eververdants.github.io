@@ -25,6 +25,9 @@ export interface Dict {
   open: string;
   archived: string;
   noDesc: string;
+  /** 索引区注脚：数据同步状态 */
+  synced: string;
+  live: string;
   backHome: string;
   mainSite: string;
   github: string;
@@ -56,6 +59,8 @@ export const ui: Record<Lang, Dict> = {
     open: "Open",
     archived: "ARCHIVED",
     noDesc: "No description",
+    synced: "Synced",
+    live: "LIVE",
     backHome: "Back to top",
     mainSite: "Main site",
     github: "GitHub",
@@ -85,6 +90,8 @@ export const ui: Record<Lang, Dict> = {
     open: "打开",
     archived: "已归档",
     noDesc: "暂无描述",
+    synced: "同步于",
+    live: "实时",
     backHome: "回到顶部",
     mainSite: "返回主站",
     github: "GitHub",

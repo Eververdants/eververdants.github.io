@@ -45,6 +45,135 @@ const t = () => ui[lang()];
 const reducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/* ================= 实时同步（GitHub REST API） =================
+   静态 repos.json 由 CI 每日刷新；页面打开时再向 GitHub 公共 API 拉一次
+   （未认证限额 60 次/小时/IP，个人站远用不完），成功即与人工精选字段
+   （featured/tag/thumb/blurb，按仓库名合并）合并后整体重渲染，页内就是
+   准实时；失败（断网/限流）时静默保留静态数据，注脚仍显示静态同步时间。 */
+interface GhRepoRaw {
+  name: string;
+  full_name: string;
+  html_url: string;
+  homepage: string | null;
+  description: string | null;
+  language: string | null;
+  topics?: string[];
+  stargazers_count: number;
+  forks_count: number;
+  created_at: string;
+  updated_at: string;
+  pushed_at: string;
+  archived: boolean;
+  fork: boolean;
+  private: boolean;
+}
+
+const GH_API = `https://api.github.com/users/${d._meta.owner}/repos?per_page=100&type=owner&sort=updated`;
+let live = false;
+
+function fingerprint(list: Repo[]): string {
+  return list
+    .map((r) => `${r.name}:${r.pushedAt}:${r.stars}:${r.archived ? 1 : 0}`)
+    .sort()
+    .join("|");
+}
+
+function mergeCurated(fresh: Repo[]): Repo[] {
+  const curated = new Map(d.repos.map((r) => [r.name, r]));
+  return fresh.map((r) => {
+    const c = curated.get(r.name);
+    return c
+      ? {
+          ...r,
+          featured: c.featured,
+          tag: c.tag,
+          thumb: c.thumb,
+          blurbEn: c.blurbEn,
+          blurbZh: c.blurbZh,
+        }
+      : r;
+  });
+}
+
+function renderSyncNote() {
+  const el = document.getElementById("sync-note");
+  if (!el) return;
+  const ago = timeAgo(lang(), d._meta.fetchedAt);
+  el.innerHTML = live
+    ? `<span class="sync-dot" aria-hidden="true"></span>${esc(t().live)} · ${esc(ago)}`
+    : `${esc(t().synced)} ${esc(ago)}`;
+}
+
+async function liveSync() {
+  if (navigator.onLine === false) return;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  let fresh: Repo[] = [];
+  try {
+    const res = await fetch(GH_API, {
+      signal: ctrl.signal,
+      headers: { Accept: "application/vnd.github+json" },
+    });
+    if (!res.ok) return;
+    const raw = (await res.json()) as GhRepoRaw[];
+    if (!Array.isArray(raw)) return;
+    fresh = raw.map((r) => ({
+      name: r.name,
+      fullName: r.full_name,
+      url: r.html_url,
+      homepage: r.homepage || "",
+      description: r.description || "",
+      language: r.language || "Markdown",
+      topics: r.topics ?? [],
+      stars: r.stargazers_count,
+      forks: r.forks_count,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+      pushedAt: r.pushed_at,
+      archived: r.archived,
+      fork: r.fork,
+      private: r.private,
+    }));
+  } catch {
+    return; // 断网 / 超时 / 限流 —— 静态数据兜底，不打扰读者
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (!fresh.length) return;
+  const merged = mergeCurated(fresh);
+  const changed = fingerprint(merged) !== fingerprint(repos);
+
+  /* 无论数据是否变化，注脚先亮出“实时”信号，同步时间记为此刻。 */
+  live = true;
+  d._meta.fetchedAt = new Date().toISOString();
+
+  if (!changed) {
+    renderSyncNote();
+    return;
+  }
+
+  /* 数据真的变了：整体重渲染。若读者正在搜索框里输入，保留焦点与选区。 */
+  const input = document.getElementById(
+    "search-input",
+  ) as HTMLInputElement | null;
+  const hadFocus = document.activeElement === input;
+  const pos = input?.selectionStart ?? 0;
+
+  repos.splice(0, repos.length, ...merged);
+  renderHero();
+  renderFeatured();
+  renderToolbar();
+  renderLedger();
+  renderSyncNote();
+  initReveal();
+
+  if (hadFocus && input) {
+    input.focus();
+    input.setSelectionRange(pos, pos);
+  }
+}
+
 /* A scroll *restoration* must not be animated by `scroll-behavior: smooth`. */
 function jumpTo(y: number) {
   window.scrollTo({ top: y, left: 0, behavior: "instant" });
@@ -457,7 +586,7 @@ function renderSkeleton() {
               </div>
             </div>
             <p class="section__note">
-              <span class="num" id="result-count"></span> · <span id="filed-label"></span>
+              <span class="num" id="result-count"></span> · <span id="filed-label"></span> · <span id="sync-note"></span>
             </p>
           </div>
           <div id="toolbar" class="toolbar glass-bar sq-xl" data-reveal style="--reveal-delay:60ms"></div>
@@ -473,6 +602,7 @@ function renderBody() {
   document.getElementById("index-overline")!.textContent = u.indexOverline;
   document.getElementById("index-title")!.textContent = u.indexTitle;
   document.getElementById("filed-label")!.textContent = u.filed;
+  renderSyncNote();
   renderHero();
   renderFeatured();
   renderToolbar();
@@ -491,6 +621,7 @@ function boot() {
   renderBody();
   applySeo();
   initReveal();
+  void liveSync();
 
   /* 语言改变（本站的 <site-topbar>、其它标签页、?lang= 覆盖）：重渲染正文与
      head，保留滚动位置。顶栏自己不在此列 —— 它订阅了 prefs。 */
