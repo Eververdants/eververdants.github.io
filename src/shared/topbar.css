@@ -266,9 +266,13 @@ site-topbar {
     top: calc(100% + 8px);
     padding: 8px;
     border-radius: var(--r-flat);
-    background: var(--glass-fill-strong);
+    /* Opaque on purpose: the bar's translucency earns its place over
+       scrolling content, but this panel drops over a stationary page
+       whose display headlines ghost straight through an 8%-transparent
+       fill — on a phone the nav rows sat on top of the masthead type.
+       Solid field colour, and the blur becomes a no-op. */
+    background: var(--bg);
     border: 1px solid var(--glass-border);
-    backdrop-filter: blur(var(--glass-blur));
     box-shadow: var(--glass-shadow-lift);
   }
   site-topbar[data-open] .stb-menu {
