@@ -61,7 +61,7 @@ function makeNotFound() {
      so a plain "already has robots?" check would skip the noindex and let
      GitHub Pages' catch-all 404 get indexed. Replace whatever robots content
      is there; only inject a fresh tag when there is none at all. */
-  return stripped.includes('name="robots"')
+  const strippedRobots = stripped.includes('name="robots"')
     ? stripped.replace(
         /<meta name="robots"[^>]*>/i,
         '<meta name="robots" content="noindex" />',
@@ -70,6 +70,40 @@ function makeNotFound() {
         /<meta name="viewport"/i,
         '<meta name="robots" content="noindex" />\n    <meta name="viewport"',
       );
+  /* GitHub Pages serves this one file for EVERY missing path. For a missing
+     page (no extension) booting the hub is the intended fallback, but a
+     missing FILE — a stale llms.txt link, a typo'd site.json, a feed that
+     failed to generate — must not render the homepage at that URL. The guard
+     below aborts the SPA before it boots and writes a plain, honest 404. */
+  return strippedRobots.replace(
+    /<head>/i,
+    `<head>
+    <script>
+    (function () {
+      var p = location.pathname;
+      if (!/\\.[A-Za-z0-9]+$/.test(p)) return;
+      window.stop();
+      document.documentElement.replaceChildren();
+      var head = document.createElement("head");
+      var meta = document.createElement("meta");
+      meta.name = "robots";
+      meta.content = "noindex";
+      var title = document.createElement("title");
+      title.textContent = "404 Not Found — Eververdants";
+      head.append(meta, title);
+      var body = document.createElement("body");
+      body.style.cssText =
+        "margin:0;min-height:100vh;display:grid;place-content:center;" +
+        "background:#060608;color:#8a93a3;" +
+        "font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace";
+      var pre = document.createElement("pre");
+      pre.style.margin = "0";
+      pre.textContent = "404 Not Found: " + p + "\\nhttps://eververdants.github.io/";
+      body.appendChild(pre);
+      document.documentElement.append(head, body);
+    })();
+    </script>`,
+  );
 }
 
 writeFileSync("dist/404.html", makeNotFound());

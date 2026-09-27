@@ -44,7 +44,7 @@ npm run preview    # 预览构建产物
 `npm run build` 依次执行：
 
 1. `vite build` — 五个入口打包进 `dist/`
-2. `scripts/postbuild.mjs` — 生成 `404.html`（去 canonical、加 noindex）与 `/resume`、`/selected`、`/selected-blog` 三个旧地址的重定向桩
+2. `scripts/postbuild.mjs` — 生成 `404.html`（去 canonical、加 noindex）与 `/resume`、`/selected`、`/selected-blog` 三个旧地址的重定向桩。404.html 内置守卫：缺失的**文件型** URL（`.txt`/`.json`/`.xml` 等带扩展名的路径）渲染诚实的纯文本 404，不会把 hub 主页套在错误 URL 上；无扩展名的路由仍走 SPA fallback
 3. `scripts/build-geo.mjs` — 生成 `search.json`、`posts.json`、`works.json`、`site.json`、`llms-full.txt`
 4. `scripts/prerender.mjs` — 用无头 Chrome 把 12 篇文章（中英各 6）、三个子站列表页、摄影详情页和主站烘焙成静态 HTML，并写出 `sitemap.xml` / `robots.txt` / `rss.xml`
 
