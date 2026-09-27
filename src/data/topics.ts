@@ -8,8 +8,8 @@
    Each topic carries:
    - symbol: the editorial glyph stamped across the band
    - name/slogan: localized hero copy (the slogan is the band's 标语)
-   - color: a mid-tone accent used to derive the scrapbook color blocks
-     and paper wash via color-mix, so both light and dark themes read it
+   - color: one of the field's own theme inks (a var() reference, so it
+     follows the theme flip) — stamps the symbol and the tag-chip dot
    - photos: scrapbook captions for the polaroids — "fig. 01 … night
      build" reads like a real journal page. An `img` path (under
      /assets/) swaps the color block for the real lazy-loaded photo;
@@ -28,7 +28,9 @@ export interface BlogTopic {
   name: { en: string; zh: string };
   // One-line 标语 shown under the name on the topic hero band.
   slogan: { en: string; zh: string };
-  // Mid-tone accent — color blocks and paper wash derive from it.
+  // Theme ink for the symbol and the tag-chip dot — one of the field's
+  // own inks (spot lime / dream cyan / signal amber / steel), never a
+  // foreign hue. A var() string, so it re-inks itself on the theme flip.
   color: string;
   // Scrapbook polaroids (fig. 01 / 02 / 03): caption + optional photo.
   // `img` points at a webp under /assets/; entries without one fall back
@@ -46,7 +48,7 @@ export const topics: BlogTopic[] = [
       en: "Build. Break. Learn. Repeat.",
       zh: "造。拆。学。再一遍。",
     },
-    color: "#2f5d63",
+    color: "var(--accent-2)",
     photos: [
       { en: "night build", zh: "深夜构建" },
       { en: "wires", zh: "接线" },
@@ -61,7 +63,7 @@ export const topics: BlogTopic[] = [
       en: "Words outlast empires. Use them well.",
       zh: "文字比帝国更长久。用好它们。",
     },
-    color: "#a8402a",
+    color: "var(--accent)",
     photos: [
       { en: "the rose", zh: "那朵玫瑰" },
       { en: "the fox", zh: "那只狐狸" },
@@ -76,7 +78,7 @@ export const topics: BlogTopic[] = [
       en: "The people write history. Never forget who.",
       zh: "人民书写历史。别忘了是谁。",
     },
-    color: "#8a6a2a",
+    color: "var(--tok-num)",
     photos: [
       { en: "old stone", zh: "旧日的石" },
       { en: "the archive", zh: "档案室" },
@@ -91,7 +93,7 @@ export const topics: BlogTopic[] = [
       en: "Tear off the mask. Then speak.",
       zh: "撕开面具。然后说话。",
     },
-    color: "#6b4a3f",
+    color: "var(--tok-type)",
     photos: [
       { en: "the crowd", zh: "人群" },
       { en: "the mirror", zh: "镜子" },
