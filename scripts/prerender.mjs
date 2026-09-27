@@ -124,7 +124,7 @@ function parseWorks() {
     };
     const slug = kv("slug");
     if (!slug) continue;
-    out.push({ slug, title: kv("title"), date: kv("date") });
+    out.push({ slug, title: kv("title"), date: kv("date"), cover: kv("cover") });
   }
   out.sort((a, b) => a.slug.localeCompare(b.slug));
   return out;
@@ -403,6 +403,12 @@ function writeSitemap(posts, works) {
      the old single-page deck. They are now redirect stubs (see
      scripts/postbuild.mjs) and deliberately stay out of the sitemap — a
      sitemap should list destinations, not hops. */
+  const alt = (en, zh) =>
+    [
+      `<xhtml:link rel="alternate" hreflang="en" href="${en}"/>`,
+      `<xhtml:link rel="alternate" hreflang="zh-Hans" href="${zh}"/>`,
+      `<xhtml:link rel="alternate" hreflang="x-default" href="${en}"/>`,
+    ].join("");
   const urls = [
     `<url><loc>${SITE}/</loc><lastmod>${today}</lastmod><priority>1.0</priority></url>`,
     `<url><loc>${SITE}/about/</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`,
@@ -411,17 +417,21 @@ function writeSitemap(posts, works) {
     `<url><loc>${SITE}/blog/</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`,
     ...posts.flatMap((p) => {
       const lastmod = p.date.replace(/\./g, "-");
+      const en = `${SITE}/blog/${p.slug}/`;
+      const zh = `${SITE}/blog/zh/${p.slug}/`;
       return [
-        `<url><loc>${SITE}/blog/${p.slug}/</loc><lastmod>${lastmod}</lastmod><priority>0.9</priority></url>`,
-        `<url><loc>${SITE}/blog/zh/${p.slug}/</loc><lastmod>${lastmod}</lastmod><priority>0.8</priority></url>`,
+        `<url><loc>${en}</loc><lastmod>${lastmod}</lastmod>${alt(en, zh)}<priority>0.9</priority></url>`,
+        `<url><loc>${zh}</loc><lastmod>${lastmod}</lastmod>${alt(en, zh)}<priority>0.8</priority></url>`,
       ];
     }),
-    ...works.map(
-      (w) =>
-        `<url><loc>${SITE}/photos/work/${w.slug}/</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`,
-    ),
+    ...works.map((w) => {
+      const image = w.cover
+        ? `<image:image><image:loc>${SITE}/${w.cover}</image:loc><image:title>${esc(w.title)}</image:title></image:image>`
+        : "";
+      return `<url><loc>${SITE}/photos/work/${w.slug}/</loc><lastmod>${today}</lastmod>${image}<priority>0.7</priority></url>`;
+    }),
   ];
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${urls
     .map((u) => `  ${u}`)
     .join("\n")}\n</urlset>\n`;
   writeFileSync(join(ROOT, "dist/sitemap.xml"), xml);
@@ -480,7 +490,7 @@ function writeRss(posts) {
     <title>Eververdants — Blog</title>
     <link>${SITE}/blog/</link>
     <description>Essays, notes and field records by Eververdants.</description>
-    <language>zh-cn</language>
+    <language>en</language>
     <lastBuildDate>${buildDate}</lastBuildDate>
     <atom:link href="${SITE}/rss.xml" rel="self" type="application/rss+xml" />
 ${items}
