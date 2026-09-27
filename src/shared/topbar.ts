@@ -51,14 +51,33 @@ class SiteTopBar extends HTMLElement {
   #unsub: (() => void) | null = null;
   #rendered = false;
 
+  /* Document-level behaviours, bound once — the bar re-renders its nodes, but
+     these listeners outlive any single render. */
+  #onDocKey = (e: KeyboardEvent): void => {
+    if (e.key !== "Escape") return;
+    if (this.getAttribute("data-open") !== "true") return;
+    this.setAttribute("data-open", "false");
+    this.querySelector<HTMLElement>(".stb-toggle")?.focus();
+  };
+
+  #onDocClick = (e: MouseEvent): void => {
+    if (this.getAttribute("data-open") !== "true") return;
+    if (!this.contains(e.target as Node))
+      this.setAttribute("data-open", "false");
+  };
+
   connectedCallback(): void {
     this.render();
     this.#unsub = subscribePrefs(() => this.render());
+    document.addEventListener("keydown", this.#onDocKey);
+    document.addEventListener("click", this.#onDocClick);
   }
 
   disconnectedCallback(): void {
     this.#unsub?.();
     this.#unsub = null;
+    document.removeEventListener("keydown", this.#onDocKey);
+    document.removeEventListener("click", this.#onDocClick);
   }
 
   attributeChangedCallback(): void {
@@ -70,6 +89,22 @@ class SiteTopBar extends HTMLElement {
   }
 
   private render(): void {
+    /* A prefs re-render swaps every node in the bar; if a control held focus
+       (language / theme / search / menu toggle) remember which so focus can be
+       handed back after the swap instead of dropping to <body>. */
+    const focusedEl = document.activeElement as HTMLElement | null;
+    let restore: string | null = null;
+    if (focusedEl && this.contains(focusedEl)) {
+      if (focusedEl.dataset.stbLang)
+        restore = `[data-stb-lang="${focusedEl.dataset.stbLang}"]`;
+      else if (focusedEl.hasAttribute("data-stb-theme"))
+        restore = "[data-stb-theme]";
+      else if (focusedEl.hasAttribute("data-stb-search"))
+        restore = "[data-stb-search]";
+      else if (focusedEl.classList.contains("stb-toggle"))
+        restore = ".stb-toggle";
+    }
+
     const lang = this.#lang;
     const active = this.getAttribute("active") ?? "";
     const open = this.getAttribute("data-open") === "true";
@@ -123,6 +158,8 @@ class SiteTopBar extends HTMLElement {
 
     this.#rendered = true;
 
+    if (restore) this.querySelector<HTMLElement>(restore)?.focus();
+
     this.querySelectorAll<HTMLElement>("[data-stb-lang]").forEach((b) =>
       b.addEventListener("click", () =>
         setLang(b.dataset.stbLang === "zh" ? "zh" : "en"),
@@ -141,11 +178,20 @@ class SiteTopBar extends HTMLElement {
     );
     this.querySelector<HTMLElement>(".stb-toggle")?.addEventListener(
       "click",
-      () =>
-        this.setAttribute(
-          "data-open",
-          this.getAttribute("data-open") === "true" ? "false" : "true",
-        ),
+      (e) => {
+        /* The re-render below detaches this toggle before the event finishes
+           bubbling; without stopPropagation the document-level outside-click
+           handler would see a target outside the bar and close the menu the
+           same click just opened. */
+        e.stopPropagation();
+        const willOpen = this.getAttribute("data-open") !== "true";
+        /* setAttribute re-renders synchronously, so focus lands on the fresh
+           nodes. Keyboard users step straight into the disclosure they just
+           opened; closing hands focus back to the toggle it came from. */
+        this.setAttribute("data-open", String(willOpen));
+        if (willOpen) this.querySelector<HTMLElement>(".stb-menu a")?.focus();
+        else this.querySelector<HTMLElement>(".stb-toggle")?.focus();
+      },
     );
     this.querySelectorAll<HTMLElement>(".stb-menu a").forEach((a) =>
       a.addEventListener("click", () => this.setAttribute("data-open", "false")),
