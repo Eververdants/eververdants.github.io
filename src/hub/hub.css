@@ -35,6 +35,12 @@
 /* ---------- masthead ---------- */
 .masthead {
   position: relative;
+  /* The construction arc bleeds off the trim on purpose; clipping it here
+     (its own containing block) keeps the document from growing a horizontal
+     scrollbar, while the sheet's crop marks outside this box stay untouched.
+     `clip` (not hidden) leaves overflow-y visible, so sticky/fixed
+     descendants are unaffected. */
+  overflow-x: clip;
   display: flex;
   flex-direction: column;
   gap: clamp(18px, 2.6vw, 26px);
