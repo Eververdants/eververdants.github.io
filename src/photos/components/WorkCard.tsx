@@ -26,6 +26,8 @@ export function WorkCard({ work, index }: { work: Work; index: number }) {
         <img
           src={asset(work.cover)}
           alt={titleOf(work, lang)}
+          width={work.coverW}
+          height={work.coverH}
           loading="lazy"
           decoding="async"
         />

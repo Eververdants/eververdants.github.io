@@ -46,7 +46,16 @@ export function WorkDetail({ slug }: { slug: string }) {
       <h1 className="display detail-title rise rise-1">{titleOf(work, lang)}</h1>
       {sub && <p className="detail-title-sub rise rise-2">{sub}</p>}
       <figure className="detail-hero glass sq-xl rise rise-3">
-        <img src={asset(work.cover)} alt={titleOf(work, lang)} />
+        {/* The hero is the page's LCP: intrinsic dimensions reserve the box
+           (no reflow) and fetchpriority bumps it ahead of the CSS/JS queue. */}
+        <img
+          src={asset(work.cover)}
+          alt={titleOf(work, lang)}
+          width={work.coverW}
+          height={work.coverH}
+          fetchpriority="high"
+          decoding="async"
+        />
       </figure>
       <div className="detail-body rise rise-4">
         <div className="detail-text">
