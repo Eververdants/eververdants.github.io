@@ -124,85 +124,26 @@
    signature as the curtain: the outgoing scene drains to grey as it
    breaks up, the incoming one floods back into colour. */
 
-/* The navigation curtain. Two animations, both built out of the real
-   page's own pixels — a view transition snapshot run through the
-   pixelate filter and clipped to a circle that grows from the point
-   that was clicked. Nothing here is generated: the blocks, the greys
-   and the colours all come from the page the reader was looking at.
+/* The navigation curtain. The blocks cannot be sampled from the page —
+   there is no way to rasterise a live DOM into a canvas — and colour
+   cannot be conjured out of this site's own pixels either: the field is
+   #060608, so 95% of any snapshot is near-black and boosting its
+   saturation moves almost nothing. A view-transition version was built
+   and measured (it works, and it is honest to the page), but on a dark
+   site it reads as a dim grey wash next to the canvas curtain, which
+   generates its own colour instead of transforming what is already
+   there. So the canvas keeps the job; fx.ts runs the same two beats on
+   blocks it synthesises:
 
-     cover : page → blocks → drain to grey (无色) → colour floods
-             back (有色) → coarse, dimmed → the flat wall takes over
-     reveal: the wall → the new page's blocks assemble from the same
-             point, grey first → colour → sharp
+     cover : blocks materialise as grey static out of the click point
+             (无色) → colour floods in (有色) → settles onto the field
+     reveal: the wall discharges from the SAME point, colour first,
+             then grey, then gone.
 
-   The circle is what keeps the two halves joined: the origin is
-   written to --px-x / --px-y on the leaving page and carried across
-   in sessionStorage, so the wave closes and opens on one centre
-   instead of the new page defaulting to the middle of the screen. */
-
-/* How far the last cover frame is dimmed (dark) or blown out (light)
-   before the flat wall takes over — the two should land on the same
-   value as the wall's own colour, which is --bg. */
-html {
-  --px-end-b: 40%;
-}
-html[data-theme="light"] {
-  --px-end-b: 190%;
-}
-
-@keyframes px-cover {
-  0% {
-    filter: url("#pxf4") saturate(100%);
-    clip-path: circle(2% at var(--px-x, 50%) var(--px-y, 50%));
-  }
-  26% {
-    filter: url("#pxf8") saturate(10%);
-    clip-path: circle(42% at var(--px-x, 50%) var(--px-y, 50%));
-  }
-  48% {
-    filter: url("#pxf12") saturate(0%);
-    clip-path: circle(74% at var(--px-x, 50%) var(--px-y, 50%));
-  }
-  70% {
-    filter: url("#pxf16") saturate(175%) brightness(104%);
-    clip-path: circle(104% at var(--px-x, 50%) var(--px-y, 50%));
-  }
-  86% {
-    filter: url("#pxf22") saturate(85%) brightness(var(--px-end-b, 100%));
-    clip-path: circle(132% at var(--px-x, 50%) var(--px-y, 50%));
-  }
-  100% {
-    filter: url("#pxf22") saturate(0%) brightness(var(--px-end-b, 100%));
-    clip-path: circle(150% at var(--px-x, 50%) var(--px-y, 50%));
-  }
-}
-
-@keyframes px-reveal {
-  0% {
-    filter: url("#pxf22") saturate(0%);
-    clip-path: circle(2% at var(--px-x, 50%) var(--px-y, 50%));
-  }
-  22% {
-    filter: url("#pxf16") saturate(0%);
-    clip-path: circle(36% at var(--px-x, 50%) var(--px-y, 50%));
-  }
-  46% {
-    filter: url("#pxf12") saturate(0%);
-    clip-path: circle(70% at var(--px-x, 50%) var(--px-y, 50%));
-  }
-  70% {
-    filter: url("#pxf8") saturate(170%) brightness(103%);
-    clip-path: circle(104% at var(--px-x, 50%) var(--px-y, 50%));
-  }
-  88% {
-    filter: url("#pxf6") saturate(125%) brightness(101%);
-    clip-path: circle(130% at var(--px-x, 50%) var(--px-y, 50%));
-  }
-  100% {
-    filter: url("#pxf4") saturate(100%);
-    clip-path: circle(150% at var(--px-x, 50%) var(--px-y, 50%));
-  }
-}
+   Both halves grow from the click: the origin is stored as a fraction
+   of the viewport before leaving and re-read on arrival, so the wave
+   that closes the old page and the wave that opens the new one share
+   one centre. */
 
 @keyframes vt-px-out {
   0% {
@@ -246,27 +187,6 @@ html[data-theme="light"] {
 
   html.fx-on::view-transition-new(root) {
     animation: vt-px-in 320ms steps(1, end) both;
-  }
-
-  /* The navigation curtain. These come after the scene-switch rules
-     above on purpose: both selectors carry one class, so source order
-     decides, and a navigation must win over a scene switch.
-     The untouched page sits underneath on the way out, the flat wall
-     on the way in; the filtered copy on top does the work. */
-  html.px-out::view-transition-old(root),
-  html.px-in::view-transition-old(root) {
-    animation: none;
-    opacity: 1;
-  }
-
-  /* --px-dur is written by fx.ts so the animation and the JS release
-     timer can never drift apart. */
-  html.px-out::view-transition-new(root) {
-    animation: px-cover var(--px-dur, 560ms) linear both;
-  }
-
-  html.px-in::view-transition-new(root) {
-    animation: px-reveal var(--px-dur, 560ms) linear both;
   }
 }
 
