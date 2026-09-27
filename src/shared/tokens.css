@@ -29,6 +29,19 @@
 @import "./palette.css";
 @import "./fx.css";
 
+/* ---------- box model ----------
+   Every entry must measure identically: border-box is the site's datum.
+   The React hub and /about had no reset at all (content-box), so any
+   width:100% + padding shell — the footer above all — grew past the
+   viewport below --shell and let a phone scroll sideways. Projects,
+   photos and the blog already reset this themselves; hoisting the one
+   rule here keeps five entries on one box model instead of three. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 /* ---------- palette ----------
    Dark: near-black with a cool cast, near-white ink, electric lime
    spot and a cyan dream ink. Light: daylight paper, warm black ink,
