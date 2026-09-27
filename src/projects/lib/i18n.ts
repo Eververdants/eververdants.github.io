@@ -15,10 +15,13 @@ export interface Dict {
   indexTitle: string;
   filed: string;
   searchPlaceholder: string;
+  searchAria: string;
   all: string;
   sortUpdated: string;
   sortStars: string;
   sortName: string;
+  sortAria: string;
+  filterAria: string;
   emptyTitle: string;
   emptySub: string;
   clear: string;
@@ -28,6 +31,7 @@ export interface Dict {
   /** 索引区注脚：数据同步状态 */
   synced: string;
   live: string;
+  syncFailed: string;
   backHome: string;
   mainSite: string;
   github: string;
@@ -49,10 +53,13 @@ export const ui: Record<Lang, Dict> = {
     indexTitle: "All of them.",
     filed: "Updated",
     searchPlaceholder: "Search name · language · topic",
+    searchAria: "Search repositories",
     all: "All",
     sortUpdated: "Updated",
     sortStars: "Stars",
     sortName: "Name",
+    sortAria: "Sort repositories",
+    filterAria: "Filter by language",
     emptyTitle: "Nothing matches.",
     emptySub: "No repository matches that search.",
     clear: "Clear filters",
@@ -61,6 +68,7 @@ export const ui: Record<Lang, Dict> = {
     noDesc: "No description",
     synced: "Synced",
     live: "LIVE",
+    syncFailed: "Sync failed — showing the archived copy.",
     backHome: "Back to top",
     mainSite: "Main site",
     github: "GitHub",
@@ -80,10 +88,13 @@ export const ui: Record<Lang, Dict> = {
     indexTitle: "所有仓库",
     filed: "更新于",
     searchPlaceholder: "搜索项目 / 语言 / 标签",
+    searchAria: "搜索仓库",
     all: "全部",
     sortUpdated: "最近更新",
     sortStars: "星标",
     sortName: "名称",
+    sortAria: "排序方式",
+    filterAria: "按语言筛选",
     emptyTitle: "没有匹配项",
     emptySub: "没有匹配的项目 —— 换个关键词试试。",
     clear: "清空筛选",
@@ -92,6 +103,7 @@ export const ui: Record<Lang, Dict> = {
     noDesc: "暂无描述",
     synced: "同步于",
     live: "实时",
+    syncFailed: "同步失败 —— 显示存档数据。",
     backHome: "回到顶部",
     mainSite: "返回主站",
     github: "GitHub",

@@ -504,7 +504,8 @@ button.chip[aria-pressed="true"] {
 .ledger .row:first-child {
   border-top: none;
 }
-.row:hover {
+.row:hover,
+.row:focus-visible {
   background: var(--accent-soft);
 }
 .row__idx {
@@ -515,7 +516,8 @@ button.chip[aria-pressed="true"] {
   color: var(--faint);
   transition: color var(--dur-2) var(--ease-out);
 }
-.row:hover .row__idx {
+.row:hover .row__idx,
+.row:focus-visible .row__idx {
   color: var(--accent);
 }
 .row__name {
@@ -594,10 +596,12 @@ button.chip[aria-pressed="true"] {
 .row__link .arrow {
   transition: transform var(--dur-2) var(--ease-out);
 }
-.row:hover .row__link {
+.row:hover .row__link,
+.row:focus-visible .row__link {
   color: var(--accent-ink);
 }
-.row:hover .row__link .arrow {
+.row:hover .row__link .arrow,
+.row:focus-visible .row__link .arrow {
   transform: translate(3px, -1px);
 }
 

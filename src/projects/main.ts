@@ -70,6 +70,9 @@ interface GhRepoRaw {
 
 const GH_API = `https://api.github.com/users/${d._meta.owner}/repos?per_page=100&type=owner&sort=updated`;
 let live = false;
+/* 同步失败（断网 / 超时 / 限流）时为真 —— 注脚如实标记，免得读者把存档
+   当成实时数据。 */
+let syncFailed = false;
 
 function fingerprint(list: Repo[]): string {
   return list
@@ -98,14 +101,48 @@ function mergeCurated(fresh: Repo[]): Repo[] {
 function renderSyncNote() {
   const el = document.getElementById("sync-note");
   if (!el) return;
+  const u = t();
+  if (syncFailed) {
+    el.textContent = u.syncFailed;
+    return;
+  }
   const ago = timeAgo(lang(), d._meta.fetchedAt);
   el.innerHTML = live
-    ? `<span class="sync-dot" aria-hidden="true"></span>${esc(t().live)} · ${esc(ago)}`
-    : `${esc(t().synced)} ${esc(ago)}`;
+    ? `<span class="sync-dot" aria-hidden="true"></span>${esc(u.live)} · ${esc(ago)}`
+    : `${esc(u.synced)} ${esc(ago)}`;
+}
+
+/* 工具条重渲染（liveSync 数据到达 / 语言切换）会把聚焦的控件整体替换，
+   焦点随之掉进 <body> —— 所以调用方必须在渲染 *之前* 把 activeElement
+   抓进来。按 id / data-lang / data-sort 找回对应的新控件。 */
+function restoreToolbarFocus(prevActive: HTMLElement | null) {
+  if (!prevActive) return;
+  const id = prevActive.id || null;
+  const dl = prevActive.getAttribute("data-lang");
+  const ds = prevActive.getAttribute("data-sort");
+  let target: HTMLElement | null = null;
+  if (id) target = document.getElementById(id);
+  else if (dl)
+    target = document.querySelector(
+      `#toolbar .chip[data-lang="${CSS.escape(dl)}"]`,
+    );
+  else if (ds)
+    target = document.querySelector(
+      `#toolbar .sort__btn[data-sort="${CSS.escape(ds)}"]`,
+    );
+  target?.focus();
 }
 
 async function liveSync() {
-  if (navigator.onLine === false) return;
+  if (navigator.onLine === false) {
+    syncFailed = true;
+    renderSyncNote();
+    return;
+  }
+  const fail = () => {
+    syncFailed = true;
+    renderSyncNote();
+  };
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 8000);
   let fresh: Repo[] = [];
@@ -114,9 +151,15 @@ async function liveSync() {
       signal: ctrl.signal,
       headers: { Accept: "application/vnd.github+json" },
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      fail();
+      return;
+    }
     const raw = (await res.json()) as GhRepoRaw[];
-    if (!Array.isArray(raw)) return;
+    if (!Array.isArray(raw)) {
+      fail();
+      return;
+    }
     fresh = raw.map((r) => ({
       name: r.name,
       fullName: r.full_name,
@@ -135,12 +178,17 @@ async function liveSync() {
       private: r.private,
     }));
   } catch {
-    return; // 断网 / 超时 / 限流 —— 静态数据兜底，不打扰读者
+    /* 断网 / 超时 / 限流 —— 静态数据兜底，注脚已如实标记。 */
+    fail();
+    return;
   } finally {
     clearTimeout(timer);
   }
 
-  if (!fresh.length) return;
+  if (!fresh.length) {
+    fail();
+    return;
+  }
   const merged = mergeCurated(fresh);
   const changed = fingerprint(merged) !== fingerprint(repos);
 
@@ -153,12 +201,15 @@ async function liveSync() {
     return;
   }
 
-  /* 数据真的变了：整体重渲染。若读者正在搜索框里输入，保留焦点与选区。 */
-  const input = document.getElementById(
+  /* 数据真的变了：整体重渲染。焦点无论在哪个工具控件上，渲染后都按
+     标识找回；搜索框额外保留输入光标位置。（activeElement 必须在渲染前
+     抓——renderToolbar 会整体替换节点，渲染后读到的已经是 <body>。） */
+  const prevActive = document.activeElement as HTMLElement | null;
+  const prevInput = document.getElementById(
     "search-input",
   ) as HTMLInputElement | null;
-  const hadFocus = document.activeElement === input;
-  const pos = input?.selectionStart ?? 0;
+  const caret =
+    prevActive === prevInput ? prevInput.selectionStart ?? 0 : null;
 
   repos.splice(0, repos.length, ...merged);
   renderHero();
@@ -168,9 +219,12 @@ async function liveSync() {
   renderSyncNote();
   initReveal();
 
-  if (hadFocus && input) {
-    input.focus();
-    input.setSelectionRange(pos, pos);
+  restoreToolbarFocus(prevActive);
+  if (caret !== null) {
+    const el = document.getElementById(
+      "search-input",
+    ) as HTMLInputElement | null;
+    el?.setSelectionRange(caret, caret);
   }
 }
 
@@ -296,9 +350,9 @@ function renderToolbar() {
   el.innerHTML = `
     <label class="search">
       <span class="search__icon" aria-hidden="true">⌕</span>
-      <input id="search-input" type="search" placeholder="${esc(u.searchPlaceholder)}" autocomplete="off" spellcheck="false"/>
+      <input id="search-input" type="search" placeholder="${esc(u.searchPlaceholder)}" aria-label="${esc(u.searchAria)}" autocomplete="off" spellcheck="false"/>
     </label>
-    <div class="chips" role="group" aria-label="filter by language">
+    <div class="chips" role="group" aria-label="${esc(u.filterAria)}">
       <button class="chip" type="button" data-lang="ALL" aria-pressed="${state.filterLang === "ALL"}">${esc(u.all)} <span class="cnt num">${repos.length}</span></button>
       ${langs
         .map(
@@ -307,7 +361,7 @@ function renderToolbar() {
         )
         .join("")}
     </div>
-    <div class="sort sq-md" role="group" aria-label="sort">
+    <div class="sort sq-md" role="group" aria-label="${esc(u.sortAria)}">
       <button class="sort__btn" type="button" data-sort="updated" aria-pressed="${state.sort === "updated"}">${esc(u.sortUpdated)}</button>
       <button class="sort__btn" type="button" data-sort="stars" aria-pressed="${state.sort === "stars"}">${esc(u.sortStars)}</button>
       <button class="sort__btn" type="button" data-sort="name" aria-pressed="${state.sort === "name"}">${esc(u.sortName)}</button>
@@ -586,7 +640,7 @@ function renderSkeleton() {
               </div>
             </div>
             <p class="section__note">
-              <span class="num" id="result-count"></span> · <span id="filed-label"></span> · <span id="sync-note"></span>
+              <span class="num" id="result-count" role="status"></span> · <span id="filed-label"></span> · <span id="sync-note" role="status"></span>
             </p>
           </div>
           <div id="toolbar" class="toolbar glass-bar sq-xl" data-reveal style="--reveal-delay:60ms"></div>
@@ -630,9 +684,12 @@ function boot() {
     if (p.lang === rendered) return;
     rendered = p.lang;
     const y = window.scrollY;
+    /* activeElement 必须在 renderBody 之前抓（renderToolbar 会替换节点）。 */
+    const prevActive = document.activeElement as HTMLElement | null;
     renderBody();
     applySeo();
     jumpTo(y);
+    restoreToolbarFocus(prevActive);
     initReveal();
   });
 }
