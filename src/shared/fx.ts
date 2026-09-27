@@ -316,8 +316,13 @@ function patchHistoryTransitions(): void {
      into colour (有色) → everything cools onto the page's own field
      colour → navigate while fully covered → the new page's first
      frame is that same flat cover (inline head style, html.px-boot) →
-     the wall discharges from the SAME point: colour flares, drains to
-     grey, dissolves.
+     the wall breaks up from the SAME point: blocks lift into grey and
+     thin away.
+
+   The colour happens once, on the way out. The way in is the dissolve:
+   an earlier pass flared colour again on arrival and it read as the
+   transition catching and repeating itself — two surges where there
+   should be one movement across the navigation.
 
    The blocks are drawn, not sampled. A view-transition version that
    pixelated a real snapshot of the page was built and measured, and it
@@ -469,7 +474,9 @@ interface Curtain {
   el: HTMLCanvasElement;
   /** Cover: grey static appears, colour ignites, settles to field. */
   cover: (p: number) => void;
-  /** Reveal: colour flares, drains to grey, dissolves. */
+  /** Reveal: blocks lift out of the wall into grey and thin away.
+   * Deliberately achromatic — the colour already happened on the way
+   * out, and repeating it here breaks the movement in half. */
   reveal: (p: number) => void;
   /** Full opaque wall, breathing — the wait for the new page. */
   hold: (t: number) => void;
@@ -579,46 +586,57 @@ function createCurtain(origin?: { x: number; y: number }): Curtain | null {
   };
 
   const reveal = (p: number) => {
-    const { field, greys, chroma, spark: sc } = schemeFor();
+    const { field, greys } = schemeFor();
     const gn = greys.length - 1;
-    const cn = chroma.length - 1;
     for (let i = 0; i < total; i++) {
       const b = birth[i];
-      const f = quant(span(p, b * 0.44, 0.2), 2);
-      const g = span(p, b * 0.44 + 0.22, 0.34);
-      const gc = greys[(tone[i] * gn) | 0];
-      const t = spark[i] > 0.94 ? sc : chroma[(hue[i] * cn) | 0];
-      /* field → colour is the discharge; colour → grey → gone is the
-         drain, so the wave leaves grey embers behind it. The drain
-         only half-desaturates, so the ring keeps its colour while it
-         is still opaque and greys out as it thins. */
+      /* No colour on the way in. The surge belongs to the page being
+         closed; playing it again here reads as the transition catching
+         and repeating itself instead of as one movement across the
+         navigation.
+         Two things make the break-up legible rather than a plain fade:
+         the block snaps to its grey in a tenth of the run and only then
+         thins (so there is a hard pixel edge at the wave front, not a
+         haze), and it takes the lighter half of the grey ramp — against
+         the field colour the darker greys are invisible, and an
+         invisible break-up is just a dissolve. */
+      const g = span(p, b * 0.6, 0.34);
+      const lift = span(p, b * 0.6, 0.1);
+      /* The two lightest greys only. Against the field colour the
+         darker half of the ramp is invisible, and an invisible
+         break-up is just a fade. */
+      const gc = greys[gn - (tone[i] < 0.5 ? 0 : 1)];
       const o = i * 4;
-      data[o] = mix(mix(field[0], t[0], f), gc[0], g * 0.45);
-      data[o + 1] = mix(mix(field[1], t[1], f), gc[1], g * 0.45);
-      data[o + 2] = mix(mix(field[2], t[2], f), gc[2], g * 0.45);
+      data[o] = mix(field[0], gc[0], lift);
+      data[o + 1] = mix(field[1], gc[1], lift);
+      data[o + 2] = mix(field[2], gc[2], lift);
       data[o + 3] = (1 - g) * 255;
     }
     blit();
   };
 
   const hold = (t: number) => {
-    const { field, chroma } = schemeFor();
-    const cn = chroma.length - 1;
-    /* A slow band of colour crossing the wall: proof that the page is
-       alive while the framework mounts under it. Never transparent —
-       the wall must stay opaque until there is something behind it. */
+    const { field, greys } = schemeFor();
+    const gn = greys.length - 1;
+    /* Achromatic for the same reason the dissolve is: colouring the
+       wall up before the blocks even start to break would be the
+       surge arriving twice. This is only proof that the page is alive
+       while the framework mounts under it — a slow band of grey
+       crossing, plus the odd block catching the light.
+       Never transparent — the wall must stay opaque until there is
+       something behind it. */
     const band = ((t / 1400) % 1) * (rows + 30) - 15;
     for (let r = 0; r < rows; r++) {
       const k = Math.max(0, 1 - Math.abs(r - band) / 5);
       for (let c = 0; c < cols; c++) {
         const i = r * cols + c;
-        const tw = ((t / 900 + spark[i]) % 1) < 0.1 ? 0.6 : 0;
-        const m = Math.min(1, k * 0.35 + tw);
-        const ch = chroma[(hue[i] * cn) | 0];
+        const tw = ((t / 900 + spark[i]) % 1) < 0.1 ? 0.5 : 0;
+        const m = Math.min(1, k * 0.3 + tw * 0.5);
+        const gc = greys[(tone[i] * gn) | 0];
         const o = i * 4;
-        data[o] = mix(field[0], ch[0], m);
-        data[o + 1] = mix(field[1], ch[1], m);
-        data[o + 2] = mix(field[2], ch[2], m);
+        data[o] = mix(field[0], gc[0], m);
+        data[o + 1] = mix(field[1], gc[1], m);
+        data[o + 2] = mix(field[2], gc[2], m);
         data[o + 3] = 255;
       }
     }
