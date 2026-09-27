@@ -19,7 +19,7 @@ export default function Highlight({ text, terms }: HighlightProps) {
         active.some((t) => t.toLowerCase() === part.toLowerCase()) ? (
           <mark
             key={i}
-            className="rounded-[2px] bg-[#f6e3a0] px-[1px] text-inherit"
+            className="bg-[var(--accent)] px-[1px] text-[var(--bg)]"
           >
             {part}
           </mark>
