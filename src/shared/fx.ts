@@ -932,7 +932,7 @@ function initPixelNav(): void {
 /* ---------- entry point ---------- */
 
 /** Wire every decoration. Safe to call more than once (guarded by the
- * fx-on class) and safe to skip entirely under reduced motion. The
+ * wired flag) and safe to skip entirely under reduced motion. The
  * reveal scan starts on the next two frames so React's first commit is
  * already in the DOM when the hooks are collected.
  *
@@ -941,11 +941,20 @@ function initPixelNav(): void {
  * belong in a prerendering context, and the navigation flag that a
  * covering page wrote isn't visible yet anyway. The full boot runs on
  * activation; if the reader is arriving under the curtain, the cover
- * goes up synchronously here, before the first visible frame. */
+ * goes up synchronously here, before the first visible frame.
+ *
+ * The guard is a module flag rather than the html.fx-on class on
+ * purpose: a page prerendered by the build (scripts/prerender.mjs)
+ * snapshots the DOM after this module has run, so its static HTML can
+ * still carry fx-on on the root. That state must boot the engine here
+ * all the same — keying the guard off the class would skip initReveals
+ * and leave every [data-fx] section at opacity 0 for good. */
+let wired = false;
+
 export function initFx(): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || wired) return;
   const root = document.documentElement;
-  if (reducedMotion() || root.classList.contains("fx-on")) return;
+  if (reducedMotion()) return;
 
   const prerendering = document as Document & { prerendering?: boolean };
   if (prerendering.prerendering) {
@@ -967,6 +976,7 @@ export function initFx(): void {
 
   /* The transition keyframes reference these filters by id — they must
      exist before html.fx-on turns the animations on. */
+  wired = true;
   injectPixelFilters();
   root.classList.add("fx-on");
   patchHistoryTransitions();

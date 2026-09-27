@@ -57,6 +57,32 @@ const esc = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
+/* The motion engine (src/shared/fx.ts) runs inside the rendering browser
+   before the content check passes, so every snapshot's <html> carries
+   class="fx-on" — and the shared CSS holds every [data-fx] section at
+   opacity 0 under that class until a live reveal scan adds .fx-in.
+   Serving the snapshot as-is meant a real browser's initFx() saw fx-on
+   already present and (via the old class-keyed guard) never ran the
+   scan: the deployed pages kept their text invisible for good. Bake the
+   document in its VISIBLE state instead — without fx-on the CSS hides
+   nothing (the no-JS contract), and a live browser re-adds fx-on and
+   plays the reveals normally. The px-* classes are stripped for the
+   same reason: they key the boot cover, which must never survive into
+   a served document. */
+const MOTION_CLASSES = new Set(["fx-on", "px-boot", "px-arrived"]);
+function sanitizeMotion(html) {
+  return html.replace(
+    /(<html\b[^>]*?\bclass=")([^"]*)(")/i,
+    (m, head, cls, tail) =>
+      head +
+      cls
+        .split(/\s+/)
+        .filter((c) => c && !MOTION_CLASSES.has(c))
+        .join(" ") +
+      tail,
+  );
+}
+
 /* ---- parse essay frontmatter (src/blog/posts, recursive) for metadata ----
    Posts may live in per-section subdirectories (essays/, notes/, ...) — the
    directory is walked recursively. Only the canonical English files (xxx.md)
@@ -285,7 +311,7 @@ async function renderWithChrome(chromePath, url, expr, waitMs = 15000) {
     }
     ws.close();
     if (!value) throw new Error("page did not render");
-    return value;
+    return sanitizeMotion(value);
   } finally {
     chrome.kill();
     // Best-effort cleanup. rmSync on a Chrome user-data-dir can hard-crash
