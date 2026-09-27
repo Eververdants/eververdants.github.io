@@ -385,7 +385,6 @@ function pxLoadOrigin(): { x: number; y: number } {
   }
 }
 
-/** Hand the origin to CSS — the curtain's clip circle reads it. */
 /** True once a covered navigation is underway — a second click must
  * not start a second curtain. */
 let pxNavigating = false;
@@ -397,10 +396,14 @@ type RGB = readonly [number, number, number];
    cover (and out of it) is invisible. Keep these in step with --bg in
    tokens.css and with the inline head cover in vite.config.ts. */
 interface Scheme {
-  field: RGB;
-  greys: RGB[]; /* the 无色 ramp: static, before ignition */
-  chroma: RGB[]; /* the 有色 ramp: cyan → violet → lime */
+  field: RGB; /* the wall: --bg, and the head cover's colour */
+  greys: RGB[]; /* the 无色 ramp: static, and what the wall breaks into */
+  chroma: RGB[]; /* the 有色 ramp: the ignition */
   spark: RGB; /* a few blocks flare harder than the rest */
+  /* What the wall breathes towards while the framework mounts. Picked
+     per theme because "alive" means opposite things on a #060608 page
+     and a #f2f3ee one: the dark wall lifts, the light one brightens. */
+  hold: RGB;
 }
 
 /** Interpolate a stop list into a flat lookup table once, so the
@@ -439,22 +442,33 @@ const SCHEMES: Record<"dark" | "light", Scheme> = {
       [198, 255, 77],
     ]),
     spark: [236, 255, 255],
+    hold: [58, 61, 72],
   },
   light: {
     field: [242, 243, 238],
+    /* Squeezed off the top of the ramp. The old lightest grey sat three
+       levels under the field, so a quarter of the blocks were invisible
+       — for those, the static simply was not there. Every step here is
+       at least ~20 levels off the field. */
     greys: [
-      [150, 153, 144],
-      [186, 189, 178],
-      [216, 218, 209],
-      [239, 240, 233],
+      [132, 135, 124],
+      [168, 171, 160],
+      [200, 202, 193],
+      [222, 223, 216],
     ],
+    /* Saturated and bright rather than deep. The dark teal-and-olive
+       ramp this used to use arrives on a pale page as ink washing over
+       it — the colour has to get lighter, not just darker, or the
+       ignition reads as a shadow. */
     chroma: ramp([
-      [14, 116, 144],
-      [31, 95, 139],
-      [61, 90, 158],
-      [68, 112, 14],
+      [0, 158, 190],
+      [38, 96, 214],
+      [120, 168, 12],
     ]),
-    spark: [4, 52, 68],
+    /* The hottest thing on the page, not the darkest: on a pale field a
+       near-black speck is dirt, a bright saturated one is a spark. */
+    spark: [0, 186, 224],
+    hold: [252, 252, 250],
   },
 };
 
@@ -616,8 +630,7 @@ function createCurtain(origin?: { x: number; y: number }): Curtain | null {
   };
 
   const hold = (t: number) => {
-    const { field, greys } = schemeFor();
-    const gn = greys.length - 1;
+    const { field, hold: hc } = schemeFor();
     /* Achromatic for the same reason the dissolve is: colouring the
        wall up before the blocks even start to break would be the
        surge arriving twice. This is only proof that the page is alive
@@ -632,11 +645,10 @@ function createCurtain(origin?: { x: number; y: number }): Curtain | null {
         const i = r * cols + c;
         const tw = ((t / 900 + spark[i]) % 1) < 0.1 ? 0.5 : 0;
         const m = Math.min(1, k * 0.3 + tw * 0.5);
-        const gc = greys[(tone[i] * gn) | 0];
         const o = i * 4;
-        data[o] = mix(field[0], gc[0], m);
-        data[o + 1] = mix(field[1], gc[1], m);
-        data[o + 2] = mix(field[2], gc[2], m);
+        data[o] = mix(field[0], hc[0], m);
+        data[o + 1] = mix(field[1], hc[1], m);
+        data[o + 2] = mix(field[2], hc[2], m);
         data[o + 3] = 255;
       }
     }
