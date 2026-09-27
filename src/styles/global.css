@@ -12,34 +12,21 @@
 
 /* ---- blog-only tokens ----
    Palette, surfaces, accent, borders, radii and the scrollbar quartet all
-   come from shared/tokens.css now. What is left here is vocabulary the
-   reading page genuinely needs and no other entry does: the code-block
-   surfaces, the syntax palette, and the ink ladder steps the article
-   typography addresses by name. */
+   come from shared/tokens.css. The green "digital garden" ramp that used to
+   live here is gone: it fought the surge's near-black cool field and
+   silently retuned shared names (--fainter/--faintest). What is left is
+   vocabulary the reading page genuinely needs and no other entry does:
+   the reading metrics and the syntax palette, which is drawn entirely
+   from the field's own inks — spot lime for keywords, the dream cyan for
+   strings, warm signal amber for the rest. No foreign hue enters the
+   field. Surfaces resolve to the shared ramp so a code block, a table
+   and a mounted photo sit on the same field as every other entry. */
 :root {
-
-  --field: #0d1014;
-  --chip: #12161b;
-  --pre-bg: #0c0f13;
-  --code-bg: #141a1e;
-  --code-border: #212a26;
-  --muted-2: #7f8b80;
-  --fainter: #63705f;
-  --faintest: #4c584c;
-  --border-faint: #1a221d;
-  --folio: #dce4d5;
-  --card-bg: #12161c;
-  --card-border: #212a26;
-  /* Shadows are hard offsets now — the pixel grammar has no blur. */
-  --card-shadow: none;
-  --card-shadow-hover: 4px 4px 0 color-mix(in oklab, #000000 55%, transparent);
   /* one source of truth for reading metrics */
   --text-body: clamp(15.5px, 1vw + 0.5rem, 17.5px);
   --text-leading: 1.85;
   --code-ink: #d5ff75;
-  /* Syntax palette, held inside the field's own inks: spot lime for
-     keywords, the dream cyan for strings, warm signal amber for the
-     rest. No foreign hue enters the field. */
+  /* Syntax palette — set by the highlighter's semantic spans. */
   --tok-kw: #c6ff4d;
   --tok-str: #59f1ff;
   --tok-num: #ffe08a;
@@ -54,21 +41,6 @@
 }
 
 [data-theme="light"] {
-
-  --field: #e3dec9;
-  --chip: #dcd7c0;
-  --pre-bg: #e6e1cb;
-  --code-bg: #eee9d5;
-  --code-border: #c9c4ae;
-  --muted-2: #5a6455;
-  --fainter: #68745e;
-  --faintest: #8a9280;
-  --border-faint: #c9c4ae;
-  --folio: #1d2418;
-  --card-bg: #f2eedf;
-  --card-border: #c9c4ae;
-  --card-shadow: none;
-  --card-shadow-hover: 4px 4px 0 color-mix(in oklab, var(--ink) 18%, transparent);
   --code-ink: #35570b;
   --tok-kw: #35570b;
   --tok-str: #0e7490;
@@ -281,10 +253,10 @@
   font-family: var(--font-mono);
   font-size: 0.85em;
   color: var(--code-ink);
-  background: var(--code-bg);
+  background: var(--surface-2);
   padding: 0.12em 0.35em;
   border-radius: var(--r-xs);
-  border: 1px solid var(--code-border);
+  border: 1px solid var(--border);
 }
 
 /* Code blocks — a header strip (language badge left, copy button right)
@@ -295,8 +267,8 @@
   position: relative;
   margin: 0 0 1.6em;
   padding: 0;
-  background: var(--pre-bg);
-  border: 1px solid var(--border-faint);
+  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
   border-radius: 0;
   overflow: hidden;
   font-size: clamp(13px, 0.95vw, 15px);
@@ -326,8 +298,8 @@
   gap: 10px;
   min-height: 38px;
   padding: 0 10px 0 16px;
-  border-bottom: 1px solid var(--border-faint);
-  background: color-mix(in srgb, var(--field) 60%, transparent);
+  border-bottom: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
 }
 
 .article-content .code-lang {
@@ -431,7 +403,7 @@
 .code-copy:focus-visible {
   opacity: 1;
   color: var(--accent);
-  background: var(--field);
+  background: var(--surface);
   border-color: var(--border);
 }
 
@@ -448,7 +420,7 @@
 }
 
 .article-content pre:focus-within {
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-faint));
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-soft));
 }
 
 /* ---- article references: the source list closing an essay ----
@@ -495,7 +467,7 @@
 }
 .article-content .references a:hover {
   color: var(--ink);
-  background: var(--card-bg);
+  background: var(--surface-2);
 }
 .article-content .ref-index {
   flex: none;
@@ -550,7 +522,7 @@
   margin: 0 0 1.6em;
   border-collapse: separate;
   border-spacing: 0;
-  border: 1px solid var(--border-faint);
+  border: 1px solid var(--border-soft);
   border-radius: 0;
   overflow: hidden;
   font-size: 0.92em;
@@ -560,8 +532,8 @@
 .article-content th,
 .article-content td {
   padding: 10px 14px;
-  border-right: 1px solid var(--border-faint);
-  border-bottom: 1px solid var(--border-faint);
+  border-right: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
   text-align: left;
   vertical-align: top;
   transition:
@@ -579,7 +551,7 @@
 }
 
 .article-content thead th {
-  background: var(--field);
+  background: var(--surface);
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: 0.86em;
@@ -589,7 +561,7 @@
 }
 
 .article-content tbody tr:nth-child(even) td {
-  background: color-mix(in srgb, var(--field) 55%, transparent);
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
 }
 
 .article-content tbody tr:hover td {
@@ -611,7 +583,7 @@
   margin-inline: auto;
   border-radius: 0;
   border: 1px solid var(--rule);
-  background: var(--chip);
+  background: var(--surface);
   cursor: zoom-in;
 }
 

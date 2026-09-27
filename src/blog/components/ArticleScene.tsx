@@ -741,7 +741,7 @@ export default function ArticleScene({
                     <a
                       key={id}
                       href={`/blog/topic/${encodeURIComponent(id)}`}
-                      className="inline-flex items-center gap-2 border border-[var(--rule)] px-3 py-1.5 text-[10px] font-medium tracking-[0.18em] text-[var(--muted-2)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                      className="inline-flex items-center gap-2 border border-[var(--rule)] px-3 py-1.5 text-[10px] font-medium tracking-[0.18em] text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
                     >
                       <span
                         aria-hidden
@@ -769,7 +769,7 @@ export default function ArticleScene({
                   <a
                     key={tag}
                     href={`/blog?tag=${encodeURIComponent(tag)}`}
-                    className="border border-[var(--rule)] px-3 py-1.5 text-[10px] font-medium tracking-[0.18em] text-[var(--muted-2)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                    className="border border-[var(--rule)] px-3 py-1.5 text-[10px] font-medium tracking-[0.18em] text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
                   >
                     {post.tagLabels[i]?.toUpperCase() ?? tag.toUpperCase()}
                   </a>
@@ -863,17 +863,17 @@ export default function ArticleScene({
         onClick={(e) => {
           if (e.target === e.currentTarget) setLightbox(null);
         }}
-        className="m-auto max-w-none border-0 bg-transparent p-0 backdrop:bg-[rgba(4,5,7,0.9)]"
+        className="m-auto max-w-none border-0 bg-transparent p-0 backdrop:bg-[color-mix(in_oklab,var(--bg)_90%,transparent)]"
       >
         {lightbox && (
           <figure className="text-center">
             <img
               src={lightbox.src}
               alt={lightbox.alt}
-              className="max-h-[82vh] w-auto max-w-[min(92vw,1200px)] border border-[var(--border-strong)] bg-[var(--chip)]"
+              className="max-h-[82vh] w-auto max-w-[min(92vw,1200px)] border border-[var(--border-strong)] bg-[var(--surface)]"
             />
             {lightbox.caption && (
-              <figcaption className="mt-4 text-[11px] tracking-[0.14em] text-[#d8d4c8]">
+              <figcaption className="mt-4 text-[11px] tracking-[0.14em] text-[var(--faint)]">
                 {lightbox.caption}
               </figcaption>
             )}

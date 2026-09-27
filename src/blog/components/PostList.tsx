@@ -32,7 +32,7 @@ export default function PostList({
           className={
             i === posts.length - 1
               ? ""
-              : "border-b border-[var(--border-faint)]"
+              : "border-b border-[var(--border-soft)]"
           }
         >
           {/* A real href keeps every row crawlable (crawlers discover pages
@@ -69,7 +69,7 @@ export default function PostList({
                     terms={terms}
                   />
                 </span>
-                <span className="mt-1 block max-w-[62ch] text-[13px] leading-[1.6] text-[var(--muted-2)] line-clamp-1">
+                <span className="mt-1 block max-w-[62ch] text-[13px] leading-[1.6] text-[var(--muted)] line-clamp-1">
                   <Highlight text={post.excerpt} terms={terms} />
                 </span>
               </span>
