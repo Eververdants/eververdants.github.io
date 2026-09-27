@@ -314,11 +314,16 @@
   background: var(--accent);
   transition: width var(--dur-2) var(--ease-out);
 }
-.elsewhere a:hover {
+.elsewhere a:hover,
+.elsewhere a:focus-visible {
   color: var(--accent-ink);
 }
-.elsewhere a:hover::before {
+.elsewhere a:hover::before,
+.elsewhere a:focus-visible::before {
   width: 26px;
+}
+.elsewhere a:active {
+  color: var(--accent);
 }
 
 .about__back {
