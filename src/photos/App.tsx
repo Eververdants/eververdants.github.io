@@ -206,12 +206,19 @@ export function App() {
     window.scrollTo({ top: 0 });
   };
 
+  /* Route changes swap the whole scene; land keyboard and screen-reader focus
+     on the new content instead of leaving it on the unmounted card's ghost
+     position in <body>. (Back/forward lands here too, via the same state.) */
+  useEffect(() => {
+    document.getElementById("main")?.focus({ preventScroll: true });
+  }, [route]);
+
   return (
     <>
       <site-topbar active="photos" search />
       <site-palette />
       <div className="photos" onClick={onClick}>
-        <main id="main" className="shell shell--photos">
+        <main id="main" className="shell shell--photos" tabIndex={-1}>
           {route.name === "gallery" ? (
             <Gallery />
           ) : (

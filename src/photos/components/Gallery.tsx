@@ -65,11 +65,10 @@ export function Gallery() {
           <Count target={catCount} label={t.metaCategories} />
           <Count target={imgCount} label={t.metaImages} />
         </div>
-        <div className="filter-bar glass-bar sq-lg" role="tablist" aria-label={t.filterAria}>
+        <div className="filter-bar glass-bar sq-lg" role="group" aria-label={t.filterAria}>
           <button
             type="button"
-            role="tab"
-            aria-selected={active === ALL}
+            aria-pressed={active === ALL}
             className={`filter-chip sq-sm ${active === ALL ? "is-active" : ""}`}
             onClick={() => setActive(ALL)}
           >
@@ -82,8 +81,7 @@ export function Gallery() {
               <button
                 type="button"
                 key={id}
-                role="tab"
-                aria-selected={active === id}
+                aria-pressed={active === id}
                 className={`filter-chip sq-sm ${active === id ? "is-active" : ""}`}
                 onClick={() => setActive(id)}
               >
