@@ -47,7 +47,7 @@ function redirectPage(to, label) {
    title that says what happened. */
 function makeNotFound() {
   const hub = readFileSync("dist/index.html", "utf8");
-  const html = hub
+  const stripped = hub
     .replace(/<link rel="canonical"[^>]*>\s*/i, "")
     .replace(
       /<meta name="description"[^>]*>\s*/i,
@@ -57,9 +57,16 @@ function makeNotFound() {
       /<title>[\s\S]*?<\/title>/i,
       "<title>Page not found — Eververdants</title>",
     );
-  return html.includes('name="robots"')
-    ? html
-    : html.replace(
+  /* The shared head carries `<meta name="robots" content="max-image-preview:large">`,
+     so a plain "already has robots?" check would skip the noindex and let
+     GitHub Pages' catch-all 404 get indexed. Replace whatever robots content
+     is there; only inject a fresh tag when there is none at all. */
+  return stripped.includes('name="robots"')
+    ? stripped.replace(
+        /<meta name="robots"[^>]*>/i,
+        '<meta name="robots" content="noindex" />',
+      )
+    : stripped.replace(
         /<meta name="viewport"/i,
         '<meta name="robots" content="noindex" />\n    <meta name="viewport"',
       );
