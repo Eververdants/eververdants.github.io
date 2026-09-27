@@ -122,8 +122,11 @@ const SHARED_HEAD = [
   HEAD_COVER,
   HEAD_SPECULATION,
   `<meta name="author" content="Eververdants" />`,
+  `<meta name="robots" content="max-image-preview:large" />`,
   `<meta name="theme-color" content="#060608" />`,
   `<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f3ee" />`,
+  `<meta property="og:locale" content="en_US" />`,
+  `<meta property="og:locale:alternate" content="zh_CN" />`,
   `<link rel="icon" href="/favicon.svg" type="image/svg+xml" />`,
   `<link rel="icon" href="/favicon.png" type="image/png" />`,
   `<link rel="apple-touch-icon" href="/apple-touch-icon.png" />`,
@@ -148,6 +151,10 @@ const SHARED_HEAD = [
   `<meta property="og:image:alt" content="Eververdants — 万山青未阑" />`,
   `<meta name="twitter:card" content="summary_large_image" />`,
   `<meta name="twitter:image" content="https://eververdants.github.io/og-image.jpg" />`,
+  /* Repeat-visit caching lives in sw.js (GitHub Pages caps Cache-Control at
+     600 s); registered only on real hosts so dev/preview never go stale.
+     keep in step with the exclusions in public/sw.js. */
+  `<script>if("serviceWorker" in navigator&&!/^(localhost|127\\.0\\.0\\.1)$/.test(location.hostname)&&!location.hostname.endsWith(".ts.net"))addEventListener("load",function(){navigator.serviceWorker.register("/sw.js")});</script>`,
 ].join("\n    ");
 
 /* Vite's tag-descriptor API cannot inject a raw multi-line block, so the
