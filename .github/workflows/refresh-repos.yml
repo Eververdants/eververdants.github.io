@@ -1,15 +1,16 @@
 name: Refresh repo index
 
 # 自动收录新仓库（WORKS INDEX 子站数据）：
-# 1) 每周一 02:00 UTC 定时执行；
+# 1) 每天 02:00 UTC（北京时间 10:00）定时执行；
 # 2) 每次 push 到 main 后执行；
 # 3) 支持手动触发（Actions → Run workflow）。
 # 流程：用 gh 拉取全部公开仓库 → 合并 scripts/curation.json → 提交回 main，
 # 随后主站 deploy.yml（push 到 main 触发）自动重新部署，新仓库即上线。
+# /projects/ 页面本身还会在访问时实时拉 GitHub API 兜底，双保险。
 
 on:
   schedule:
-    - cron: "0 2 * * 1"
+    - cron: "0 2 * * *"
   push:
     branches: [main]
   workflow_dispatch:
