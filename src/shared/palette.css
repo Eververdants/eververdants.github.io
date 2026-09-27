@@ -90,6 +90,16 @@
 .palette__field input::-webkit-search-cancel-button {
   display: none;
 }
+/* The input stays borderless while the *field* carries the focus signal:
+   the icon and the underline answer together — the same gesture the blog
+   search uses, so one site means one thing. (The input keeps outline:none;
+   without this the keyboard focus was simply invisible.) */
+.palette__field:focus-within {
+  border-bottom-color: var(--accent);
+}
+.palette__field:focus-within > svg {
+  color: var(--accent-ink);
+}
 .palette__field kbd {
   font-family: var(--font-mono);
   font-size: 10px;
