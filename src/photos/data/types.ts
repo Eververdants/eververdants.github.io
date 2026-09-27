@@ -15,6 +15,10 @@ export interface Work {
   coverW?: number;
   coverH?: number;
   gallery?: string[];
+  /* Per-image intrinsic dimensions, probed at build time like the cover's,
+     so gallery <img>s can declare width/height and reserve their boxes
+     (no layout jump as photos stream in). null marks an unparsable file. */
+  galleryWH?: ({ w: number; h: number } | null)[];
   camera?: string;
   lens?: string;
   focal?: string;

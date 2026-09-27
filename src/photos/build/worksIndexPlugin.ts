@@ -82,6 +82,9 @@ function loadAll(): Work[] {
         w.coverW = size.width;
         w.coverH = size.height;
       }
+      if (w.gallery?.length) {
+        w.galleryWH = w.gallery.map((g) => webpSize(join(PUBLIC_DIR, g)));
+      }
       works.push(w);
     }
   }

@@ -64,16 +64,21 @@ export function WorkDetail({ slug }: { slug: string }) {
           )}
           {work.gallery && work.gallery.length > 0 && (
             <div className="detail-gallery">
-              {work.gallery.map((g, i) => (
-                <img
-                  key={i}
-                  className="sq-lg"
-                  src={asset(g)}
-                  alt={`${titleOf(work, lang)} — ${i + 1}`}
-                  loading="lazy"
-                  decoding="async"
-                />
-              ))}
+              {work.gallery.map((g, i) => {
+                const dim = work.galleryWH?.[i];
+                return (
+                  <img
+                    key={i}
+                    className="sq-lg"
+                    src={asset(g)}
+                    alt={`${titleOf(work, lang)} — ${i + 1}`}
+                    width={dim?.w}
+                    height={dim?.h}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                );
+              })}
             </div>
           )}
         </div>
