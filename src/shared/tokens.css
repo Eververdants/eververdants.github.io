@@ -285,11 +285,25 @@
 }
 
 /* ---------- base ----------
-   The field: two buried glows under a Bayer dither, drawn once on
-   the root canvas with a fixed attachment — behind everything,
-   never scrolling, so the surface reads as one continuous ground. */
+   The field: two buried glows under a Bayer dither, drawn once with a
+   fixed attachment — behind everything, never scrolling, so the surface
+   reads as one continuous ground.
+
+   It is painted on `body`, not on `html`. Chromium does not count the
+   root element's own background as part of a backdrop-filter's sample, so
+   a glass bar sitting over nothing but the root field has nothing to
+   blur: the blur ran, and produced exactly zero pixels of change. Moving
+   the layer one element down makes it part of the sampled backdrop, and
+   the frost comes alive. `html` keeps only the flat colour — that part
+   still has to be the root, for the first paint and for the overscroll
+   area past the end of the document. */
 html {
   background-color: var(--bg);
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
   background-image:
     var(--dither),
     var(--glow-lime),
@@ -300,11 +314,6 @@ html {
     auto;
   background-repeat: repeat, no-repeat, no-repeat;
   background-attachment: fixed, fixed, fixed;
-  scroll-behavior: smooth;
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
   margin: 0;
   /* The ticker strip lives along the bottom edge; this padding keeps
      running text from ever sliding under it. */
@@ -319,35 +328,63 @@ body {
   overflow-x: hidden;
 }
 
-/* The character ticker: a slow strip of glyphs running along the
-   bottom edge — the site's pulse, purely decorative. */
-body::after {
-  content: "░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓";
+/* The character ticker: a slow strip of glyphs along the
+   bottom edge — the site's pulse, purely decorative. The visual bar is a
+   fixed full-width strip (::before); the text (::after) is a max-content
+   track built from two identical halves and translated by exactly one
+   half-width, so it scrolls seamlessly with no gap or jump on wide
+   viewports. translateX(-50%) is relative to the track's own width here,
+   not the viewport, which is what makes the loop airtight. */
+body::before {
+  content: "";
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: var(--z-ticker);
+  height: 25px;
+  pointer-events: none;
+  border-top: 1px solid var(--rule-faint);
+  /* The fill is deliberately thin. Frost is only as visible as the fill
+     lets the blurred backdrop through — at the old 72% the strip was an
+     opaque bar and the blur behind it was 28% of nothing. */
+  background-color: color-mix(in oklab, var(--bg) 42%, transparent);
+  /* Frost is a texture, not just a filter: on the light theme the field
+     behind this strip is nearly flat, so the blur alone has nothing to
+     chew on and the bar reads as plain tint. The site's own dither,
+     laid over the fill as grain, is what makes it read as sandblasted
+     glass on both themes. Longhands, not the shorthand — `background`
+     would wipe the image back out. */
+  background-image: var(--dither);
+  background-size: var(--dither-size) var(--dither-size);
+  background-repeat: repeat;
+  backdrop-filter: blur(10px);
+}
+
+body::after {
+  content: "░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ░▒▓ PIXEL · DISSOLVE · ░▒▓ DIGITAL · GARDEN · ░▒▓ 万山青未阑 · ░▒▓ KEEP · SHIPPING · ";
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  z-index: var(--z-ticker);
+  width: max-content;
   padding-block: 7px;
-  overflow: hidden;
   white-space: nowrap;
   pointer-events: none;
   font-family: var(--font-term);
   font-size: 11px;
+  line-height: 11px;
   letter-spacing: 0.18em;
   color: color-mix(in oklab, var(--accent) 26%, transparent);
-  border-top: 1px solid var(--rule-faint);
-  background: color-mix(in oklab, var(--bg) 72%, transparent);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   animation: ticker-run 60s linear infinite;
 }
 
 @keyframes ticker-run {
   to {
-    transform: translateX(-33.333%);
+    transform: translateX(-50%);
   }
 }
+
 
 /* Selection is the field marking a block: full spot ink, screen
    colour dropped out behind it. */
@@ -395,7 +432,6 @@ html.theme-anim * {
   border: 1px solid var(--rule);
   box-shadow: none;
   backdrop-filter: none;
-  -webkit-backdrop-filter: none;
   clip-path: polygon(
     0 var(--px-notch),
     var(--px-notch) var(--px-notch),
@@ -837,7 +873,6 @@ button.chip:hover {
   .glass-panel {
     background: var(--bg);
     backdrop-filter: none;
-    -webkit-backdrop-filter: none;
   }
   .glass-sheen::after {
     display: none;
