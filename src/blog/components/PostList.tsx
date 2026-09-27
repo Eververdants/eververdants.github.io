@@ -49,13 +49,13 @@ export default function PostList({
           >
             <div className="sm:grid sm:grid-cols-[96px_minmax(0,1fr)_auto] sm:items-baseline sm:gap-x-5">
               {/* date — left column on desktop, meta line on mobile */}
-              <span className="hidden text-[10px] font-medium tracking-[0.22em] tabular-nums text-[var(--fainter)] sm:block">
+              <span className="hidden text-[10px] font-medium tracking-[0.22em] tabular-nums text-[var(--faint)] sm:block">
                 {post.date}
               </span>
 
               <span className="block min-w-0">
                 {/* mobile meta — date · read on one quiet line */}
-                <span className="mb-1 flex items-baseline gap-2 text-[9.5px] tracking-[0.2em] text-[var(--fainter)] sm:hidden">
+                <span className="mb-1 flex items-baseline gap-2 text-[9.5px] tracking-[0.2em] text-[var(--faint)] sm:hidden">
                   <span>{post.date}</span>
                   <span aria-hidden className="text-[var(--faintest)]">
                     ·
@@ -76,7 +76,7 @@ export default function PostList({
 
               {/* read time + arrow — right column on desktop */}
               <span className="hidden items-center gap-3 sm:flex sm:justify-end">
-                <span className="text-[10px] tracking-[0.2em] text-[var(--faintest)]">
+                <span className="text-[10px] tracking-[0.2em] text-[var(--faint)]">
                   {post.read}
                 </span>
                 <span

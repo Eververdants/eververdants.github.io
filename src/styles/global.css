@@ -1,6 +1,15 @@
 @import "tailwindcss";
 @import "../shared/tokens.css";
 
+/* Tailwind's animate-pulse keeps pulsing under prefers-reduced-motion; the
+   skeleton is a stand-in for arriving content, so a static block says the
+   same thing without the motion. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse {
+    animation: none;
+  }
+}
+
 /* ---- blog-only tokens ----
    Palette, surfaces, accent, borders, radii and the scrollbar quartet all
    come from shared/tokens.css now. What is left here is vocabulary the
@@ -429,6 +438,13 @@
 .code-copy.code-copied {
   opacity: 1;
   color: var(--accent);
+}
+
+/* Failure answers in the signal amber from the syntax palette — the field's
+   own "this did not work" colour, not a foreign red. */
+.code-copy.code-copy--failed {
+  opacity: 1;
+  color: var(--tok-num);
 }
 
 .article-content pre:focus-within {

@@ -158,10 +158,20 @@ export default function BlogApp() {
     return () => document.removeEventListener("click", onClick);
   }, [view, toTop]);
 
+  /* A view swap unmounts the previous scene; land keyboard and screen-reader
+     focus on the new view's root instead of leaving it in <body>. */
+  const viewRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    viewRef.current?.focus({ preventScroll: true });
+  }, [view]);
+
   return (
     <>
       <site-topbar active="blog" search />
       <site-palette />
+      {/* id="main": the shared skip link points here, and each view swap keeps
+          it as the focus landing spot (tabIndex -1). */}
+      <div ref={viewRef} id="main" tabIndex={-1} className="outline-none">
       {view.kind === "article" ? (
         <ArticleScene
           slug={view.slug}
@@ -174,6 +184,7 @@ export default function BlogApp() {
       ) : (
         <BlogIndexScene onOpen={openArticle} onOpenTopic={openTopic} />
       )}
+      </div>
       <BackToTop />
     </>
   );

@@ -365,7 +365,15 @@ export default function ArticleScene({
             btn.innerHTML = copyIcon;
           }, 1600);
         } catch {
-          /* clipboard unavailable — no feedback needed */
+          /* Clipboard unavailable (permissions / non-secure context): say so
+             instead of staying silent — a button that does nothing reads as
+             a bug. */
+          btn.classList.add("code-copy--failed");
+          btn.setAttribute("aria-label", t.copyFailed);
+          window.setTimeout(() => {
+            btn.classList.remove("code-copy--failed");
+            btn.setAttribute("aria-label", t.copyCode);
+          }, 1600);
         }
       });
       // Live in the header strip (language left, button right) so wide
@@ -377,6 +385,30 @@ export default function ArticleScene({
     });
     return () => buttons.forEach((b) => b.remove());
   }, [slug, lang, html, t]);
+
+  /* Figure images open the lightbox on click, but the delegated handler only
+     serves pointers. Make each figure keyboard-operable — focusable, labelled,
+     and Enter/Space re-dispatch the same click the pointer would give. */
+  useEffect(() => {
+    const content = root.current?.querySelector(".article-content");
+    if (!content) return;
+    const imgs = Array.from(
+      content.querySelectorAll<HTMLImageElement>("figure img"),
+    );
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      (e.currentTarget as HTMLElement).click();
+    };
+    imgs.forEach((img) => {
+      img.tabIndex = 0;
+      img.setAttribute("role", "button");
+      img.setAttribute("aria-label", t.openImage);
+      img.addEventListener("keydown", onKey);
+    });
+    return () =>
+      imgs.forEach((img) => img.removeEventListener("keydown", onKey));
+  }, [html, t]);
 
   /* Lightbox — showModal on open, close() on dismiss (Esc or backdrop). */
   useEffect(() => {
@@ -608,7 +640,7 @@ export default function ArticleScene({
               aria-busy="true"
               aria-label={t.loading}
             >
-              <p className="mb-6 text-[10px] font-semibold tracking-[0.34em] text-[var(--fainter)]">
+              <p className="mb-6 text-[10px] font-semibold tracking-[0.34em] text-[var(--faint)]">
                 {t.loading}
               </p>
               <div className="space-y-3.5">
@@ -630,7 +662,7 @@ export default function ArticleScene({
                   <button
                     type="button"
                     onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                    className="inline-flex items-center gap-1 text-[9px] tracking-[0.24em] text-[var(--faintest)] transition-colors hover:text-[var(--accent)]"
+                    className="inline-flex items-center gap-1 text-[9px] tracking-[0.24em] text-[var(--faint)] transition-colors hover:text-[var(--accent)]"
                   >
                     ↑ {t.backToTop}
                   </button>
@@ -818,7 +850,7 @@ export default function ArticleScene({
           )}
         </nav>
 
-        <p className="mt-[clamp(40px,8vh,80px)] text-center text-[11px] tracking-[0.3em] text-[var(--faintest)]">
+        <p className="mt-[clamp(40px,8vh,80px)] text-center text-[11px] tracking-[0.3em] text-[var(--faint)]">
           {t.end(journal.close.year)}
         </p>
       </div>
@@ -826,6 +858,7 @@ export default function ArticleScene({
       {/* image lightbox — native dialog: Esc or backdrop click dismisses */}
       <dialog
         ref={lightboxRef}
+        aria-label={t.lightbox}
         onClose={() => setLightbox(null)}
         onClick={(e) => {
           if (e.target === e.currentTarget) setLightbox(null);

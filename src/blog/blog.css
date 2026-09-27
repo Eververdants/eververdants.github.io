@@ -44,7 +44,7 @@
 .blog-index__count::before {
   content: "·";
   margin-inline-end: 8px;
-  color: var(--faintest);
+  color: var(--faint);
 }
 .blog-index__kicker {
   display: flex;
@@ -143,8 +143,10 @@
   appearance: none;
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  /* 24px square clears WCAG 2.5.8's minimum target size; the glyph inside
+     stays small — the hit area does not. */
+  width: 24px;
+  height: 24px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -156,7 +158,8 @@
     background-color var(--dur-2) var(--ease-out),
     color var(--dur-2) var(--ease-out);
 }
-.blog-index__clear:hover {
+.blog-index__clear:hover,
+.blog-index__clear:focus-visible {
   background: var(--accent-soft);
   color: var(--ink);
 }
