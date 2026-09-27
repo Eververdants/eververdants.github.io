@@ -35,7 +35,7 @@ jobs:
         run: |
           set -euo pipefail
           missing=0
-          for f in sitemap.xml robots.txt rss.xml search.json site.json posts.json works.json llms-full.txt llms.txt 404.html; do
+          for f in sitemap.xml robots.txt rss.xml search.json site.json posts.json works.json llms-full.txt llms.txt 404.html sw.js; do
             if [ -s "dist/$f" ]; then echo "ok   dist/$f"; else echo "MISS dist/$f"; missing=1; fi
           done
           articles=$(find dist/blog -mindepth 2 -maxdepth 2 -type d | wc -l)
