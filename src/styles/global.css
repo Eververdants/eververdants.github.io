@@ -105,12 +105,15 @@
     opacity 0.2s ease;
 }
 
-:has([data-article]) body {
-  background: var(--bg);
-}
+/* The reading page shares the site field: the dither and the two buried
+   glows are painted once, on `body` (see "base" in shared/tokens.css) —
+   not on `html`, because Chromium leaves the root element's own background
+   out of a backdrop-filter's sample, and the ticker and the top bar both
+   need the field to be something they can actually blur.
 
-
-
+   What must not come back is an opaque fill on `body`: a leftover from the
+   paper-white era painted one here, and it covered the field on every
+   article. Do not reintroduce a body fill. */
 
 
 /* ---- article reader ----

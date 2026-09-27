@@ -99,8 +99,15 @@ const HEAD_INIT = `<script>(function(){try{var q=new URLSearchParams(location.se
    with SCHEMES.field in src/shared/fx.ts.
    The reduced-motion escape is inline on purpose: if the reader asked
    for less motion, fx.ts never runs, so nothing would ever take a
-   cover put up by this script back down. */
-const HEAD_COVER = `<style>html{background:#060608}html[data-theme="light"]{background:#f2f3ee}html.px-boot::after{content:"";position:fixed;inset:0;z-index:3000;pointer-events:none;background:#060608}html[data-theme="light"].px-boot::after{background:#f2f3ee}@media (prefers-reduced-motion:reduce){html.px-boot::after{display:none}}</style><script>(function(){try{var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;if(!reduce&&sessionStorage.getItem("px-nav")==="1"){document.documentElement.classList.add("px-boot")}}catch(e){}})();</script>`;
+   cover put up by this script back down.
+
+   The two field rules below set `background-color`, never the
+   `background` shorthand. The shorthand resets background-image, and
+   `html[data-theme="light"]` outranks the plain `html` rule that
+   paints the site field — so a shorthand here silently erased the
+   dither and both buried glows on every light-theme page. Dark only
+   survived because its rule ties on specificity and loses on order. */
+const HEAD_COVER = `<style>html{background-color:#060608}html[data-theme="light"]{background-color:#f2f3ee}html.px-boot::after{content:"";position:fixed;inset:0;z-index:3000;pointer-events:none;background:#060608}html[data-theme="light"].px-boot::after{background:#f2f3ee}@media (prefers-reduced-motion:reduce){html.px-boot::after{display:none}}</style><script>(function(){try{var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;if(!reduce&&sessionStorage.getItem("px-nav")==="1"){document.documentElement.classList.add("px-boot")}}catch(e){}})();</script>`;
 
 /* Prerender same-origin pages on hover intent (Chromium): by the time
    the click lands, the target page — including its framework render —
