@@ -16,7 +16,6 @@
 .palette::backdrop {
   background: color-mix(in oklab, var(--ink) 42%, transparent);
   backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
 }
 
 .palette[open] {
@@ -41,7 +40,6 @@
   background: var(--glass-fill-strong);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
   box-shadow: var(--glass-shadow-lift);
   overflow: hidden;
   /* Same stepped pixel corners as every other floating tile. */
@@ -212,10 +210,8 @@
   .palette__box {
     background: var(--surface);
     backdrop-filter: none;
-    -webkit-backdrop-filter: none;
   }
   .palette::backdrop {
     backdrop-filter: none;
-    -webkit-backdrop-filter: none;
   }
 }
