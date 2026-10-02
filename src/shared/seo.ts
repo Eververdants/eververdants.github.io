@@ -98,6 +98,26 @@ export function applyHead(input: HeadInput): void {
   upsertMeta("property", "og:image", image);
   if (input.ogType) upsertMeta("property", "og:type", input.ogType);
   if (input.locale) upsertMeta("property", "og:locale", input.locale);
+  /* The declared-but-never-written counterpart: on a zh page og:locale
+     flipped to zh_CN while og:locale:alternate stayed at the shared head's
+     static zh_CN — reporting the page as its own alternate language.
+     Entries are keyed by nothing (several can coexist), so the set is
+     managed wholesale: clear and re-append. Derived from og:locale when a
+     caller doesn't spell it out, so every call site stays correct. */
+  const localeAlternates =
+    input.localeAlternate ??
+    (input.locale ? [input.locale === "zh_CN" ? "en_US" : "zh_CN"] : []);
+  if (input.locale && localeAlternates.length) {
+    document.head
+      .querySelectorAll('meta[property="og:locale:alternate"]')
+      .forEach((el) => el.remove());
+    for (const loc of localeAlternates) {
+      const el = document.createElement("meta");
+      el.setAttribute("property", "og:locale:alternate");
+      el.setAttribute("content", loc);
+      document.head.appendChild(el);
+    }
+  }
   if (input.ogType === "article") {
     if (input.publishedTime)
       upsertMeta("property", "article:published_time", input.publishedTime);
