@@ -3,6 +3,12 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  schedule:
+    # refresh-repos.yml 每天 02:00 UTC 用 GITHUB_TOKEN 提交 repos.json，
+    # 而 GITHUB_TOKEN 触发的 push 不会连带触发其它 workflow —— 自动收录
+    # 的新仓库不会因那次提交而部署。补一个稍后的定时部署兜底，保证
+    # 刷新的数据当天上线（内容无变化时等同一次空部署，代价可忽略）。
+    - cron: "30 2 * * *"
   workflow_dispatch:
 
 permissions:
