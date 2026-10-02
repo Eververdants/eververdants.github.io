@@ -45,6 +45,12 @@ const CHROME_CANDIDATES = [
   "/usr/bin/google-chrome-stable",
   "/usr/bin/chromium",
   "/usr/bin/chromium-browser",
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "/Applications/Chromium.app/Contents/MacOS/Chromium",
+  /* Edge is Chromium too and honours the same headless/CDP flags — a
+     fallback that makes the pass work on Windows boxes without Chrome. */
+  "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+  "C:/Program Files/Microsoft/Edge/Application/msedge.exe",
 ];
 const findChrome = () => CHROME_CANDIDATES.find((p) => existsSync(p)) || null;
 const isWin = process.platform === "win32";
@@ -162,7 +168,18 @@ function parseWorks() {
 function startServer() {
   const dist = resolve(ROOT, "dist");
   return createServer((req, res) => {
-    let p = decodeURIComponent(req.url.split("?")[0]);
+    /* req.url can be absent on malformed requests, and decodeURIComponent
+       throws URIError on a truncated %-sequence — either would be an
+       uncaught exception inside the request handler and kill the whole
+       prerender process. Answer 400 and keep serving. */
+    let p;
+    try {
+      p = decodeURIComponent((req.url ?? "/").split("?")[0]);
+    } catch {
+      res.writeHead(400);
+      res.end();
+      return;
+    }
     if (p.endsWith("/")) p += "index.html";
     const file = resolve(dist, "." + p);
     if (!file.startsWith(dist)) {
@@ -275,23 +292,57 @@ async function renderWithChrome(chromePath, url, expr, waitMs = 15000) {
     });
     /* A dying renderer can drop the socket mid-render; without a handler
        Node raises an unhandled 'error' and kills the whole prerender with
-       exit code 1. Swallow it — the wait loop below times out and the
-       per-page try/catch logs a ✗ instead. */
+       exit code 1. Swallow it — failPending() below rejects whatever is in
+       flight and the per-page try/catch logs a ✗ instead. */
     ws.onerror = () => {};
     let id = 0;
     const pending = new Map();
+    /* A crashed renderer must never leave a send() unresolved: a pending
+       Runtime.evaluate with no timeout used to hang the wait loop forever
+       (the 15s deadline never gets re-checked while awaiting), so chrome
+       was never killed and the whole build sat until the CI job timeout. */
+    const failPending = (err) => {
+      for (const p of pending.values()) {
+        clearTimeout(p.timer);
+        p.rej(err);
+      }
+      pending.clear();
+    };
+    ws.onclose = () => failPending(new Error("CDP websocket closed"));
     ws.onmessage = (ev) => {
-      const m = JSON.parse(ev.data);
+      let m;
+      try {
+        m = JSON.parse(ev.data);
+      } catch {
+        return;
+      }
       if (m.id && pending.has(m.id)) {
-        pending.get(m.id)(m);
+        const p = pending.get(m.id);
         pending.delete(m.id);
+        clearTimeout(p.timer);
+        p.res(m);
       }
     };
     const send = (method, params = {}) =>
-      new Promise((res) => {
+      new Promise((res, rej) => {
         const i = ++id;
-        pending.set(i, res);
-        ws.send(JSON.stringify({ id: i, method, params }));
+        const timer = setTimeout(() => {
+          pending.delete(i);
+          rej(new Error(`CDP ${method} timed out`));
+        }, 10000);
+        const entry = {
+          res,
+          rej,
+          timer,
+        };
+        pending.set(i, entry);
+        try {
+          ws.send(JSON.stringify({ id: i, method, params }));
+        } catch (e) {
+          clearTimeout(timer);
+          pending.delete(i);
+          rej(e);
+        }
       });
 
     await send("Page.enable");
