@@ -11,7 +11,7 @@
    /projects entry gets the identical widget. Open it by dispatching a
    `site-search` click on the bar's search button, or just press Ctrl/Cmd-K. */
 
-import { getPrefs, pick, subscribePrefs } from "./prefs";
+import { getPrefs, subscribePrefs } from "./prefs";
 import type { Lang } from "./prefs";
 
 interface Item {
@@ -122,11 +122,14 @@ class SitePalette extends HTMLElement {
     this.#dialog = this.querySelector("dialog");
     this.#input = this.querySelector("input");
     this.#list = this.querySelector(".palette__results");
+    /* The markup is the literal above, so all three exist; bail anyway so
+       a drift degrades to "no palette" instead of a thrown TypeError. */
+    if (!this.#dialog || !this.#input || !this.#list) return;
 
     this.#input.addEventListener("input", () => this.#render());
     this.#input.addEventListener("keydown", (e) => this.#onKey(e));
     this.#dialog.addEventListener("click", (e) => {
-      if (e.target === this.#dialog) this.#dialog.close();
+      if (e.target === this.#dialog) this.#dialog?.close();
     });
     this.#dialog.addEventListener("close", () =>
       this.dispatchEvent(new CustomEvent("palette-close", { bubbles: true })),
@@ -154,6 +157,7 @@ class SitePalette extends HTMLElement {
 
   #localise(): void {
     const c = COPY[getPrefs().lang];
+    if (!this.#input) return;
     this.#input.placeholder = c.placeholder;
     this.querySelectorAll<HTMLElement>("[data-hint]").forEach((el) => {
       el.textContent = c[`hint${el.dataset.hint}` as "hintUpdown"] ?? "";
@@ -161,6 +165,7 @@ class SitePalette extends HTMLElement {
   }
 
   open(): void {
+    if (!this.#dialog || !this.#input) return;
     if (!this.#dialog.open) this.#dialog.showModal();
     this.#input.value = "";
     this.#render();
@@ -192,7 +197,7 @@ class SitePalette extends HTMLElement {
       this.#rows[this.#cursor]?.el.querySelector<HTMLAnchorElement>("a")?.click();
     } else if (e.key === "Escape") {
       e.preventDefault();
-      this.#dialog.close();
+      this.#dialog?.close();
     }
   }
 
@@ -208,6 +213,7 @@ class SitePalette extends HTMLElement {
   #render(): void {
     const c = COPY[getPrefs().lang];
     const lang = getPrefs().lang;
+    if (!this.#list || !this.#input) return;
     const terms = this.#input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
     this.#list.innerHTML = "";
     this.#rows = [];
@@ -259,7 +265,7 @@ class SitePalette extends HTMLElement {
         // Internal results close the palette and let the SPA router take the
         // click; external ones just open in a new tab.
         if (!item.external) {
-          row.querySelector("a").addEventListener("click", () => this.#dialog.close());
+          row.querySelector("a")?.addEventListener("click", () => this.#dialog?.close());
         }
         this.#list.appendChild(row);
         this.#rows.push({ item, el: row });
