@@ -44,9 +44,10 @@ jobs:
           for f in sitemap.xml robots.txt rss.xml search.json site.json posts.json works.json llms-full.txt llms.txt 404.html sw.js; do
             if [ -s "dist/$f" ]; then echo "ok   dist/$f"; else echo "MISS dist/$f"; missing=1; fi
           done
-          articles=$(find dist/blog -mindepth 2 -maxdepth 2 -type d | wc -l)
+          articles=$(find dist/blog -mindepth 1 -maxdepth 1 -type d ! -name zh ! -name topic | wc -l)
           zh=$(find dist/blog/zh -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)
-          echo "prerendered article dirs: $articles (zh: $zh)"
+          topics=$(find dist/blog/topic -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)
+          echo "prerendered article dirs: en=$articles zh=$zh topics=$topics"
           if [ "$articles" -lt 6 ] || [ "$zh" -lt 6 ]; then
             echo "::error::prerender produced fewer article pages than expected — headless Chrome likely unavailable or the pass crashed"
             missing=1
