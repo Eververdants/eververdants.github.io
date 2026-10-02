@@ -696,8 +696,19 @@ function animate(
 /* ---------- leaving: the canvas curtain ---------- */
 
 function pxNavGo(href: string, origin: { x: number; y: number }): void {
-  if (pxNavigating) return;
   if (document.documentElement.classList.contains("px-boot")) return;
+  if (pxNavigating) {
+    /* A navigation is already underway — but the caller has already
+       preventDefaulted this click, so returning without acting swallows
+       it. If the wall is still up (the browser refused the first
+       navigation and the failsafe window has not elapsed), the second
+       click must actually go through, re-aimed at the link it hit. */
+    if (document.getElementById("px-curtain")) {
+      pxSaveOrigin(origin.x, origin.y);
+      location.href = href;
+    }
+    return;
+  }
   pxNavigating = true;
   try {
     sessionStorage.setItem(PXNAV_KEY, "1");
@@ -706,9 +717,9 @@ function pxNavGo(href: string, origin: { x: number; y: number }): void {
        be pre-applied on the next page */
   }
   pxSaveOrigin(origin.x, origin.y);
-  /* A wall is already up — an earlier navigation was refused and the
-     reader clicked again. Never tear that wall down to build another
-     one (the page would show through for a frame); just go. */
+  /* A wall is already up — an arrival reveal is still playing. Never tear
+     that wall down to build another one (the page would show through for a
+     frame); just go. */
   if (document.getElementById("px-curtain")) {
     location.href = href;
     return;
