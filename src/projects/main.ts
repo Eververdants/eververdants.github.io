@@ -383,7 +383,7 @@ function renderToolbar() {
   input.value = state.q;
   input.addEventListener("input", () => {
     state.q = input.value;
-    syncUrl();
+    queueUrlSync();
     renderLedger();
   });
 
@@ -490,6 +490,16 @@ function syncUrl() {
   if (state.sort !== "updated") p.set("sort", state.sort);
   const qs = p.toString();
   history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
+}
+/* replaceState on every keystroke trips Safari's 100-calls-per-30-seconds
+   cap, which throws SecurityError — and a throw out of the input handler
+   would skip the ledger update that follows it. Trailing-debounce the URL
+   write only; the filter state and the list still update on every
+   keystroke. */
+let urlSyncTimer = 0;
+function queueUrlSync() {
+  window.clearTimeout(urlSyncTimer);
+  urlSyncTimer = window.setTimeout(syncUrl, 200);
 }
 function readUrl() {
   const p = new URLSearchParams(location.search);
