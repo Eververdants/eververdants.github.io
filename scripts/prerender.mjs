@@ -103,7 +103,9 @@ function parsePosts() {
   const dir = join(ROOT, "src/blog/posts");
   const posts = new Map();
   for (const file of collectPosts(dir)) {
-    const src = readFileSync(file, "utf8");
+    /* A UTF-8 BOM (Windows editors add one) would make the ^--- anchor
+       fail and silently drop the post from the sitemap and RSS. */
+    const src = readFileSync(file, "utf8").replace(/^\uFEFF/, "");
     const fm = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
     if (!fm) continue;
     const kv = (key) => {
@@ -140,7 +142,7 @@ function parseWorks() {
   }
   for (const name of names) {
     if (!name.endsWith(".md")) continue;
-    const src = readFileSync(join(dir, name), "utf8");
+    const src = readFileSync(join(dir, name), "utf8").replace(/^\uFEFF/, "");
     const fm = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
     if (!fm) continue;
     const kv = (key) => {

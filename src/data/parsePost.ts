@@ -25,7 +25,11 @@ export function parseFrontmatter(raw: string): {
   meta: Frontmatter;
   body: string;
 } {
-  const lines = raw.replace(/\r\n/g, "\n").split("\n");
+  /* A UTF-8 BOM (some Windows editors write one) would make the first
+     line "\uFEFF---" and the whole frontmatter block silently unparsed —
+     post vanishes from the index. */
+  const src = raw.replace(/^\uFEFF/, "");
+  const lines = src.replace(/\r\n/g, "\n").split("\n");
   if (!lines[0] || lines[0].trim() !== "---") return { meta: {}, body: raw };
   let end = -1;
   for (let i = 1; i < lines.length; i++) {

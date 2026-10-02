@@ -23,7 +23,8 @@ const WORKS = join(ROOT, "src/photos/works");
 const REPOS = join(ROOT, "src/projects/data/repos.json");
 
 function frontmatter(raw) {
-  const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  /* BOM-tolerant: a leading U+FEFF would break the ^--- anchor. */
+  const m = raw.replace(/^\uFEFF/, "").match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!m) return {};
   const get = (key) => {
     const line = m[1].match(new RegExp(`^${key}:[ \t]*(.*)$`, "m"));

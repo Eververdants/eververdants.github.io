@@ -47,7 +47,9 @@ export function parseFrontmatter(text: string): Front {
 }
 
 export function parseWorkMeta(raw: string): Work {
-  const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  /* A UTF-8 BOM would break the ^--- anchor and silently drop every field. */
+  const text = raw.replace(/^\uFEFF/, "");
+  const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   const fm: Front = m ? parseFrontmatter(m[1]) : {};
   const s = (k: string): string | undefined => {
     const v = fm[k];
