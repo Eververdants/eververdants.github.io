@@ -7,7 +7,13 @@
    browser scrolls, the shared <site-topbar> navigates, and the shared prefs
    store remembers language and theme. */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import ArticleScene from "./components/ArticleScene";
 import BackToTop from "./components/BackToTop";
 import BlogIndexScene from "./components/BlogIndexScene";
@@ -121,42 +127,59 @@ export default function BlogApp() {
   }, [toTop]);
 
   /* Plain links inside the app (tag chips, topic pills, related cards) are
-     intercepted here so navigation keeps its state instead of reloading. */
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      const a = (e.target as HTMLElement | null)?.closest<HTMLAnchorElement>(
-        "a[href]",
-      );
-      if (!a) return;
-      const url = new URL(a.href, location.origin);
-      if (url.origin !== location.origin) return;
-      const next = parseView(url.pathname);
-      if (next.kind === "article") {
+     intercepted here so navigation keeps its state instead of reloading.
+
+     This must be a React onClick on the view root, NOT a document-level
+     listener. The shared motion layer (fx.ts) also listens on document and
+     registers itself first (at module scope, before this component mounts) —
+     a document-level handler here always ran *after* fx had already
+     preventDefaulted and scheduled a full-page navigation behind the pixel
+     curtain. Links with their own React onClick were fine (React fires at
+     #root, before document), but tag/topic chips in the article footer had
+     none: they got a wasted SPA swap and then a reload — and a topic chip's
+     reload landed on /blog/topic/<id>, which has no static file behind it,
+     so GitHub Pages served 404.html and the reader ended up on the hub. */
+  const onViewClick = (e: ReactMouseEvent<HTMLDivElement>) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)
+      return;
+    const a = (e.target as HTMLElement | null)?.closest<HTMLAnchorElement>(
+      "a[href]",
+    );
+    if (!a) return;
+    const url = new URL(a.href, location.origin);
+    if (url.origin !== location.origin) return;
+    const next = parseView(url.pathname);
+    if (next.kind === "article") {
+      if (
+        view.kind === "article" &&
+        view.slug === next.slug &&
+        view.lang === next.lang
+      ) {
         e.preventDefault();
-        if (
-          view.kind === "article" &&
-          view.slug === next.slug &&
-          view.lang === next.lang
-        )
-          return;
-        setView(next);
-        history.pushState({ __blogArticle: next.slug }, "", url.pathname);
-        toTop();
-      } else if (next.kind === "topic") {
-        e.preventDefault();
-        setView(next);
-        history.pushState({ __blogTopic: next.id }, "", url.pathname);
-        toTop();
-      } else if (next.kind === "index" && url.pathname === BLOG) {
-        e.preventDefault();
-        setView({ kind: "index" });
-        history.pushState(null, "", url.pathname);
-        toTop();
+        return;
       }
-    };
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
-  }, [view, toTop]);
+      e.preventDefault();
+      setView(next);
+      history.pushState({ __blogArticle: next.slug }, "", url.pathname);
+      toTop();
+    } else if (next.kind === "topic") {
+      e.preventDefault();
+      setView(next);
+      history.pushState({ __blogTopic: next.id }, "", url.pathname);
+      toTop();
+    } else if (
+      next.kind === "index" &&
+      (url.pathname === BLOG || url.pathname === `${BLOG}/`)
+    ) {
+      /* The query string carries the archive filters (?tag= / ?section=) —
+         dropping it here silently discarded the tag a chip in an article
+         footer pointed at. */
+      e.preventDefault();
+      setView({ kind: "index" });
+      history.pushState(null, "", url.pathname + url.search);
+      toTop();
+    }
+  };
 
   /* A view swap unmounts the previous scene; land keyboard and screen-reader
      focus on the new view's root instead of leaving it in <body>. */
@@ -171,7 +194,13 @@ export default function BlogApp() {
       <site-palette />
       {/* id="main": the shared skip link points here, and each view swap keeps
           it as the focus landing spot (tabIndex -1). */}
-      <div ref={viewRef} id="main" tabIndex={-1} className="outline-none">
+      <div
+        ref={viewRef}
+        id="main"
+        tabIndex={-1}
+        className="outline-none"
+        onClick={onViewClick}
+      >
       {view.kind === "article" ? (
         <ArticleScene
           slug={view.slug}
