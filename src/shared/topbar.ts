@@ -158,16 +158,26 @@ class SiteTopBar extends HTMLElement {
 
     this.#rendered = true;
 
-    if (restore) this.querySelector<HTMLElement>(restore)?.focus();
+    if (restore) {
+      /* The language and theme controls exist twice — once in the bar and
+         once in the mobile menu — and only one of them is rendered at a
+         time. Hand focus back to the copy the reader can actually see. */
+      const candidates = Array.from(
+        this.querySelectorAll<HTMLElement>(restore),
+      );
+      (candidates.find((el) => el.offsetParent !== null) ?? candidates[0])?.focus();
+    }
 
     this.querySelectorAll<HTMLElement>("[data-stb-lang]").forEach((b) =>
       b.addEventListener("click", () =>
         setLang(b.dataset.stbLang === "zh" ? "zh" : "en"),
       ),
     );
-    this.querySelector<HTMLElement>("[data-stb-theme]")?.addEventListener(
-      "click",
-      () => toggleTheme(),
+    /* Every copy of the theme button must be wired: the bar's copy is
+       display:none under 720px, so a single querySelector bound only the
+       hidden one and the phone's button did nothing. */
+    this.querySelectorAll<HTMLElement>("[data-stb-theme]").forEach((b) =>
+      b.addEventListener("click", () => toggleTheme()),
     );
     this.querySelector<HTMLElement>("[data-stb-search]")?.addEventListener(
       "click",
