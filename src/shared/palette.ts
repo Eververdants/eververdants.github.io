@@ -97,6 +97,18 @@ class SitePalette extends HTMLElement {
   #cursor = 0;
   #unsub: (() => void) | null = null;
 
+  /* Window-level activators, bound as fields so disconnectedCallback can
+     remove the exact functions it added — an element that is detached and
+     reattached (or upgraded twice) would otherwise stack duplicate Ctrl-K
+     handlers that fire `open()` once per stale registration. */
+  #onWindowKey = (e: KeyboardEvent): void => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      this.open();
+    }
+  };
+  #onSearch = (): void => this.open();
+
   connectedCallback(): void {
     this.innerHTML = `
       <dialog class="palette" aria-label="Search">
@@ -141,18 +153,15 @@ class SitePalette extends HTMLElement {
       this.#render();
     });
 
-    addEventListener("keydown", (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        this.open();
-      }
-    });
-    addEventListener("site-search", () => this.open());
+    addEventListener("keydown", this.#onWindowKey);
+    addEventListener("site-search", this.#onSearch);
   }
 
   disconnectedCallback(): void {
     this.#unsub?.();
     this.#unsub = null;
+    removeEventListener("keydown", this.#onWindowKey);
+    removeEventListener("site-search", this.#onSearch);
   }
 
   #localise(): void {
