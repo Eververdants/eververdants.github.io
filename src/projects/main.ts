@@ -200,9 +200,12 @@ async function liveSync() {
   const merged = mergeCurated(fresh);
   const changed = fingerprint(merged) !== fingerprint(repos);
 
-  /* 无论数据是否变化，注脚先亮出“实时”信号，同步时间记为此刻。 */
+  /* 无论数据是否变化，注脚先亮出“实时”信号，同步时间记为此刻。count 与
+     hero 首个统计、JSON-LD 的 ItemList 共用，必须跟 repos 一起走，否则
+     实时收录新仓库后 hero 显示旧数量、工具条却显示新数量。 */
   live = true;
   d._meta.fetchedAt = new Date().toISOString();
+  d._meta.count = merged.length;
 
   if (!changed) {
     renderSyncNote();
@@ -225,6 +228,7 @@ async function liveSync() {
   renderToolbar();
   renderLedger();
   renderSyncNote();
+  applySeo();
   initReveal();
 
   restoreToolbarFocus(prevActive);
