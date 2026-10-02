@@ -14,7 +14,7 @@
  *   - 输出含 _meta.fetchedAt，页面页脚会显示“最近同步”。
  */
 
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -54,7 +54,14 @@ function loadCuration() {
 }
 
 function normalizeRepos(raw) {
-  return raw.map((r) => ({
+  return raw
+    .filter(
+      (r) =>
+        r &&
+        typeof r.name === "string" &&
+        typeof r.nameWithOwner === "string",
+    )
+    .map((r) => ({
     name: r.name,
     fullName: r.nameWithOwner,
     url: `https://github.com/${r.nameWithOwner}`,
@@ -75,20 +82,38 @@ function normalizeRepos(raw) {
 
 function tryGh() {
   try {
-    execSync("gh --version", { stdio: "ignore" });
+    execFileSync("gh", ["--version"], { stdio: "ignore" });
   } catch {
+    console.warn("[fetch-repos] gh CLI 不可用 —— 保留旧数据。");
     return null;
   }
-  const cmd = `gh repo list ${OWNER} --limit 100 --json ${FIELDS} --visibility public`;
+  /* execFileSync 不经 shell：GH_OWNER 里的空格/元字符不会被展开，
+     命令行注入与转义问题一并消除。 */
   try {
-    const out = execSync(cmd, {
-      encoding: "utf8",
-      maxBuffer: 64 * 1024 * 1024,
-    });
-    return JSON.parse(out.trim());
+    const out = execFileSync(
+      "gh",
+      [
+        "repo",
+        "list",
+        OWNER,
+        "--limit",
+        "100",
+        "--json",
+        FIELDS,
+        "--visibility",
+        "public",
+      ],
+      {
+        encoding: "utf8",
+        maxBuffer: 64 * 1024 * 1024,
+      },
+    );
+    const parsed = JSON.parse(out.trim() || "[]");
+    if (!Array.isArray(parsed)) throw new Error("gh 输出不是数组");
+    return parsed;
   } catch (e) {
     console.warn(
-      `[fetch-repos] gh 拉取失败（${e.message.split("\n")[0]}）——保留旧数据。`,
+      `[fetch-repos] gh 拉取失败（${String(e.message).split("\n")[0]}）——保留旧数据。`,
     );
     return null;
   }
@@ -97,6 +122,15 @@ function tryGh() {
 function main() {
   const raw = tryGh();
   if (!raw) process.exit(1);
+  /* gh 成功但返回 0 个仓库 —— token 权限丢失、账号改名、API 异常时的
+     典型症状。照单全收会把 repos.json 清空，/projects 子站随之失明；
+     这里宁可失败也不静默覆盖（不写入，旧数据原样保留）。 */
+  if (raw.length === 0) {
+    console.warn(
+      "[fetch-repos] GitHub 返回 0 个仓库 —— 疑似异常，保留旧数据，不写入。",
+    );
+    process.exit(1);
+  }
 
   const curation = loadCuration();
   const repos = normalizeRepos(raw).map((r) => {
