@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { usePrefs } from "../../shared/prefs-react";
-import { pick } from "../../shared/prefs";
 import { ui } from "../copy";
 
 /* Ring-shaped back-to-top. Appears once the reader is a screen into the

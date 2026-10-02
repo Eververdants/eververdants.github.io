@@ -3,7 +3,7 @@ import type { JournalPost } from "../../data/journal";
 import { journal, topicById } from "../../data/journal";
 import { getDeck, loadArticle } from "../../data/articles";
 import { sections } from "../../data/sections";
-import { usePrefs, setLang } from "../../shared/prefs-react";
+import { usePrefs } from "../../shared/prefs-react";
 import { pick } from "../../shared/prefs";
 import { applyHead, breadcrumbLd, PERSON, SITE } from "../../shared/seo";
 import { articlePath } from "../urls";
