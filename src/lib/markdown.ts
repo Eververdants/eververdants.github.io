@@ -113,6 +113,10 @@ export function renderMarkdown(src: string): string {
   const out: string[] = [];
   let para = "";
   let list: string | null = null;
+  /* Heading anchors slug per document; two identical headings ("结语")
+     would otherwise emit duplicate ids and a TOC jump could only ever
+     reach the first. */
+  const usedIds = new Set<string>();
 
   const flushPara = () => {
     if (para.trim()) out.push(`<p>${inline(para.trim())}</p>`);
@@ -141,10 +145,14 @@ export function renderMarkdown(src: string): string {
       flushList();
       const lv = heading[1].length;
       // Slug the heading into an anchor id (ASCII + CJK) for the TOC.
-      const id = heading[2]
-        .toLowerCase()
-        .replace(/[^a-z0-9一-龥]+/g, "-")
-        .replace(/(^-|-$)/g, "");
+      const base =
+        heading[2]
+          .toLowerCase()
+          .replace(/[^a-z0-9一-龥]+/g, "-")
+          .replace(/(^-|-$)/g, "") || "section";
+      let id = base;
+      for (let n = 2; usedIds.has(id); n++) id = `${base}-${n}`;
+      usedIds.add(id);
       out.push(`<h${lv} id="${id}">${inline(heading[2])}</h${lv}>`);
       continue;
     }
@@ -174,12 +182,15 @@ export function renderMarkdown(src: string): string {
       }
       const isSep = (r: string) =>
         /^\|?[\s:|-]+\|?$/.test(r) && r.includes("-");
+      /* Split cells on unescaped pipes only, then restore the literal
+         `\|` — a table cell containing a pipe character used to tear the
+         row into bogus extra columns. */
       const split = (r: string) =>
         r
           .replace(/^\|/, "")
           .replace(/\|$/, "")
-          .split("|")
-          .map((c) => c.trim());
+          .split(/(?<!\\)\|/)
+          .map((c) => c.trim().replace(/\\\|/g, "|"));
       if (rows.length >= 2 && isSep(rows[1])) {
         const head = split(rows[0]);
         const body = rows.slice(2).map(split);
