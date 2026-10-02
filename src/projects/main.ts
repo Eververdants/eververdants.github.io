@@ -144,21 +144,29 @@ async function liveSync() {
     renderSyncNote();
   };
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 8000);
+  const timer = setTimeout(() => ctrl.abort(), 12000);
   let fresh: Repo[] = [];
   try {
-    const res = await fetch(GH_API, {
-      signal: ctrl.signal,
-      headers: { Accept: "application/vnd.github+json" },
-    });
-    if (!res.ok) {
-      fail();
-      return;
-    }
-    const raw = (await res.json()) as GhRepoRaw[];
-    if (!Array.isArray(raw)) {
-      fail();
-      return;
+    /* 翻页拉全：per_page=100 只取第一页的话，仓库过百后实时数据会静默
+       缺失，且 fingerprint 差异会触发一次“越刷新越少”的重渲染。上限
+       3 页，防御异常分页（未认证限额 60 次/小时/IP，3 次绰绰有余）。 */
+    let raw: GhRepoRaw[] = [];
+    for (let page = 1; page <= 3; page++) {
+      const res = await fetch(`${GH_API}&page=${page}`, {
+        signal: ctrl.signal,
+        headers: { Accept: "application/vnd.github+json" },
+      });
+      if (!res.ok) {
+        fail();
+        return;
+      }
+      const chunk = (await res.json()) as GhRepoRaw[];
+      if (!Array.isArray(chunk)) {
+        fail();
+        return;
+      }
+      raw = raw.concat(chunk);
+      if (chunk.length < 100) break;
     }
     fresh = raw.map((r) => ({
       name: r.name,
@@ -209,7 +217,7 @@ async function liveSync() {
     "search-input",
   ) as HTMLInputElement | null;
   const caret =
-    prevActive === prevInput ? prevInput.selectionStart ?? 0 : null;
+    prevActive === prevInput ? prevInput?.selectionStart ?? 0 : null;
 
   repos.splice(0, repos.length, ...merged);
   renderHero();
@@ -591,19 +599,26 @@ function applySeo() {
   });
 }
 
-/* ================= 滚动显现 ================= */
+/* ================= 滚动显现 =================
+   Observer 是模块级单例：语言切换会整体重渲染并再次调用 initReveal()，
+   每次新建且从不 disconnect 的话，旧 observer 会连同其观察的已脱离节点
+   一起滞留在内存里。单例在多次重渲染间复用（每个条目显现后即被
+   unobserve），增长有界。 */
+let revealObserver: IntersectionObserver | null = null;
+
 function initReveal() {
-  const io = new IntersectionObserver(
+  revealObserver ??= new IntersectionObserver(
     (entries) => {
       entries.forEach((en) => {
         if (en.isIntersecting) {
           en.target.classList.add("is-in");
-          io.unobserve(en.target);
+          revealObserver?.unobserve(en.target);
         }
       });
     },
     { threshold: 0.08, rootMargin: "0px 0px -4% 0px" },
   );
+  const io = revealObserver;
   document
     .querySelectorAll<HTMLElement>("[data-reveal]:not(.is-in)")
     .forEach((el) => {
