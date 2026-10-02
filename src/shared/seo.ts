@@ -23,7 +23,7 @@ export interface HeadInput {
   /** Root-relative path or absolute URL. */
   path: string;
   image?: string;
-  ogType?: "website" | "article";
+  ogType?: "website" | "article" | "profile";
   publishedTime?: string;
   modifiedTime?: string;
   /** e.g. "en_US" / "zh_CN" */
