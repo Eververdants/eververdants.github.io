@@ -55,7 +55,14 @@ const zh = {};
 const body = {};
 for (const file of walk(POSTS)) {
   const name = basename(file);
-  const raw = readFileSync(file, "utf8");
+  let raw;
+  try {
+    raw = readFileSync(file, "utf8");
+  } catch (e) {
+    /* One unreadable file must not kill dev (this runs before `vite`). */
+    console.warn(`[build-geo] skip unreadable post ${name}: ${e.message}`);
+    continue;
+  }
   const get = frontmatter(raw);
   const slug = get("slug");
   if (!slug) continue;

@@ -71,7 +71,15 @@ function loadAll(): Work[] {
   entries.sort();
   const works: Work[] = [];
   for (const name of entries) {
-    const raw = readFileSync(join(WORKS_DIR, name), "utf8");
+    /* readdir and read race a concurrent delete/lock (common on Windows);
+       one unreadable work must not break the whole build. */
+    let raw: string;
+    try {
+      raw = readFileSync(join(WORKS_DIR, name), "utf8");
+    } catch {
+      console.warn(`[works-index] skipping unreadable work file: ${name}`);
+      continue;
+    }
     const w = parseWorkMeta(raw);
     if (w.slug && w.title && w.cover) {
       /* Intrinsic dimensions go into the index so <img> can carry width/height
