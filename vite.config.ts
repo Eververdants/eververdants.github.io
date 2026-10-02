@@ -45,6 +45,10 @@ function subSiteFallbackMiddleware(opts: { distDir?: string } = {}) {
     } catch {
       clean = urlPath.split("?")[0];
     }
+    /* A decoded `..` segment would walk the existence probe outside dist/.
+       The result only decides whether the sub-site rewrite fires, so the
+       damage is nil — but there is no reason to allow the traversal. */
+    if (clean.split(/[\\/]/).includes("..")) return false;
     return [
       join(opts.distDir, clean),
       join(opts.distDir, clean, "index.html"),
