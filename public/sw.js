@@ -13,7 +13,7 @@
  * - Only same-origin GETs under /assets/ (content-hashed by Vite), /fonts/,
  *   /works/ (photographs) and the machine-readable feeds are cached.
  * - Bump VERSION whenever this file changes so old caches are dropped. */
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE = `evd-${VERSION}`;
 
 const STATIC_RE = /^\/(assets|fonts|works)\//;
@@ -48,19 +48,28 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") return;
   if (!STATIC_RE.test(url.pathname) && !FEED_RE.test(url.pathname)) return;
 
+  /* Stale-while-revalidate: answer from the cache, refresh in the
+     background. The refresh fetch is pinned with waitUntil BEFORE
+     respondWith runs — once respondWith resolves with a cache hit the
+     worker is free to terminate, and an unpinned fetch dies with it,
+     leaving the entry stale until some later visit retries. */
+  const refreshing = fetch(request)
+    .then((response) => {
+      if (response && (response.ok || response.type === "opaque")) {
+        caches
+          .open(CACHE)
+          .then((cache) => cache.put(request, response.clone()));
+      }
+      return response;
+    })
+    .catch(() => null);
+  event.waitUntil(refreshing);
+
   event.respondWith(
     caches.open(CACHE).then(async (cache) => {
       const cached = await cache.match(request);
-      const refreshing = fetch(request)
-        .then((response) => {
-          if (response && (response.ok || response.type === "opaque")) {
-            cache.put(request, response.clone());
-          }
-          return response;
-        })
-        .catch(() => null);
-      /* Cache miss with a live network: wait for it. Cache hit: answer
-         instantly and let the background refresh update the entry. */
+      /* Cache miss with a live network: wait for the refresh. Cache hit:
+         answer instantly; the pinned refresh updates the entry. */
       return cached || (await refreshing) || Response.error();
     }),
   );
