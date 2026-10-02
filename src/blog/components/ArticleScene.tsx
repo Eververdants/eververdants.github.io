@@ -6,7 +6,7 @@ import { sections } from "../../data/sections";
 import { usePrefs } from "../../shared/prefs-react";
 import { pick } from "../../shared/prefs";
 import { applyHead, breadcrumbLd, PERSON, SITE } from "../../shared/seo";
-import { articlePath } from "../urls";
+import { articlePath, isPlainClick } from "../urls";
 import { ui } from "../copy";
 
 /* Article reader — a functional reading page. 米白 background with a faint
@@ -790,6 +790,7 @@ export default function ArticleScene({
                     key={r.slug}
                     href={`/blog/${r.slug}/`}
                     onClick={(e) => {
+                      if (!isPlainClick(e)) return;
                       e.preventDefault();
                       onOpen(r.slug);
                     }}
@@ -814,6 +815,7 @@ export default function ArticleScene({
             <a
               href={`/blog/${prev.slug}/`}
               onClick={(e) => {
+                if (!isPlainClick(e)) return;
                 e.preventDefault();
                 onOpen(prev.slug);
               }}
@@ -833,6 +835,7 @@ export default function ArticleScene({
             <a
               href={`/blog/${next.slug}/`}
               onClick={(e) => {
+                if (!isPlainClick(e)) return;
                 e.preventDefault();
                 onOpen(next.slug);
               }}

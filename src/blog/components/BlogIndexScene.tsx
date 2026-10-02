@@ -6,6 +6,7 @@ import { usePrefs } from "../../shared/prefs-react";
 import { pick } from "../../shared/prefs";
 import { applyHead, breadcrumbLd, websiteLd, SITE } from "../../shared/seo";
 import { ui } from "../copy";
+import { isPlainClick } from "../urls";
 import PostList from "./PostList";
 
 /* Blog index — the archive at /blog.
@@ -360,6 +361,7 @@ export default function BlogIndexScene({
                   className="blog-index__topic sq-md"
                   href={`/blog/topic/${topic.id}`}
                   onClick={(e) => {
+                    if (!isPlainClick(e)) return;
                     e.preventDefault();
                     onOpenTopic(topic.id);
                   }}

@@ -22,6 +22,19 @@ export const articlePath = (slug: string, lang: Lang) =>
 export const topicPath = (id: string) =>
   `${BLOG}/topic/${encodeURIComponent(id)}`;
 
+/* A plain left click swaps views in place; anything else — ctrl/cmd for
+   "open in new tab", shift for a new window, middle click — keeps the
+   browser's own meaning. Callers bail out when this returns false. */
+export function isPlainClick(e: {
+  button: number;
+  metaKey: boolean;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  altKey: boolean;
+}): boolean {
+  return e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+}
+
 /* Path → view. "topic" and "zh" are reserved first segments; real slugs
    never collide with them. A bare /blog/zh/ with no slug is not a route. */
 export function parseView(pathname: string): BlogView {

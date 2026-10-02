@@ -1,6 +1,6 @@
 import type { JournalPost } from "../../data/journal";
 import { usePrefs } from "../../shared/prefs-react";
-import { articlePath } from "../urls";
+import { articlePath, isPlainClick } from "../urls";
 import Highlight from "./Highlight";
 
 /* The plain chronological essay list — rows, not cards — shared by the
@@ -42,6 +42,7 @@ export default function PostList({
           <a
             href={articlePath(post.slug, lang)}
             onClick={(e) => {
+              if (!isPlainClick(e)) return;
               e.preventDefault();
               onOpen(post.slug);
             }}
