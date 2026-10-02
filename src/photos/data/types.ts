@@ -17,8 +17,9 @@ export interface Work {
   gallery?: string[];
   /* Per-image intrinsic dimensions, probed at build time like the cover's,
      so gallery <img>s can declare width/height and reserve their boxes
-     (no layout jump as photos stream in). null marks an unparsable file. */
-  galleryWH?: ({ w: number; h: number } | null)[];
+     (no layout jump as photos stream in). null marks an unparsable file.
+     Shape follows webpSize() in worksIndexPlugin.ts: { width, height }. */
+  galleryWH?: ({ width: number; height: number } | null)[];
   camera?: string;
   lens?: string;
   focal?: string;

@@ -53,7 +53,7 @@ export function WorkDetail({ slug }: { slug: string }) {
           alt={titleOf(work, lang)}
           width={work.coverW}
           height={work.coverH}
-          fetchpriority="high"
+          fetchPriority="high"
           decoding="async"
         />
       </figure>
@@ -72,8 +72,8 @@ export function WorkDetail({ slug }: { slug: string }) {
                     className="sq-lg"
                     src={asset(g)}
                     alt={`${titleOf(work, lang)} — ${i + 1}`}
-                    width={dim?.w}
-                    height={dim?.h}
+                    width={dim?.width}
+                    height={dim?.height}
                     loading="lazy"
                     decoding="async"
                   />
