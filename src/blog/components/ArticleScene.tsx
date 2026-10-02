@@ -67,6 +67,10 @@ export default function ArticleScene({
      must never leave the next one scrolled mid-list). */
   const tocSlugRef = useRef<string | null>(null);
   const prevLangRef = useRef(lang);
+  /* The slug this scene currently holds — the component is NOT re-keyed on
+     slug (App keeps the same instance across prev/next/related jumps), so
+     the load effect is what must notice a different essay arriving. */
+  const prevSlugRef = useRef(slug);
   const [toc, setToc] = useState<TocItem[]>([]);
   const [lightbox, setLightbox] = useState<{
     src: string;
@@ -193,9 +197,20 @@ export default function ArticleScene({
      reports not-found. */
   useEffect(() => {
     let alive = true;
+    const slugChanged = prevSlugRef.current !== slug;
     const langChanged = prevLangRef.current !== lang;
+    prevSlugRef.current = slug;
     prevLangRef.current = lang;
-    if (langChanged) {
+    if (slugChanged) {
+      /* A different essay replaced this one — drop the old body at once.
+         Keeping it up (the language-swap trick below) would render the
+         previous essay's text under the new one's title while the chunk
+         streams in, and if the new slug failed to load the old body would
+         sit there forever with onNotFound short-circuited by the stale
+         htmlRef. The skeleton flash is the honest state here. */
+      setHtml(null);
+      restoreRef.current = null;
+    } else if (langChanged) {
       if (htmlRef.current) restoreRef.current = captureReadingPosition();
     } else {
       // Fresh article (or retry) — never carry a stale restore forward.
@@ -210,7 +225,7 @@ export default function ArticleScene({
           return;
         }
         setHtml(a.html);
-        if (langChanged && restoreRef.current) {
+        if (langChanged && !slugChanged && restoreRef.current) {
           // Two frames: the new body's headings and fonts must settle
           // before the offset can be restored.
           requestAnimationFrame(() =>
