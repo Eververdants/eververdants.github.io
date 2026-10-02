@@ -83,13 +83,23 @@ export function highlightCode(code: string): string {
   return out.join("");
 }
 
+/* Link allowlist. Escaped text can still carry entities (&#58; decodes to
+   ":" in the parsed attribute), so denying the literal "javascript:" prefix
+   is not enough: a URL is linkable only when the part before the first
+   /, ? or # is no scheme at all, or an explicitly safe one. */
+function isSafeHref(href: string): boolean {
+  const head = href.replace(/[/?#][\s\S]*/, "");
+  return !head.includes(":") || /^(https?|mailto):$/i.test(head);
+}
+
 /* Inline marks run on already-escaped text, so interpolated matches are
    safe (raw <, >, &, " were neutralized above). */
 function inline(text: string): string {
   return text
-    .replace(
-      /\[([^\]]+)\]\(([^)\s]+)\)/g,
-      '<a href="$2" target="_blank" rel="noreferrer">$1</a>',
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, text: string, href: string) =>
+      isSafeHref(href)
+        ? `<a href="${href}" target="_blank" rel="noreferrer">${text}</a>`
+        : text,
     )
     .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
