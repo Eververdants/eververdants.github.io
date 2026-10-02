@@ -392,6 +392,14 @@ body::after {
   animation: ticker-run 60s linear infinite;
 }
 
+/* The light field swallows the strip: 26% of the spot ink over a near-white
+   page is a texture the reader cannot see, which reads as "the ticker is
+   missing" rather than "the ticker is quiet". The light theme gets a heavier
+   mix so it keeps the same visual weight the dark theme already has. */
+html[data-theme="light"] body::after {
+  color: color-mix(in oklab, var(--accent) 48%, transparent);
+}
+
 @keyframes ticker-run {
   to {
     transform: translateX(-50%);
