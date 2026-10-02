@@ -36,11 +36,27 @@ const SUB_SITES = [
 function subSiteFallbackMiddleware(opts: { distDir?: string } = {}) {
   const hasStaticFile = (urlPath: string): boolean => {
     if (!opts.distDir) return false;
-    const clean = decodeURIComponent(urlPath.split("?")[0]);
+    /* decodeURIComponent throws URIError on a truncated %-sequence (a
+       malformed deep link would otherwise 500 the request); fall back to
+       the raw path, which simply misses the dist check. */
+    let clean: string;
+    try {
+      clean = decodeURIComponent(urlPath.split("?")[0]);
+    } catch {
+      clean = urlPath.split("?")[0];
+    }
     return [
       join(opts.distDir, clean),
       join(opts.distDir, clean, "index.html"),
-    ].some((p) => existsSync(p) && statSync(p).isFile());
+    ].some((p) => {
+      /* existsSync→statSync races a concurrent delete (a rebuild while
+         preview serves); treat a vanishing file as "no static file". */
+      try {
+        return existsSync(p) && statSync(p).isFile();
+      } catch {
+        return false;
+      }
+    });
   };
   return (req: { url?: string }, _res: unknown, next: () => void) => {
     const url = (req.url ?? "").split("?")[0];
