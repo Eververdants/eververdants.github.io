@@ -275,7 +275,10 @@ site-topbar {
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow-lift);
   }
-  site-topbar[data-open] .stb-menu {
+  /* Value comparison, not bare presence: the toggle writes
+     data-open="false" on close, and a presence selector would keep the
+     panel open forever. */
+  site-topbar[data-open="true"] .stb-menu {
     display: block;
   }
   .stb-menu a {
