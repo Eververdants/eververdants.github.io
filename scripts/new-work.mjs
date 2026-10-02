@@ -155,7 +155,11 @@ const main = async () => {
     console.log(`  · auto-detected cover: ${cover}`);
     if (gallery.length) console.log(`  · auto-detected gallery: ${gallery.length} image(s)`);
   } else if (imgs.length) {
-    gallery = imgs.map((n) => `works/${slug}/${n}`);
+    /* A hand-picked cover must not reappear in the auto-detected gallery. */
+    const coverBase = cover.split("/").pop().toLowerCase();
+    gallery = imgs
+      .map((n) => `works/${slug}/${n}`)
+      .filter((g) => g.split("/").pop().toLowerCase() !== coverBase);
   }
   if (!cover) cover = `works/${slug}/cover.webp`;
 
