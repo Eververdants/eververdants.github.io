@@ -445,6 +445,32 @@ async function renderWork(chromePath, slug) {
   );
 }
 
+/* ---- parse topic ids (src/data/topics.ts) so each 专题 page can be baked ----
+   /blog/topic/<id> is a SPA route with no static file behind it, so a direct
+   visit — a share, a palette result, an article's topic chips — used to fall
+   through to GitHub Pages' 404.html, whose guard boots the hub for
+   extension-less paths: the reader landed on the homepage at a topic URL. */
+function parseTopicIds() {
+  try {
+    const src = readFileSync(join(ROOT, "src/data/topics.ts"), "utf8");
+    return [...src.matchAll(/\bid:\s*"([^"]+)"/g)].map((m) => m[1]);
+  } catch {
+    return [];
+  }
+}
+
+/* ---- render one topic page, capture the whole document ----
+   The path check matters: an unknown id normalizes back to the index and
+   replaceStates the URL to /blog before the capture loop looks — without it
+   the index's DOM would be baked under the topic's URL. */
+async function renderTopic(chromePath, id) {
+  return renderWithChrome(
+    chromePath,
+    `http://127.0.0.1:${PORT}/blog/topic/${id}/`,
+    `(() => { const onTopic = location.pathname.indexOf('/blog/topic/') === 0; const h = document.querySelector('.blog-index__title'); return onTopic && h && h.textContent.trim() ? document.documentElement.outerHTML : ''; })()`,
+  );
+}
+
 /* ---- render the main landing site, capture the whole document ----
    The built index.html body is an empty #root, so a crawler without JS sees
    no headings or copy at all on / (Bing Site Scan: "H1 tag missing"). Bake
@@ -476,7 +502,7 @@ async function renderBlogIndex(chromePath) {
   return out;
 }
 
-function writeSitemap(posts, works) {
+function writeSitemap(posts, works, topicIds = []) {
   const today = new Date().toISOString().slice(0, 10);
   /* /resume, /selected and /selected-blog used to be scroll positions inside
      the old single-page deck. They are now redirect stubs (see
@@ -494,6 +520,10 @@ function writeSitemap(posts, works) {
     `<url><loc>${SITE}/projects/</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`,
     `<url><loc>${SITE}/photos/</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`,
     `<url><loc>${SITE}/blog/</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`,
+    ...topicIds.map(
+      (id) =>
+        `<url><loc>${SITE}/blog/topic/${id}/</loc><lastmod>${today}</lastmod><priority>0.6</priority></url>`,
+    ),
     ...posts.flatMap((p) => {
       const lastmod = p.date.replace(/\./g, "-");
       const en = `${SITE}/blog/${p.slug}/`;
@@ -582,6 +612,7 @@ ${items}
 async function main() {
   const posts = parsePosts();
   const works = parseWorks();
+  const topicIds = parseTopicIds();
   const chromePath = findChrome();
   let ok = 0;
   let projectsOk = false;
@@ -590,6 +621,7 @@ async function main() {
   let photosWorksOk = 0;
   let homeOk = false;
   let blogIndexOk = false;
+  let topicsOk = 0;
   if (chromePath) {
     const server = startServer();
     await sleep(300);
@@ -667,6 +699,21 @@ async function main() {
     } catch (e) {
       console.log(`  ✗ /blog/: ${e.message}`);
     }
+    for (const id of topicIds) {
+      try {
+        const html = await renderTopic(chromePath, id);
+        const dir = join(ROOT, "dist/blog/topic", id);
+        mkdirSync(dir, { recursive: true });
+        const out = join(dir, "index.html");
+        writeFileSync(out, html);
+        topicsOk++;
+        console.log(
+          `  ✓ blog/topic/${id} (${html.length} chars) -> ${out.replace(ROOT, ".")}`,
+        );
+      } catch (e) {
+        console.log(`  ✗ blog/topic/${id}: ${e.message}`);
+      }
+    }
     server.close();
   } else {
     console.log(
@@ -675,11 +722,11 @@ async function main() {
   }
   // Always emit sitemap + robots + rss so production deploys (CI runners have
   // no Chrome) still get them even when article prerendering is skipped.
-  writeSitemap(posts, works);
+  writeSitemap(posts, works, topicIds);
   writeRobots();
   writeRss(posts);
   console.log(
-    `prerender done: ${ok}/${posts.length * 2} article pages (en+zh)${blogIndexOk ? " + /blog/" : ""}${homeOk ? " + /" : ""}${aboutOk ? " + /about/" : ""}${projectsOk ? " + /projects/" : ""}${photosOk ? " + /photos/" : ""}${photosWorksOk ? ` + ${photosWorksOk}/${works.length} photo works` : ""} + sitemap.xml + robots.txt + rss.xml`,
+    `prerender done: ${ok}/${posts.length * 2} article pages (en+zh)${topicsOk ? ` + ${topicsOk}/${topicIds.length} topics` : ""}${blogIndexOk ? " + /blog/" : ""}${homeOk ? " + /" : ""}${aboutOk ? " + /about/" : ""}${projectsOk ? " + /projects/" : ""}${photosOk ? " + /photos/" : ""}${photosWorksOk ? ` + ${photosWorksOk}/${works.length} photo works` : ""} + sitemap.xml + robots.txt + rss.xml`,
   );
 }
 
