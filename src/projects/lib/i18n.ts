@@ -113,14 +113,15 @@ export const ui: Record<Lang, Dict> = {
 };
 
 /* 仓库描述：英文模式优先人工英文精选，其次 GitHub 原文；中文模式优先
-   人工中文精选，其次英文精选/原文。两种语言都回退到另一语言，绝不返回
-   与当前界面语言相反的内容。 */
+   人工中文精选，其次英文精选/原文。英文模式绝不返回中文内容（zh 兜底
+   会违反“绝不返回与当前界面语言相反的内容”），三者皆空时返回空串，
+   由调用方显示“暂无描述”占位。 */
 export function repoDesc(
   lang: Lang,
   description: string,
   blurbEn?: string,
   blurbZh?: string,
 ): string {
-  if (lang === "zh") return blurbZh || blurbEn || description;
-  return blurbEn || description || blurbZh;
+  if (lang === "zh") return blurbZh || blurbEn || description || "";
+  return blurbEn || description || "";
 }
