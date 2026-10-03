@@ -199,6 +199,109 @@
   }
 }
 
+/* ---------- pixel progress bar ----------
+   The one loading signal the site has for *in-page* work: an SPA scene
+   swap (index → essay), an essay chunk streaming in, a search index
+   fetch. Three pixels tall, a run of solid blocks with a one-pixel gap
+   between them — a bar that is *made of* pixels rather than a smooth
+   line with a pixel texture on it.
+
+   It sits above the top bar (z 70) and never covers content, so it
+   cannot be mistaken for a blocking overlay, and it is pure transform
+   + opacity, so a progress update costs a composite and nothing else.
+   Markup and driving live in shared/progress.ts. */
+#px-progress {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  height: 3px;
+  z-index: calc(var(--z-header) + 10);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 160ms var(--ease-out);
+  will-change: opacity;
+}
+#px-progress.is-on {
+  opacity: 1;
+}
+#px-progress > i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  /* 6px block, 4px gap: the gap is what makes it read as a row of
+     cells instead of as a gradient. Sized in CSS px so it stays an
+     exact number of device pixels at any zoom. */
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--accent) 0 6px,
+    transparent 6px 10px
+  );
+  transition: transform 320ms var(--ease-out);
+  will-change: transform;
+}
+/* The indeterminate state: no length is known (a chunk is being
+   fetched), so a short run of blocks sweeps the width instead of a bar
+   creeping to a fake 90%. */
+#px-progress.is-waiting > i {
+  width: 25%;
+  transform-origin: 0 50%;
+  animation: px-progress-sweep 900ms var(--ease-in-out) infinite;
+}
+@keyframes px-progress-sweep {
+  from {
+    transform: translateX(-100%) scaleX(1);
+  }
+  to {
+    transform: translateX(400%) scaleX(1);
+  }
+}
+
+/* ---------- scanlines ----------
+   One-pixel horizontal rules laid over a surface — the CRT register of
+   the pixel language, used on the search overlay's backdrop and on
+   skeleton plates. `1px on / 2px off` at 3px period: any finer and it
+   moirés on a HiDPI panel, any coarser and it stops reading as scan. */
+.px-scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-raised);
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--ink) 7%, transparent) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+/* ---------- pixel skeleton ----------
+   A placeholder that is honest about being a placeholder: rows of grey
+   blocks with the site's stepped dissolve running over them, so the
+   reader sees the plate filling rather than a generic shimmer. The
+   block heights match the type they stand in for (~1.75 line-height),
+   which is what keeps the swap from shifting the page. */
+.px-skeleton {
+  --sk-fg: color-mix(in oklab, var(--ink) 7%, transparent);
+  background-image: repeating-linear-gradient(
+    180deg,
+    var(--sk-fg) 0 10px,
+    transparent 10px 18px
+  );
+  border-radius: 0;
+  animation: px-skeleton-breathe 1400ms var(--ease-in-out) infinite;
+}
+@keyframes px-skeleton-breathe {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
 /* ---------- reduced motion ----------
    The belt under the guard above: if fx-on ever lands on the root of
    a reader who asked for less motion, nothing stays hidden and
