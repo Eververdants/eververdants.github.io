@@ -165,8 +165,14 @@ export function renderMarkdown(src: string): string {
       flushList();
       const [, alt, src] = img;
       const caption = escapeHtml(alt);
+      /* loading="lazy" keeps an essay's images off the wire until they
+         are near the viewport; decoding="async" keeps the decode off the
+         main thread so a large photograph arriving mid-read cannot
+         stall a frame. A figure has no intrinsic size to declare here,
+         so global.css gives the img a reserved block instead — without
+         one, every lazy image that lands is a layout shift. */
       out.push(
-        `<figure><img src="${escapeHtml(src)}" alt="${caption}" loading="lazy"/><figcaption>${caption}</figcaption></figure>`,
+        `<figure><img src="${escapeHtml(src)}" alt="${caption}" loading="lazy" decoding="async"/><figcaption>${caption}</figcaption></figure>`,
       );
       continue;
     }

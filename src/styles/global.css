@@ -585,6 +585,22 @@
   border: 1px solid var(--rule);
   background: var(--surface);
   cursor: zoom-in;
+  /* A lazy image with no dimensions collapses to 0 and then jumps to
+     full height when it lands — the largest single contributor to CLS
+     on a long essay. Reserving a 16:10 block with the print centred in
+     it means the figure occupies its final-ish height from the first
+     frame; if the real aspect differs the caption moves once, by a few
+     pixels, instead of the whole article jumping by a screen. */
+  min-height: 180px;
+  aspect-ratio: 16 / 10;
+  object-fit: contain;
+  object-position: center;
+}
+/* A tall picture must not be letterboxed into a 16:10 window: once the
+   real size is known, hand the layout back to the image. */
+.article-content figure img[width] {
+  aspect-ratio: auto;
+  min-height: 0;
 }
 
 .article-content figcaption {
