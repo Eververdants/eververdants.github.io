@@ -77,8 +77,27 @@ site-topbar {
   white-space: nowrap;
   transition: color var(--dur-2) var(--ease-out);
 }
-.stb-link:hover {
+@media (hover: hover) and (pointer: fine) {
+  .stb-link:hover {
+    color: var(--ink);
+  }
+  /* Idle hover draws the rule to 60% and stops: it is a hint, not a
+     commitment. Only the current page gets the full-width rule. */
+  .stb-link:hover::after {
+    opacity: 0.55;
+    transform: scaleX(0.6);
+  }
+}
+.stb-link:active {
+  /* Pressed: the rule snaps to full width for a beat, so a click on a
+     link that is about to navigate gets an answer immediately. */
   color: var(--ink);
+}
+.stb-link:active::after {
+  opacity: 1;
+  transform: scaleX(1);
+  transition-duration: var(--dur-1);
+  transition-timing-function: var(--ease-in);
 }
 /* Current page is marked the way a plate marks its own section: a short
  * rule in the spot ink, drawn from the centre out. A dot would be an

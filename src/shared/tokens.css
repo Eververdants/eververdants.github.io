@@ -130,8 +130,16 @@
 
   /* corner geometry ---------------------------------------------
      Tiles are square with a stepped notch cut from each corner —
-     the pixel-corner clip. Nothing is ever rounded. */
+     the pixel-corner clip. Nothing structural is ever rounded.
+
+     The one radius the system allows is --r-xs (2px): a *decorative*
+     softening for containers that are too small to carry a notch
+     (a kbd, a skeleton bar, a 2px scrollbar thumb). It is deliberately
+     NOT a "small rounded corner" language — it exists so a 12px chip
+     does not read as a jagged cut. Anything with a border that carries
+     meaning uses --r-flat plus the notch clip. */
   --px-notch: 10px;
+  --px-notch-sm: 4px; /* the small tile's notch — 1 step of the grid */
   --r-flat: 0px;
   --r-xs: 2px;
   --r-sm: 0px;
@@ -139,7 +147,10 @@
   --r-lg: 0px;
   --r-xl: 0px;
   --r-2xl: 0px;
-  --r-full: 999px;
+  /* Retired: nothing on the site is a pill. Kept as a token so a stray
+     `rounded-full` in a template still compiles to a shape rather than
+     to an unset variable. Call sites must not use it. */
+  --r-full: 0px;
 
   /* elevation — soft ambient depth on the dark field, and a spot
      glow that answers the cursor on interactive surfaces. */
@@ -214,14 +225,29 @@
   --header-clearance: 96px;
 
   /* motion -------------------------------------------------------
-     Interactive transitions stay on a plain ease so they read
-     smooth; the stepped curve is reserved for dissolves (the
-     pixel fade) and the boot. */
+     Every interactive transition lives inside 120–400ms and rides a
+     curve with a physical story: mass on the way out, damping on the
+     way in, and a small overshoot only where something is *arriving*
+     (a tile lifting, a menu opening) — never on something leaving.
+
+       --ease-out    the workhorse. Heavy mass, long tail: the object
+                     was pushed and is coasting to a stop.
+       --ease-spring slight overshoot, damped. For entrances only.
+       --ease-in     mass being overcome. For exits — an object
+                     accelerating away, which must never overshoot.
+       --ease-steps  the pixel dissolve. Reserved for the fade.
+
+     Only transform / opacity are animated; layout-triggering
+     properties (width, top, margin) stay out of transitions so a
+     moving element never forces a reflow of the page under it. */
   --dur-1: 120ms;
   --dur-2: 200ms;
   --dur-3: 320ms;
+  --dur-4: 400ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0.05, 0.36, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-steps: steps(8, end);
 }
 
@@ -511,25 +537,48 @@ html.theme-anim * {
   border-color: var(--rule);
 }
 
+/* The bar's halo is an *inset* hairline, not an outer one. `.glass`
+   carries a clip-path, and clip-path clips the element's whole
+   rendering — box-shadow included — so the old outer ring was being
+   clipped away with the corner notches and the bar rendered with no
+   halo at all. An inset ring survives the clip and reads the same. */
 .glass-bar {
-  box-shadow: var(--glass-shadow);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink) 3%, transparent);
 }
 
 /* Interactive glass: the rule brightens, the tile takes a faint
-   spot tint and the ambient shadow deepens. */
+   spot tint and the ambient shadow deepens. The tile lifts 2px — enough
+   to separate it from the field, not enough to float. */
 .glass-press {
   transition:
     border-color var(--dur-2) var(--ease-out),
     background-color var(--dur-2) var(--ease-out),
-    box-shadow var(--dur-2) var(--ease-out);
+    transform var(--dur-3) var(--ease-spring),
+    box-shadow var(--dur-3) var(--ease-out);
 }
-.glass-press:hover {
-  border-color: var(--rule-mark);
-  background: var(--accent-soft);
-  box-shadow: var(--px-shadow);
+@media (hover: hover) and (pointer: fine) {
+  /* The depth is a drop-shadow *filter*, not a box-shadow: every
+     .glass-press target is a notched tile, and clip-path clips
+     box-shadow along with the corners — a hover shadow on a clipped
+     tile simply did not render. A filter is applied to the already
+     clipped result, so it can fall outside the shape. */
+  .glass-press:hover {
+    border-color: var(--rule-mark);
+    background: var(--accent-soft);
+    transform: translateY(-2px);
+    box-shadow: none;
+    filter: drop-shadow(
+      0 20px 50px color-mix(in oklab, #000000 55%, transparent)
+    );
+  }
 }
 .glass-press:active {
   background: color-mix(in oklab, var(--surface) 78%, transparent);
+  transform: translateY(0);
+  transition-duration: var(--dur-1);
+  transition-timing-function: var(--ease-in);
+  box-shadow: none;
+  filter: none;
 }
 
 /* Retired: the specular sweep and the large decorative ring fields.
@@ -723,11 +772,50 @@ html.theme-anim * {
   text-wrap: pretty;
 }
 
-/* ---------- focus + a11y ---------- */
+/* ---------- focus + a11y ----------
+   The focus ring is drawn, not tinted: a 2px square of ink held 2px off
+   the edge, so it reads as a registration mark on the pixel grid rather
+   than as a coloured halo. It used to be the spot ink (electric lime) —
+   which on the photo gallery read as a green "selected" panel frame, and
+   which is a *meaning* colour on this site (it marks a place), so a
+   focus ring was competing with the thing it was pointing at.
+
+   Square on purpose: border-radius is forced to 0 here because a focus
+   target inherits whatever radius its component set, and a rounded ring
+   on a square tile is the one place the pixel grid visibly breaks.
+
+   Keyboard-only by construction (:focus-visible). The `:focus` rule
+   below is the belt-and-braces half: a pointer click that leaves an
+   element focused — a button in Safari, a card after a tap — must never
+   paint a ring. */
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: var(--r-xs);
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 0;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Tiles carry `clip-path`, which clips the outline away with the
+   corner notches — a ring on a notched tile simply does not render.
+   For those the ring is drawn *inside* the border box instead, as an
+   inset shadow, which survives the clip. Opt in with .px-ring. */
+.px-ring:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 2px var(--bg),
+    inset 0 0 0 4px var(--ink);
+}
+/* A focusable element whose own box is clipped (a notched card) can
+   still show a ring on its unclipped inner face. */
+.px-ring-inner:focus-visible {
+  outline: none;
+}
+.px-ring-inner:focus-visible > * {
+  box-shadow:
+    inset 0 0 0 2px var(--bg),
+    inset 0 0 0 4px var(--ink);
 }
 
 .skip-link {
@@ -778,9 +866,20 @@ html.theme-anim * {
    Small primitives that more than one entry needs. Anything
    specific to a single page stays in that page's stylesheet.
 
-   A button is a key on the field: square with a notched corner, a
-   1px ink border. On hover the spot ink floods it and the glow
-   lifts it; pressing drives it back into the surface. */
+   MICRO-INTERACTION RULES, applied to every primitive below:
+     · 120–400ms. Under 120 a motion reads as a glitch; over 400 the
+       interface feels like it is waiting for permission.
+     · Only transform, opacity and colour are animated. Nothing here
+       touches a layout property, so no hover can reflow the page
+       under the reader's cursor.
+     · Arriving motion overshoots slightly (--ease-spring): a thing
+       being lifted has mass and settles past its mark. Leaving motion
+       never overshoots (--ease-in, at --dur-1): a thing being pressed
+       is accelerating into the surface, and a bounce there would read
+       as the button failing.
+     · Hover states are gated on a device that can actually hover, so a
+       tap on a phone never leaves an element stuck in its hover pose. */
+
 .btn {
   appearance: none;
   cursor: pointer;
@@ -802,37 +901,49 @@ html.theme-anim * {
     background-color var(--dur-2) var(--ease-out),
     border-color var(--dur-2) var(--ease-out),
     color var(--dur-2) var(--ease-out),
-    transform var(--dur-2) var(--ease-out),
-    box-shadow var(--dur-2) var(--ease-out);
+    transform var(--dur-3) var(--ease-spring),
+    box-shadow var(--dur-3) var(--ease-out);
 }
-.btn:hover {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--bg);
-  transform: translateY(-2px);
-  box-shadow: var(--glow-accent);
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+    /* 2px, not 6px: this is a key under a finger, not a card being
+       dealt. The travel has to stay inside one character cell or the
+       label visibly detaches from the border that holds it. */
+    transform: translateY(-2px);
+    box-shadow: var(--glow-accent);
+  }
 }
+/* Pressing: fast, linear-ish, no overshoot. Duration drops to --dur-1
+   because a press is a response the reader expects *now*, and the
+   transform goes past rest (down) rather than back towards it. */
 .btn:active {
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.985);
+  transition-duration: var(--dur-1);
+  transition-timing-function: var(--ease-in);
   box-shadow: none;
 }
 .btn--ghost {
   border-color: var(--rule);
   color: var(--muted);
 }
-.btn--ghost:hover {
-  color: var(--ink);
-  border-color: var(--border-strong);
-  background: color-mix(in oklab, var(--ink) 5%, transparent);
-  transform: none;
-  box-shadow: none;
+@media (hover: hover) and (pointer: fine) {
+  .btn--ghost:hover {
+    color: var(--ink);
+    border-color: var(--border-strong);
+    background: color-mix(in oklab, var(--ink) 5%, transparent);
+    transform: translateY(-1px);
+    box-shadow: none;
+  }
 }
 .btn--ghost:active {
-  transform: none;
+  transform: translateY(1px);
 }
 
-/* A link underlined by the field's own rule; the hover thickens it
-   and hands the text to the spot ink. */
+/* A link underlined by the field's own rule. The rule thickens on hover
+   — a pen line being gone over twice, not a colour swap. */
 .link-rule {
   color: var(--accent-ink);
   text-decoration: none;
@@ -842,8 +953,10 @@ html.theme-anim * {
   background-repeat: no-repeat;
   transition: background-size var(--dur-2) var(--ease-out);
 }
-.link-rule:hover {
-  background-size: 100% 2px;
+@media (hover: hover) and (pointer: fine) {
+  .link-rule:hover {
+    background-size: 100% 2px;
+  }
 }
 
 /* Tags. A flag, not a pill: square, hairline on two sides only, so
@@ -868,10 +981,12 @@ html.theme-anim * {
     color var(--dur-1) var(--ease-out),
     border-color var(--dur-1) var(--ease-out);
 }
-a.chip:hover,
-button.chip:hover {
-  color: var(--accent-ink);
-  border-bottom-color: var(--accent-line);
+@media (hover: hover) and (pointer: fine) {
+  a.chip:hover,
+  button.chip:hover {
+    color: var(--accent-ink);
+    border-bottom-color: var(--accent-line);
+  }
 }
 
 /* Entrance animation — the dissolve runs from the motion layer
@@ -912,6 +1027,41 @@ button.chip:hover {
 }
 ::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+/* ---------- motion preferences ----------
+   Reduced motion, enforced once for the whole system rather than per
+   component: a reader who asked for less motion gets no transform, no
+   travel, no bounce — anywhere, including in components that were added
+   later and did not think to check.
+
+   Colour, opacity and border still answer. A button that changes nothing
+   at all when you press it is a worse accessibility outcome than one
+   that changes colour without moving.
+
+   This is also the belt under every `@media (hover: hover)` gate above:
+   a device that reports both a fine pointer and reduced motion gets the
+   colour and not the travel. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+  /* Hover/active lifts are the one thing a duration override cannot
+     neutralise — the end state is still displaced. Remove the
+     displacement itself. */
+  .btn:hover,
+  .btn:active,
+  .btn--ghost:hover,
+  .btn--ghost:active,
+  .glass-press:hover,
+  .glass-press:active {
+    transform: none;
+  }
 }
 
 /* ---------- transparency preferences ----------
