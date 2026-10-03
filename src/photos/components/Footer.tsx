@@ -1,6 +1,5 @@
 import { usePrefs } from "../../shared/prefs-react";
 import { ui } from "../lib/i18n";
-import { mainSiteHref } from "../lib/asset";
 
 /* The gallery's own closing line — thin glass, same corners as the cards.
    Carries the rights notice for the photographs: every original has a blind
@@ -18,9 +17,6 @@ export function Footer() {
           <span className="ring-mark" aria-hidden="true" />
           {t.watermark}
         </p>
-        <a className="foot-back" href={mainSiteHref()}>
-          {t.mainSite} <span aria-hidden="true">↗</span>
-        </a>
       </div>
     </footer>
   );

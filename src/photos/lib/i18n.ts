@@ -16,7 +16,6 @@ export interface Dict {
   metaImages: string;
   all: string;
   empty: string;
-  mainSite: string; // back-to-main button
   selected: string; // "· SELECTED" badge
   watermark: string; // rights notice, carried from the old main site
   prev: string;
@@ -50,7 +49,6 @@ export const ui: Record<Lang, Dict> = {
     metaImages: "IMAGES",
     all: "All",
     empty: "Nothing filed here yet",
-    mainSite: "Main site",
     selected: "SELECTED",
     watermark:
       "Every original carries a blind watermark — please do not repost or reuse.",
@@ -82,7 +80,6 @@ export const ui: Record<Lang, Dict> = {
     metaImages: "影像",
     all: "全部",
     empty: "这里还没有归档作品",
-    mainSite: "返回主站",
     selected: "精选",
     watermark: "每张原片都带有盲水印，请勿转载复用。",
     prev: "← 上一篇",

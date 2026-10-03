@@ -4,7 +4,6 @@ import { categoryById } from "../data/categories";
 import { WorkCard } from "./WorkCard";
 import { usePrefs } from "../../shared/prefs-react";
 import { ui, estYear, countImages, catLabelOf } from "../lib/i18n";
-import { mainSiteHref } from "../lib/asset";
 
 const ALL = "ALL";
 
@@ -54,11 +53,13 @@ export function Gallery() {
           <span className="ring-mark" aria-hidden="true" />
           <h1 className="display gallery-title">{t.title}</h1>
         </div>
+        {/* No "back to the main site" button here. The photograph
+            journal is a destination of its own, and the shared top bar
+            already carries Home alongside every other entry — a second
+            exit in the hero read as an eject button on a page the
+            reader had just arrived at. */}
         <div className="hero-row">
           <p className="lede">{t.lede}</p>
-          <a className="btn btn--ghost sq-md home-btn" href={mainSiteHref()}>
-            {t.mainSite} <span aria-hidden="true">↗</span>
-          </a>
         </div>
         <div className="hero-meta">
           <Count target={works.length} label={t.metaWorks} />

@@ -22,7 +22,11 @@
      gallery-local value would silently retune the whole system for this
      one entry. */
   --paper: var(--surface);
-  --selection: color-mix(in oklab, var(--accent) 18%, transparent);
+  /* Ink, not spot colour. Accent-tinted selection on a page whose whole
+     content is photographs reads as a green highlight the reader did
+     not ask for — and it is the same "why is that green" the mount's
+     old focus ring produced. */
+  --selection: color-mix(in oklab, var(--ink) 16%, transparent);
   /* Wider than the reading shell — three columns of frames need the room. */
   --shell-photos: 1240px;
 }
@@ -103,6 +107,11 @@ main.shell--photos {
   border: 0;
   border-bottom: 2px solid var(--rule-heavy);
   box-shadow: none;
+  /* `glass-panel` hands this element the stepped corner clip, but the
+     hero is not a tile — it is the top of the sheet, and it closes with
+     a press rule. Clipping it left the closing rule with notched ends
+     and the hero reading as a detached plate. */
+  clip-path: none;
 }
 /* The sheet's own rings, centred off-axis so they read as a field behind the
    type rather than a target in front of it. */
@@ -138,16 +147,6 @@ main.shell--photos {
   font-size: var(--text-lg);
   color: var(--body);
 }
-.home-btn {
-  white-space: nowrap;
-}
-.home-btn span {
-  transition: transform var(--dur-2) var(--ease-out);
-}
-.home-btn:hover span {
-  transform: translate(1px, -1px);
-}
-
 .hero-meta {
   display: flex;
   flex-wrap: wrap;
@@ -284,9 +283,32 @@ main.shell--photos {
   display: block;
   border-radius: 0;
 }
-.work-card:hover .work-card-media,
+/* The mount's frame is the one thing that answers the cursor, and it
+   answers in *ink*, not in spot colour. It used to be --accent-line
+   (42% of electric lime): on a print that reads as a green "selected"
+   frame, and because :hover sticks after a tap on touch and after a
+   click that navigates back, a photograph the reader had merely looked
+   at kept a green box around it.
+
+   Hover is gated on a device that can actually hover, so a tap on a
+   phone never leaves the frame lit. */
+@media (hover: hover) and (pointer: fine) {
+  .work-card:hover .work-card-media {
+    border-color: var(--rule-mark);
+  }
+}
+/* Keyboard focus: a square ring of ink drawn *inside* the mount. The
+   mount is clip-path'd, so a plain outline would be clipped away with
+   the corner notches — an inset shadow survives the clip. Quiet, but
+   unmistakably a focus: 3px of ink with a 1px field-coloured gap. */
+.work-card:focus-visible {
+  outline: none;
+}
 .work-card:focus-visible .work-card-media {
-  border-color: var(--accent-line);
+  border-color: var(--ink);
+  box-shadow:
+    inset 0 0 0 1px var(--bg),
+    inset 0 0 0 3px var(--ink);
 }
 
 /* Caption plate — a strip of the sheet wiped up over the bottom of the
@@ -313,7 +335,15 @@ main.shell--photos {
     transform var(--dur-3) var(--ease-out);
   pointer-events: none;
 }
-.work-card:hover .work-card-overlay,
+/* The caption is the payoff, so keyboard focus gets it too — a
+   focus that only draws a ring would leave the reader with a frame
+   around a photograph they still cannot name. */
+@media (hover: hover) and (pointer: fine) {
+  .work-card:hover .work-card-overlay {
+    opacity: 1;
+    transform: none;
+  }
+}
 .work-card:focus-visible .work-card-overlay {
   opacity: 1;
   transform: none;
@@ -582,32 +612,18 @@ main.shell--photos {
 .foot-note .ring-mark::after {
   inset: 6px;
 }
-.foot-back {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--accent-ink);
-  transition: opacity var(--dur-2) var(--ease-out);
-}
-.foot-back:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
 
 /* ---------- reduced motion ----------
    tokens.css already stops the `rise` entrances and the theme cross-fade.
    What is left here is the gallery's own motion. */
 @media (prefers-reduced-motion: reduce) {
   .work-card-media img,
-  .work-card-overlay,
-  .home-btn span {
+  .work-card-overlay {
     transition: none;
   }
   /* The caption still appears — it carries the title — it simply stops
      sliding, and cross-fades in place instead. */
   .work-card-overlay {
-    transform: none;
-  }
-  .home-btn:hover span {
     transform: none;
   }
 }
@@ -616,7 +632,6 @@ main.shell--photos {
 @media print {
   site-topbar,
   .filter-bar,
-  .home-btn,
   .detail-nav,
   .detail-back,
   .foot-panel {
