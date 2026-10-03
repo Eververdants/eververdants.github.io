@@ -129,18 +129,17 @@ const HEAD_INIT = `<script>(function(){try{var q=new URLSearchParams(location.se
    survived because its rule ties on specificity and loses on order. */
 const HEAD_COVER = `<style>html{background-color:#060608}html[data-theme="light"]{background-color:#f2f3ee}html.px-boot::after{content:"";position:fixed;inset:0;z-index:3000;pointer-events:none;background:#060608}html[data-theme="light"].px-boot::after{background:#f2f3ee}@media (prefers-reduced-motion:reduce){html.px-boot::after{display:none}}</style><script>(function(){try{var d=document.documentElement;if(!document.getElementById("px-ring")){var ring=document.createElement("div");ring.id="px-ring";ring.setAttribute("aria-hidden","true");ring.style.cssText="position:fixed;inset:0;pointer-events:none;view-transition-name:px-ring";d.appendChild(ring)}var o=sessionStorage.getItem("px-origin");if(o){sessionStorage.removeItem("px-origin");var p=o.split(" ");d.style.setProperty("--vt-ox",p[0]+"%");d.style.setProperty("--vt-oy",p[1]+"%")}var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;if(!reduce&&sessionStorage.getItem("px-nav")==="1"){d.classList.add("px-boot")}}catch(e){}})();</script>`;
 
-/* Prerender same-origin pages on hover intent (Chromium): by the time
-   the click lands, the target page — including its framework render —
-   is fully built in a hidden renderer, and activation is instant. This
-   is what removes the cross-document load gap the transition curtain
-   used to have to ride out. Firefox/Safari ignore this and fall back
-   to the plain curtain path (fx.ts hover-prefetches the HTML there). */
-const HEAD_SPECULATION = `<script type="speculationrules">{"prerender":[{"source":"document","where":{"href_matches":"/**"},"eagerness":"moderate"}],"prefetch":[{"source":"document","where":{"href_matches":"/**"},"eagerness":"moderate"}]}</script>`;
+/* Speculation-rules prerendering was removed on purpose: a prerendered
+   activation swaps documents instantly but never creates a
+   cross-document view transition, so every hover-warmed click read as
+   a hard jump followed by a decorative animation on the arrived page.
+   The iris needs the navigation itself — the frozen old page while the
+   target loads, then one ring across both. The click-instant prefetch
+   in fx.ts (pxNavGo and the iris branch) keeps the load warm instead. */
 
 const SHARED_HEAD = [
   HEAD_INIT,
   HEAD_COVER,
-  HEAD_SPECULATION,
   `<meta name="author" content="Eververdants" />`,
   `<meta name="robots" content="max-image-preview:large" />`,
   `<meta name="theme-color" content="#060608" />`,

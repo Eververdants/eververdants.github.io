@@ -23,6 +23,8 @@
  * reveal set is not read once — a MutationObserver keeps adopting new
  * [data-fx] / [data-reveal] elements as they appear. */
 
+import { endProgress, startProgress } from "./progress";
+
 const REDUCE = "(prefers-reduced-motion: reduce)";
 const COARSE = "(pointer: coarse)";
 
@@ -354,6 +356,24 @@ const BAYER = [
    Stored as fractions of the viewport, so a navigation that lands on
    a window of a slightly different size still opens on the right
    spot. Cleared once the arriving page has used it. */
+/** Warm the target document through a prefetch link — the same
+ *  mechanism the hover path uses, fired at the click instead so the
+ *  download overlaps the transition. Same-origin only: callers
+ *  pre-filter, but the guard lives at the sink. */
+function warmTarget(href: string): void {
+  try {
+    const target = new URL(href, location.href);
+    if (target.origin !== location.origin) return;
+    const warm = document.createElement("link");
+    warm.rel = "prefetch";
+    warm.href = target.href;
+    warm.fetchPriority = "high";
+    document.head.appendChild(warm);
+  } catch {
+    /* no warmup — the navigation itself still warms what it needs */
+  }
+}
+
 function pxSaveOrigin(x: number, y: number): void {
   try {
     const w = Math.max(1, window.innerWidth);
@@ -696,24 +716,8 @@ function pxNavGo(href: string, origin: { x: number; y: number }): void {
   }
   pxNavigating = true;
   /* The load starts at the click, not when the bloom finishes: the
-     exit ring plays while the target document is already downloading.
-     Chromium's speculation rules have usually had the page built since
-     hover — this warms the cache for every other path, through the
-     same prefetch-link mechanism the hover path uses. Same-origin
-     only: href reaches this function filtered, but the guard lives at
-     the sink, not in the caller. */
-  try {
-    const target = new URL(href, location.href);
-    if (target.origin === location.origin) {
-      const warm = document.createElement("link");
-      warm.rel = "prefetch";
-      warm.href = target.href;
-      warm.fetchPriority = "high";
-      document.head.appendChild(warm);
-    }
-  } catch {
-    /* no warmup — the navigation itself still warms what it needs */
-  }
+     exit ring plays while the target document is already downloading. */
+  warmTarget(href);
   try {
     sessionStorage.setItem(PXNAV_KEY, "1");
   } catch {
@@ -1060,11 +1064,15 @@ function initPixelNav(): void {
       if (crossDocVT()) {
         /* The browser owns this navigation: both documents meet in one
            view transition and the iris masks in fx.css play across
-           them. fx aims the ring — the exit side here, the arrival via
-           the stored fraction the head script reads before paint — and
-           lets the click through untouched. Loading starts now. */
+           them. fx aims the ring, starts the download here, and lets
+           the click through untouched. The pixel bar is the click's
+           receipt while the old page sits frozen waiting for the next
+           one — on a warm swap it never shows (the bar waits 90ms). */
+        warmTarget(url.href);
         pxSaveOrigin(origin.x, origin.y);
         setVTOrigin(origin.x, origin.y);
+        startProgress();
+        window.setTimeout(() => endProgress(), 4000);
         return;
       }
       /* The curtain is born where the click landed. A keyboard
