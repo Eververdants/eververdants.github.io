@@ -18,7 +18,7 @@ import { getPrefs, initPrefs, pick, subscribePrefs } from "../shared/prefs";
 import type { Lang } from "../shared/prefs";
 import { defineTopBar } from "../shared/topbar";
 import { definePalette } from "../shared/palette";
-import { initFx } from "../shared/fx";
+import { initFx, registerEntryBoot } from "../shared/fx";
 import { initSmoothScroll, scrollToY } from "../shared/smooth";
 import { applyHead, breadcrumbLd, PERSON, SITE } from "../shared/seo";
 
@@ -700,7 +700,9 @@ function boot() {
   document.documentElement.classList.add("is-js");
   /* Motion layer first: it adds html.fx-on before the skeleton paints,
      so nothing flashes visible and then hides. initReveal() below keeps
-     owning the [data-reveal] lifecycle across language re-renders. */
+     owning the [data-reveal] lifecycle across language re-renders.
+     Re-entrant: the iris router calls this again after swapping in the
+     works page (or on the first visit through a dynamic import). */
   initFx();
   initSmoothScroll();
   readUrl();
@@ -709,22 +711,26 @@ function boot() {
   applySeo();
   initReveal();
   void liveSync();
-
-  /* 语言改变（本站的 <site-topbar>、其它标签页、?lang= 覆盖）：重渲染正文与
-     head，保留滚动位置。顶栏自己不在此列 —— 它订阅了 prefs。 */
-  let rendered = lang();
-  subscribePrefs((p) => {
-    if (p.lang === rendered) return;
-    rendered = p.lang;
-    const y = window.scrollY;
-    /* activeElement 必须在 renderBody 之前抓（renderToolbar 会替换节点）。 */
-    const prevActive = document.activeElement as HTMLElement | null;
-    renderBody();
-    applySeo();
-    jumpTo(y);
-    restoreToolbarFocus(prevActive);
-    initReveal();
-  });
 }
 
+/* 语言改变（本站的 <site-topbar>、其它标签页、?lang= 覆盖）：重渲染正文与
+   head，保留滚动位置。顶栏自己不在此列 —— 它订阅了 prefs。
+   订阅只注册一次，且放在 boot() 之外：换页之后（iris 路由把 body 换成
+   另一个入口的）本页的锚点已经不在了，回调必须退化成空操作而不是崩溃。 */
+let rendered = lang();
+subscribePrefs((p) => {
+  if (p.lang === rendered) return;
+  rendered = p.lang;
+  if (!document.getElementById("app")) return;
+  const y = window.scrollY;
+  /* activeElement 必须在 renderBody 之前抓（renderToolbar 会替换节点）。 */
+  const prevActive = document.activeElement as HTMLElement | null;
+  renderBody();
+  applySeo();
+  jumpTo(y);
+  restoreToolbarFocus(prevActive);
+  initReveal();
+});
+
+registerEntryBoot("/projects/", boot);
 boot();

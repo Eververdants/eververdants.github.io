@@ -24,6 +24,7 @@
  * [data-fx] / [data-reveal] elements as they appear. */
 
 import { endProgress, startProgress } from "./progress";
+import { refreshScroll, scrollToY } from "./smooth";
 
 const REDUCE = "(prefers-reduced-motion: reduce)";
 const COARSE = "(pointer: coarse)";
@@ -133,13 +134,45 @@ function initReveals(): void {
 
 /* ---------- ghost cursor ---------- */
 
+/** The trailing square lives in <body>, so an entry swap (which
+ *  replaces the body's children) orphans it — fxReattach re-homes it
+ *  after a swap. Module-level so the router can reach it. */
+let ghostEl: HTMLElement | null = null;
+
+/** Exactly one #px-ring may exist — a second element carrying the same
+ *  view-transition-name makes the browser SKIP every transition (a
+ *  duplicate name is invalid), which reads as an instant swap. Served
+ *  pages used to bake a copy into <body> (their snapshot caught the
+ *  runtime-injected div), so older documents can still carry two. The
+ *  survivor must be a child of <html>: a body child gets replaced by
+ *  the router's own body swap. */
+function dedupeRing(): void {
+  const rings = Array.from(document.querySelectorAll("#px-ring"));
+  if (!rings.length) return;
+  const keep =
+    rings.find((r) => r.parentElement === document.documentElement) ??
+    rings[0];
+  for (const r of rings) {
+    if (r !== keep) r.remove();
+  }
+  if (keep.parentElement !== document.documentElement) {
+    document.documentElement.appendChild(keep);
+  }
+}
+
 function initGhostCursor(): void {
   if (!finePointer()) return;
+
+  /* The prerender snapshot used to bake a cursor div into the page;
+     ours would then be the second square, and the baked one sat parked
+     where the crawler's mouse happened to be. Clear the field first. */
+  document.querySelectorAll("#fx-cursor").forEach((n) => n.remove());
 
   const ghost = document.createElement("div");
   ghost.id = "fx-cursor";
   ghost.setAttribute("aria-hidden", "true");
   document.body.appendChild(ghost);
+  ghostEl = ghost;
 
   let x = -100;
   let y = -100;
@@ -257,6 +290,10 @@ function patchHistoryTransitions(): void {
     unused: string,
     url?: string | URL | null,
   ) {
+    /* The iris router owns this push — it runs inside its own
+       transition already, and wrapping it again would fire a second
+       ring over the first. */
+    if (routerNavigating) return origPush(data, unused, url ?? null);
     let sameUrl = true;
     try {
       if (url != null) {
@@ -273,10 +310,23 @@ function patchHistoryTransitions(): void {
   } as typeof history.pushState;
 
   /* Registered before the apps mount, so this runs ahead of their own
-     popstate handlers and captures the old scene first. */
+     popstate handlers and captures the old scene first. The capture
+     phase is also early enough to intercept a CROSS-ENTRY pop (the
+     reader's Back button after an iris swap): the router takes it over
+     and re-runs the ring in reverse; a pop inside one entry falls
+     through to the entry's own handler below. */
   addEventListener(
     "popstate",
-    () => {
+    (e) => {
+      const target = entryOf(location.pathname);
+      if (routerOwned && target !== routerEntry) {
+        e.stopImmediatePropagation();
+        void irisNavigate(location.href, {
+          x: Math.max(1, window.innerWidth) / 2,
+          y: Math.max(1, window.innerHeight) / 2,
+        }, false);
+        return;
+      }
       transition(() => {
         /* The URL already changed; the apps' own popstate listeners
            commit the DOM swap inside the two-frame wait. */
@@ -851,28 +901,256 @@ function pxOpenCurtain(origin: { x: number; y: number }): void {
   wait();
 }
 
-/* ---------- the iris path (cross-document view transitions) ----------
-   On engines that parse @view-transition, the browser coordinates the
-   old and new documents in ONE transition: navigation starts the
-   instant of the click, the old page stays frozen on screen while the
-   next one loads, and the ring masks in fx.css play across both sides
-   once both really exist. fx's only jobs there are to aim the ring and
-   then get out of the click's way — no interception, no curtain.
+/* ---------- the iris router ----------
+   The ring the reader asked for: click → the animation starts at once,
+   the ring grows FROM the click point, INSIDE it the new page, OUTSIDE
+   it the old page. A cross-document view transition cannot do this —
+   it only starts once the next document is ready, which left a dead
+   beat at the click. So the swap happens in THIS document instead:
 
-   Feature-detected by parsing the at-rule itself (an engine without it
-   drops the rule), with the pagereveal event — which ships as part of
-   the same feature — as the second key. */
-let _crossDocVT: boolean | null = null;
-function crossDocVT(): boolean {
-  if (_crossDocVT === null) {
-    const probe = document.createElement("style");
-    probe.textContent = "@view-transition{navigation:auto}";
-    document.head.appendChild(probe);
-    const parsed = (probe.sheet?.cssRules?.length ?? 0) > 0;
-    probe.remove();
-    _crossDocVT = parsed && "onpagereveal" in window;
+     click → setVTOrigin + startViewTransition (the old page freezes as
+     the outgoing snapshot) + fetch the target's HTML → the fetched
+     body replaces this body (a fresh container node, so the previous
+     entry's roots and listeners go with the old page) → the same-
+     document transition now holds old and new snapshots → the iris
+     masks sweep the ring: inside, the new page; outside, the old. →
+     the target entry's boot handle (or its module, first visit) runs
+     over the fresh container.
+
+   pushState calls made inside the callback are flagged so
+   patchHistoryTransitions does not wrap them in a second transition.
+   popstate between entries re-runs the router without pushing; pops
+   inside one entry belong to that entry's own SPA handler. */
+
+let routerBusy = false;
+let routerOwned = false;
+let routerNavigating = false;
+let routerEntry = "/";
+
+/* Per-entry boot handles. A single slot would be overwritten by
+   whichever entry imported last, so the router must ask for the boot
+   of the entry it is swapping INTO by name. Registered by each entry's
+   main module at import time; an entry not yet imported boots through
+   its script tags instead (registerEntryBoot is exported for that). */
+const bootHandles = new Map<string, () => void>();
+
+export function registerEntryBoot(entry: string, fn: () => void): void {
+  bootHandles.set(entry, fn);
+}
+
+function entryOf(pathname: string): string {
+  if (pathname === "/" || pathname === "") return "/";
+  const seg = pathname.split("/")[1];
+  return seg ? `/${seg}/` : "/";
+}
+
+/** Swap this document's body for the fetched one: fresh container
+ *  (old roots and listeners die with the old children), title and
+ *  description sync, and any entry stylesheet this document has not
+ *  loaded yet. */
+function swapInto(doc: Document): void {
+  const frag = document.createDocumentFragment();
+  for (const node of Array.from(doc.body.childNodes)) {
+    if (node.nodeName === "SCRIPT") continue;
+    /* Runtime decoration travels with no document: a baked #px-ring
+       would duplicate the view-transition-name and kill the very
+       transition being played, and #fx-cursor is owned by this
+       document's motion layer. */
+    if (
+      node instanceof Element &&
+      (node.id === "px-ring" || node.id === "fx-cursor")
+    )
+      continue;
+    frag.appendChild(document.adoptNode(node.cloneNode(true)));
   }
-  return _crossDocVT;
+  document.body.replaceChildren(frag);
+  if (doc.title) document.title = doc.title;
+  const desc = doc.querySelector('meta[name="description"]');
+  if (desc) {
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "description");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", desc.getAttribute("content") ?? "");
+  }
+  for (const link of Array.from(doc.querySelectorAll('link[rel="stylesheet"]'))) {
+    const href = link.getAttribute("href");
+    if (
+      href &&
+      !document.head.querySelector(`link[rel="stylesheet"][href="${CSS.escape(href)}"]`)
+    ) {
+      const css = document.createElement("link");
+      css.rel = "stylesheet";
+      css.href = href;
+      document.head.appendChild(css);
+    }
+  }
+}
+
+/** Module scripts the fetched page boots with — imported after the
+ *  swap on an entry's first visit; later visits use the boot handle
+ *  the module registered. The entry bundle lives in <head> (Vite), not
+ *  body, so the search covers the whole document; the shared head
+ *  scripts are inline (no src) and are skipped by construction. */
+function entryScripts(doc: Document): string[] {
+  const out: string[] = [];
+  for (const script of Array.from(doc.querySelectorAll("script[src]"))) {
+    const src = script.getAttribute("src");
+    if (src) out.push(new URL(src, location.href).href);
+  }
+  return out;
+}
+
+/** Load another page of this site as an inert Document.
+ *
+ *  Deliberately NOT fetch(): the router needs the parsed document, and
+ *  a hidden same-origin iframe hands it to us through the browser's own
+ *  navigation machinery. The sandbox grants allow-same-origin (so
+ *  contentDocument is readable) but NOT allow-scripts (so the loaded
+ *  page runs nothing — its head scripts, including the boot-cover
+ *  inline script, stay inert). Nothing about this reaches off-origin:
+ *  the caller only ever passes a same-origin URL, and the frame is
+ *  removed as soon as its body has been cloned. */
+function loadDocument(url: string): Promise<Document> {
+  return new Promise((resolve, reject) => {
+    const frame = document.createElement("iframe");
+    frame.setAttribute("sandbox", "allow-same-origin");
+    frame.setAttribute("aria-hidden", "true");
+    frame.tabIndex = -1;
+    frame.style.cssText =
+      "position:fixed;left:-4px;top:0;width:1px;height:1px;opacity:0;border:0;pointer-events:none";
+    frame.addEventListener(
+      "load",
+      () => {
+        try {
+          const doc = frame.contentDocument;
+          if (!doc || !doc.body) throw new Error("no document");
+          resolve(doc);
+        } catch (err) {
+          reject(err instanceof Error ? err : new Error(String(err)));
+        }
+      },
+      { once: true },
+    );
+    frame.addEventListener(
+      "error",
+      () => reject(new Error("frame failed")),
+      { once: true },
+    );
+    frame.src = url;
+    document.body.appendChild(frame);
+  });
+}
+
+async function irisNavigate(
+  href: string,
+  origin: { x: number; y: number },
+  push = true,
+): Promise<void> {
+  /* Same-origin guard at the sink. The click handler already filters,
+     but this function takes a URL and loads it, so the check lives
+     here too — a caller added later cannot widen it by accident. */
+  const target = new URL(href, location.href);
+  if (target.origin !== location.origin) {
+    location.href = href;
+    return;
+  }
+  href = target.href;
+  /* Dev-only breadcrumb trail: the last navigation's stage-by-stage
+     state. A ring that silently skips is otherwise indistinguishable
+     from a ring that never started. */
+  const trace: string[] = [];
+  const note = (s: string) => {
+    trace.push(`${Math.round(performance.now())} ${s}`);
+  };
+  (window as Window & { __iris?: unknown }).__iris = { trace, href };
+  note("enter");
+  if (routerBusy) {
+    note("busy → hard nav");
+    location.href = href; /* a swap is in flight — hard fallback */
+    return;
+  }
+  routerBusy = true;
+  startProgress();
+  setVTOrigin(origin.x, origin.y);
+  let frame: HTMLIFrameElement | null = null;
+  try {
+    /* The frame is found by its sandbox attribute — only this loader
+       creates one. It is appended by loadDocument and removed here,
+       the moment its body has been cloned. */
+    const doc = await loadDocument(href);
+    frame = doc.defaultView?.frameElement as HTMLIFrameElement | null;
+    note("loaded");
+    const scripts = entryScripts(doc);
+    /* A typeof check, not a truthiness test on the function: lib.dom
+       types startViewTransition as always present, so `start ? …`
+       would be a constant to the compiler (and an optional call on it
+       would be flagged even in engines that lack the API). */
+    const hasVT = typeof document.startViewTransition === "function";
+    const start = hasVT
+      ? (document as VTDocument).startViewTransition!.bind(document)
+      : null;
+    note(`vt ${hasVT ? "yes" : "no"}`);
+    let swapped: Promise<unknown> = Promise.resolve();
+    const commit = () => {
+      swapInto(doc);
+      note("swapped");
+      if (push) {
+        routerNavigating = true;
+        history.pushState(null, "", href);
+        routerNavigating = false;
+      }
+      routerEntry = entryOf(new URL(href, location.href).pathname);
+      scrollToY(0, true);
+      refreshScroll();
+      if (ghostEl && !ghostEl.isConnected) document.body.appendChild(ghostEl);
+      note("committed");
+    };
+    if (start) {
+      try {
+        const vt = start(async () => {
+          commit();
+        }) as { updateCallbackDone: Promise<unknown> };
+        swapped = vt.updateCallbackDone;
+        await swapped;
+        note("vt done");
+      } catch (err) {
+        note(`vt refused: ${String(err)}`);
+        commit();
+      }
+    } else {
+      commit();
+    }
+    endProgress();
+    const boot = bootHandles.get(entryOf(new URL(href, location.href).pathname));
+    note(`boot ${boot ? "handle" : "import"}`);
+    if (boot) {
+      boot();
+    } else {
+      for (const src of scripts) {
+        try {
+          await import(/* @vite-ignore */ src);
+        } catch {
+          /* a chunk that failed to load leaves the prerendered content */
+        }
+      }
+      /* The imported module's top-level mount already ran against the
+         freshly swapped container — calling a handle here would mount
+         the entry a second time. */
+    }
+    routerOwned = true;
+    note("own");
+  } catch (err) {
+    note(`fail: ${String(err)} → hard nav`);
+    endProgress();
+    routerOwned = false;
+    location.href = href; /* the load failed — a real navigation still lands */
+  } finally {
+    frame?.remove();
+    routerBusy = false;
+  }
 }
 
 /* Where the iris leaves from. Tracked globally so the SPA path (a
@@ -891,13 +1169,24 @@ addEventListener(
 );
 
 /** Aim the iris masks at a viewport point, as fractions so a ring that
- * started here still lands right if the window is resized mid-flight. */
+ * started here still lands right if the window is resized mid-flight —
+ * and size the travel from this origin: --vt-rend is the distance to
+ * the farthest corner ×1.12, so the wavefront exits just as the
+ * animation ends. A fixed endpoint (260vmax) left the ring off-screen
+ * after the first third of the run, which read as an instant cut. */
 function setVTOrigin(x: number, y: number): void {
   const w = Math.max(1, window.innerWidth);
   const h = Math.max(1, window.innerHeight);
   const root = document.documentElement;
   root.style.setProperty("--vt-ox", `${((x / w) * 100).toFixed(2)}%`);
   root.style.setProperty("--vt-oy", `${((y / h) * 100).toFixed(2)}%`);
+  const far = Math.max(
+    Math.hypot(x, y),
+    Math.hypot(w - x, y),
+    Math.hypot(x, h - y),
+    Math.hypot(w - x, h - y),
+  );
+  root.style.setProperty("--vt-rend", `${Math.round(far * 1.12)}px`);
 }
 
 /* ---------- cold boot: the develop ----------
@@ -1054,25 +1343,17 @@ function initPixelNav(): void {
       if (url.pathname === location.pathname && url.search === location.search)
         return;
       /* The blog/photos SPAs handle their own internal links through
-         pushState (defaultPrevented); native navigations get the
-         transition below. */
+         pushState (defaultPrevented); cross-entry links go through the
+         iris router — the animation starts at the click, inside the
+         ring the fetched page, outside it the old one. */
       const box = a.getBoundingClientRect();
       const origin = {
         x: e.clientX || box.left + box.width / 2,
         y: e.clientY || box.top + box.height / 2,
       };
-      if (crossDocVT()) {
-        /* The browser owns this navigation: both documents meet in one
-           view transition and the iris masks in fx.css play across
-           them. fx aims the ring, starts the download here, and lets
-           the click through untouched. The pixel bar is the click's
-           receipt while the old page sits frozen waiting for the next
-           one — on a warm swap it never shows (the bar waits 90ms). */
-        warmTarget(url.href);
-        pxSaveOrigin(origin.x, origin.y);
-        setVTOrigin(origin.x, origin.y);
-        startProgress();
-        window.setTimeout(() => endProgress(), 4000);
+      if (typeof document.startViewTransition === "function") {
+        e.preventDefault();
+        void irisNavigate(url.href, origin);
         return;
       }
       /* The curtain is born where the click landed. A keyboard
@@ -1163,6 +1444,8 @@ export function initFx(): void {
      injecting ahead of them. */
   wired = true;
   root.classList.add("fx-on");
+  dedupeRing();
+  routerEntry = entryOf(location.pathname);
   patchHistoryTransitions();
   initPixelNav();
   initHoverPrefetch();

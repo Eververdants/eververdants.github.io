@@ -130,14 +130,18 @@
     --vt-r: 0px;
   }
   to {
-    --vt-r: 260vmax;
+    /* Sized from the click (setVTOrigin): the wavefront leaves the
+       viewport's farthest corner right at the end of the run. The
+       fallback (a cross-document arrival whose origin came from the
+       head script without a distance) is a flat 200vmax. */
+    --vt-r: var(--vt-rend, 200vmax);
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   html.fx-on::view-transition-old(root),
   html.fx-on::view-transition-new(root) {
-    animation: vt-iris-r 440ms linear both;
+    animation: vt-iris-r 520ms linear both;
   }
   /* The bloom, as three composited masks per side. The ring has a
      solid core (radius --vt-r) and a dithered fringe — one band of
@@ -193,7 +197,7 @@
      #px-ring div, head-injected), painted here rather than snapshotted
      so it can travel with the wavefront in the accent ink. */
   html.fx-on::view-transition-group(px-ring) {
-    animation: vt-iris-r 440ms linear both;
+    animation: vt-iris-r 520ms linear both;
     background: radial-gradient(
       circle var(--vt-r) at var(--vt-ox) var(--vt-oy),
       transparent calc(var(--vt-r) - 2px),

@@ -77,15 +77,27 @@ const esc = (s) =>
    a served document. */
 const MOTION_CLASSES = new Set(["fx-on", "px-boot", "px-arrived"]);
 function sanitizeMotion(html) {
-  return html.replace(
-    /(<html\b[^>]*?\bclass=")([^"]*)(")/i,
-    (m, head, cls, tail) =>
-      head +
-      cls
-        .split(/\s+/)
-        .filter((c) => c && !MOTION_CLASSES.has(c))
-        .join(" ") +
-      tail,
+  return (
+    html
+      .replace(
+        /(<html\b[^>]*?\bclass=")([^"]*)(")/i,
+        (m, head, cls, tail) =>
+          head +
+          cls
+            .split(/\s+/)
+            .filter((c) => c && !MOTION_CLASSES.has(c))
+            .join(" ") +
+            tail,
+      )
+      /* Runtime-injected decoration must not be baked into the served
+         HTML. #px-ring carries view-transition-name: px-ring, and a
+         second copy of that name makes the browser SKIP every view
+         transition (a duplicate name is invalid) — which is exactly the
+         "instant swap" the ring is supposed to replace. #fx-cursor is
+         the same story with a stuck square left parked mid-page. Both
+         are empty divs, so a tag-level match is safe. */
+      .replace(/<div id="px-ring"[^>]*><\/div>/g, "")
+      .replace(/<div id="fx-cursor"[^>]*><\/div>/g, "")
   );
 }
 
