@@ -504,7 +504,14 @@ button.chip[aria-pressed="true"] {
 .ledger .row:first-child {
   border-top: none;
 }
-.row:hover,
+/* Hover gated on a real pointer: a tap on a phone leaves :hover stuck,
+   and a ledger row that stays washed after you scroll past it reads as
+   a selection the reader does not remember making. */
+@media (hover: hover) and (pointer: fine) {
+  .row:hover {
+    background: var(--accent-soft);
+  }
+}
 .row:focus-visible {
   background: var(--accent-soft);
 }
@@ -600,9 +607,15 @@ button.chip[aria-pressed="true"] {
 .row:focus-visible .row__link {
   color: var(--accent-ink);
 }
-.row:hover .row__link .arrow,
 .row:focus-visible .row__link .arrow {
   transform: translate(3px, -1px);
+}
+@media (hover: hover) and (pointer: fine) {
+  /* The arrow is the one movement in the ledger. It travels a whole
+     3px — a hair's movement reads as jitter, a cell's reads as intent. */
+  .row:hover .row__link .arrow {
+    transform: translate(3px, -1px);
+  }
 }
 
 /* 空状态 */
