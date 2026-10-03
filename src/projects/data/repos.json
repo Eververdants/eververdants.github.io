@@ -2,10 +2,32 @@
   "_meta": {
     "owner": "Eververdants",
     "source": "gh repo list --json",
-    "fetchedAt": "2026-10-03T07:32:46.398Z",
+    "fetchedAt": "2026-10-03T09:35:49.473Z",
     "count": 8
   },
   "repos": [
+    {
+      "name": "eververdants.github.io",
+      "fullName": "Eververdants/eververdants.github.io",
+      "url": "https://github.com/Eververdants/eververdants.github.io",
+      "homepage": "https://eververdants.github.io/",
+      "description": "",
+      "language": "TypeScript",
+      "topics": [],
+      "stars": 1,
+      "forks": 0,
+      "createdAt": "2025-10-02T05:21:09Z",
+      "updatedAt": "2026-10-03T09:35:43Z",
+      "pushedAt": "2026-10-03T09:35:36Z",
+      "archived": false,
+      "fork": false,
+      "private": false,
+      "featured": false,
+      "tag": "THIS SITE",
+      "thumb": "",
+      "blurbEn": "The main site this index belongs to — a full-screen motion site built with React, Vite and GSAP, plus a bilingual blog sub-site.",
+      "blurbZh": "本作品索引所属的主站 —— React + Vite + GSAP 打造的全屏动态个人网站，含双语博客子站。"
+    },
     {
       "name": "ETBSaveManager",
       "fullName": "Eververdants/ETBSaveManager",
@@ -41,28 +63,6 @@
       "thumb": "/assets/works-etb-save.webp",
       "blurbEn": "A Tauri 2.0 save manager for Escape The Backrooms — full CRUD, multilingual UI, virtual-scrolled item list. The most-starred tool here.",
       "blurbZh": "基于 Tauri 2.0 的《Escape The Backrooms》存档管理器：完整 CRUD、多语言 UI、虚拟滚动列表 —— 本站星标最多的开源工具。"
-    },
-    {
-      "name": "eververdants.github.io",
-      "fullName": "Eververdants/eververdants.github.io",
-      "url": "https://github.com/Eververdants/eververdants.github.io",
-      "homepage": "https://eververdants.github.io/",
-      "description": "",
-      "language": "TypeScript",
-      "topics": [],
-      "stars": 1,
-      "forks": 0,
-      "createdAt": "2025-10-02T05:21:09Z",
-      "updatedAt": "2026-10-02T07:54:12Z",
-      "pushedAt": "2026-10-02T07:54:08Z",
-      "archived": false,
-      "fork": false,
-      "private": false,
-      "featured": false,
-      "tag": "THIS SITE",
-      "thumb": "",
-      "blurbEn": "The main site this index belongs to — a full-screen motion site built with React, Vite and GSAP, plus a bilingual blog sub-site.",
-      "blurbZh": "本作品索引所属的主站 —— React + Vite + GSAP 打造的全屏动态个人网站，含双语博客子站。"
     },
     {
       "name": "AppAudioRouter",
