@@ -458,6 +458,21 @@ interface Curtain {
   hold: (t: number) => void;
 }
 
+/** Deterministic per-cell hash, 0…1. The wake mesh must be pixel-
+ * identical in this document and the next one — a Math.random() mesh
+ * would jump at the swap — so every per-cell constant is derived from
+ * the cell index, not from a live RNG. */
+function cellHash(i: number): number {
+  let h = (i + 1) * 2654435761;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
+/* The quiet print: the tone the ring's wake settles to and the wall
+   between the documents breathes on. Not the flat field — the mesh IS
+   the bridge, so the transition never collapses to a blank. */
+const PX_MESH_K = 0.28;
+
 function createCurtain(origin?: { x: number; y: number }): Curtain | null {
   const w = Math.max(1, window.innerWidth);
   const h = Math.max(1, window.innerHeight);
@@ -522,13 +537,13 @@ function createCurtain(origin?: { x: number; y: number }): Curtain | null {
       const d =
         Math.hypot((c + 0.5) * cell - ox, (r + 0.5) * cell - oy) / far;
       const b = BAYER[(r & 3) * 4 + (c & 3)];
-      order[i] = clamp01(d * 0.88 + b * 0.12 + (Math.random() - 0.5) * 0.04);
-      toneLvl[i] = (Math.random() * 3) | 0;
+      order[i] = clamp01(d * 0.88 + b * 0.12 + (cellHash(i) - 0.5) * 0.04);
+      toneLvl[i] = (cellHash(i + total * 7) * 3) | 0;
       /* ~1% of cells print in the accent. Enough to spot, not enough
          to read as confetti — the print is ink; the accent is a spark
          in it. */
-      spark[i] = Math.random() < 0.012 ? 1 : 0;
-      seed[i] = Math.random();
+      spark[i] = cellHash(i + total * 13) < 0.012 ? 1 : 0;
+      seed[i] = cellHash(i + total * 29);
     }
   }
 
@@ -543,20 +558,22 @@ function createCurtain(origin?: { x: number; y: number }): Curtain | null {
     const { field, ink, accent } = schemeFor();
     for (let i = 0; i < total; i++) {
       /* The exit half of the ring — the reveal mirrored cell for cell.
-         The reveal waits as field, flashes ink at the front, and opens
+         The reveal waits as mesh, flashes ink at the front, and opens
          onto the page; the cover waits as the page, flashes ink at the
-         front, and closes onto the field. Same Bayer order, same three
-         ink tones, same origin — at every frame there is exactly one
-         ink ring, sweeping out, with the page outside it and the field
-         inside it. What it passes over is erased: text included. At
-         p=1 the whole screen is the field wall the next document's
-         cover opens from, so the handoff never shows. */
+         front, and settles into the mesh. What the ring passes over is
+         erased — text included — but the wake is a quiet PRINT, never
+         a blank: the mesh is the bridge between the documents, so the
+         load wait lives inside the animation instead of as a dead
+         field. Deterministic per-cell constants keep the mesh
+         pixel-identical across the swap. */
       const at = 0.04 + order[i] * 0.8;
       const f = span(p, at, 0.05);
       const close = span(p, at + 0.05, 0.09);
       const on = f > 0;
       const t = spark[i] ? accent : ink;
-      const k = on ? (0.45 + 0.275 * toneLvl[i]) * (1 - quant(close, 3)) : 0;
+      const k = on
+        ? mix(PX_MESH_K, 0.45 + 0.275 * toneLvl[i], 1 - quant(close, 3))
+        : 0;
       const o = i * 4;
       data[o] = mix(field[0], t[0], k);
       data[o + 1] = mix(field[1], t[1], k);
@@ -569,15 +586,16 @@ function createCurtain(origin?: { x: number; y: number }): Curtain | null {
   const reveal = (p: number) => {
     const { field, ink } = schemeFor();
     for (let i = 0; i < total; i++) {
-      /* The develop: the cell snaps to its print tone the moment the
-         wave reaches it — a hard pixel edge at the front, never a haze
-         — and then opens in three quantised alpha steps. A cell that
-         merely faded would make the whole thing a dissolve again. */
+      /* The develop: the cell waits as the quiet mesh, flashes to its
+         print tone the moment the wave reaches it — a hard pixel edge
+         at the front, never a haze — and then opens in three quantised
+         alpha steps. A cell that merely faded would make the whole
+         thing a dissolve again. */
       const at = 0.04 + order[i] * 0.8;
       const f = span(p, at, 0.05);
       const drop = span(p, at + 0.05, 0.09);
       const on = f > 0;
-      const k = on ? 0.45 + 0.275 * toneLvl[i] : 0;
+      const k = on ? mix(PX_MESH_K, 0.45 + 0.275 * toneLvl[i], f) : PX_MESH_K;
       const a = on ? 1 - quant(drop, 3) : 0;
       const o = i * 4;
       data[o] = mix(field[0], ink[0], k);
@@ -589,22 +607,27 @@ function createCurtain(origin?: { x: number; y: number }): Curtain | null {
   };
 
   const hold = (t: number) => {
-    const { field, ink, hold: hc } = schemeFor();
-    /* Proof that the page is alive while the framework mounts under
-       it: a slow band of grey crossing, plus a very sparse scatter of
-       cells printing briefly in ink. Never transparent — the wall must
-       stay opaque until there is something behind it. */
+    const { ink, hold: hc } = schemeFor();
+    /* The bridge between the documents is the mesh itself, not a flat
+       field: base = the quiet print, a slow band of lift crossing it,
+       plus a very sparse scatter of cells printing briefly in ink —
+       proof that the page is alive while the framework mounts under
+       it. Never transparent — the wall must stay opaque until there is
+       something behind it. */
+    const br = mix(schemeFor().field[0], ink[0], PX_MESH_K);
+    const bg = mix(schemeFor().field[1], ink[1], PX_MESH_K);
+    const bb = mix(schemeFor().field[2], ink[2], PX_MESH_K);
     const band = ((t / 1400) % 1) * (rows + 30) - 15;
     for (let r = 0; r < rows; r++) {
       const k = Math.max(0, 1 - Math.abs(r - band) / 5);
-      const bandLift = k * 0.4;
+      const bandLift = k * 0.3;
       for (let c = 0; c < cols; c++) {
         const i = r * cols + c;
         const flick = ((t / 900 + seed[i]) % 1) < 0.015 ? 0.14 : 0;
         const o = i * 4;
-        data[o] = mix(mix(field[0], hc[0], bandLift), ink[0], flick);
-        data[o + 1] = mix(mix(field[1], hc[1], bandLift), ink[1], flick);
-        data[o + 2] = mix(mix(field[2], hc[2], bandLift), ink[2], flick);
+        data[o] = mix(mix(br, hc[0], bandLift), ink[0], flick);
+        data[o + 1] = mix(mix(bg, hc[1], bandLift), ink[1], flick);
+        data[o + 2] = mix(mix(bb, hc[2], bandLift), ink[2], flick);
         data[o + 3] = 255;
       }
     }
