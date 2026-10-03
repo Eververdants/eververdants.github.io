@@ -140,30 +140,41 @@
 
 @media (prefers-reduced-motion: no-preference) {
   html.fx-on::view-transition-old(root),
-  html.fx-on::view-transition-new(root) {
-    animation: vt-iris-r 520ms linear both;
+  html.fx-on::view-transition-new(root),
+  html.fx-on::view-transition-group(px-ring) {
+    /* Stepped, not linear: the front advances in ~26 rungs, so the
+       ring reads as cells printing rather than as a tween. */
+    animation: vt-iris-r 520ms steps(26, end) both;
   }
-  /* The bloom, as three composited masks per side. The ring has a
-     solid core (radius --vt-r) and a dithered fringe — one band of
-     10px cells beyond it — where the two pages trade places cell by
-     cell: the incoming side owns one checker phase, the outgoing side
-     the exact complement, so every fringe cell flips from the old page
-     to the new one as the radius passes it. That checker fringe is the
-     pixel ring; the mask-composite arithmetic is
-     union(disc, intersect(fringe-band, checker)). */
+  /* The pixel front, as three composited masks per side. There is
+     deliberately NO smooth accent ring line and no clean circular disc
+     edge — the canvas ring this replaces drew every edge out of 10px
+     cells, and the vector ring line was what made the previous version
+     read as a donut rather than as a print. So: a core that stops
+     short, and a checker band straddling that stop (0.90r → 1.10r)
+     that carries the whole seam — inside it the two pages trade places
+     cell by cell, the incoming side owning one checker phase and the
+     outgoing side the exact complement, so every cell visibly flips as
+     the front passes it. A 20px tile makes the cells 10px: the canvas
+     grid, 1:1.
+
+     Layer order is load-bearing: the FIRST mask is the top layer and
+     the LAST is the base the others composite onto (verified — a
+     reversed list rendered as a full-screen checkerboard). So the
+     list reads top-down: core, band, checker. */
   html.fx-on::view-transition-new(root) {
     mask-image:
       radial-gradient(
-        circle var(--vt-r) at var(--vt-ox) var(--vt-oy),
-        #000 calc(var(--vt-r) - 1px),
-        transparent var(--vt-r)
+        circle calc(var(--vt-r) * 0.9) at var(--vt-ox) var(--vt-oy),
+        #000 calc(var(--vt-r) * 0.9 - 1px),
+        transparent calc(var(--vt-r) * 0.9)
       ),
       radial-gradient(
         circle var(--vt-r) at var(--vt-ox) var(--vt-oy),
-        transparent calc(var(--vt-r) - 1px),
-        #000 calc(var(--vt-r) + 2px),
-        #000 calc(var(--vt-r) * 1.24 - 2px),
-        transparent calc(var(--vt-r) * 1.24 + 1px)
+        transparent calc(var(--vt-r) * 0.9 - 1px),
+        #000 calc(var(--vt-r) * 0.9),
+        #000 calc(var(--vt-r) * 1.1 - 1px),
+        transparent calc(var(--vt-r) * 1.1)
       ),
       repeating-conic-gradient(#000 0% 25%, transparent 0% 50%);
     mask-size: 100% 100%, 100% 100%, 20px 20px;
@@ -171,40 +182,35 @@
     mask-repeat: no-repeat, no-repeat, repeat;
     mask-composite: add, intersect, add;
   }
-  /* The outgoing side is the exact complement: it keeps everything
-     past the fringe plus the OTHER checker phase inside it. */
+  /* The outgoing side is the exact complement: the other checker
+     phase inside the same band, plus everything past it. */
   html.fx-on::view-transition-old(root) {
     mask-image:
       radial-gradient(
-        circle calc(var(--vt-r) * 1.24) at var(--vt-ox) var(--vt-oy),
-        transparent calc(var(--vt-r) * 1.24 - 1px),
-        #000 calc(var(--vt-r) * 1.24)
+        circle calc(var(--vt-r) * 1.1) at var(--vt-ox) var(--vt-oy),
+        transparent calc(var(--vt-r) * 1.1 - 1px),
+        #000 calc(var(--vt-r) * 1.1)
       ),
       radial-gradient(
         circle var(--vt-r) at var(--vt-ox) var(--vt-oy),
-        transparent calc(var(--vt-r) - 1px),
-        #000 calc(var(--vt-r) + 2px),
-        #000 calc(var(--vt-r) * 1.24 - 2px),
-        transparent calc(var(--vt-r) * 1.24 + 1px)
+        transparent calc(var(--vt-r) * 0.9 - 1px),
+        #000 calc(var(--vt-r) * 0.9),
+        #000 calc(var(--vt-r) * 1.1 - 1px),
+        transparent calc(var(--vt-r) * 1.1)
       ),
-      repeating-conic-gradient(#000 0% 25%, transparent 0% 50%);
+      repeating-conic-gradient(
+        transparent 0% 25%,
+        #000 0% 50%,
+        transparent 0% 75%
+      );
     mask-size: 100% 100%, 100% 100%, 20px 20px;
-    mask-position: 0 0, 0 0, 0 0;
+    mask-position: 0 0, 0 0, 10px 10px;
     mask-repeat: no-repeat, no-repeat, repeat;
     mask-composite: add, intersect, add;
   }
-  /* The ring itself: a live layer (every page carries the empty
-     #px-ring div, head-injected), painted here rather than snapshotted
-     so it can travel with the wavefront in the accent ink. */
-  html.fx-on::view-transition-group(px-ring) {
-    animation: vt-iris-r 520ms linear both;
-    background: radial-gradient(
-      circle var(--vt-r) at var(--vt-ox) var(--vt-oy),
-      transparent calc(var(--vt-r) - 2px),
-      var(--accent) var(--vt-r),
-      transparent calc(var(--vt-r) + 2px)
-    );
-  }
+  /* The px-ring layer exists only to give the transition a name to
+     snapshot; it paints nothing. The ring the eye follows is the
+     dithered seam between the two snapshots above. */
   html.fx-on::view-transition-image-pair(px-ring) {
     opacity: 0;
   }
