@@ -89,48 +89,126 @@
   box-shadow: 3px 3px 0 var(--accent-2-soft);
 }
 
-/* ---------- navigation transitions ----------
-   Inter-entry jumps run the dither curtain (fx.ts click
-   interception), and both halves are the same ring: a bloom of pixel
-   cells leaves the click point in Bayer order — on the way out the
-   cells print ONTO the old page (it is consumed ring-first), on the
-   way in they open OFF of the new page (it develops ring-first). The
-   two halves share the origin, the order and the ink tones, so the
-   navigation reads as one ring passing through the swap.
+/* ---------- view transitions: the iris ring ----------
+   Every navigation — an SPA scene swap or a jump between the five
+   entries — is one movement: a pixel ring leaves the click point and
+   grows over ~0.44s; the old page exists only OUTSIDE the ring, the
+   new page only INSIDE it, and the accent ring itself rides the
+   boundary. No curtain, no wall, no blank beat between the pages.
 
-   The target page starts downloading at the instant of the click (the
-   click handler fires a high-priority fetch while the bloom plays;
-   Chromium's speculation rules have usually prerendered it since
-   hover), so the flat field beat between the halves — the only place
-   the old document hands over to the new one — is as short as the
-   network allows.
+   Cross-entry jumps are coordinated by the browser's cross-document
+   view transitions (@view-transition below): both documents meet in
+   one transition, so navigation starts the instant of the click and
+   the ring only plays once both sides really exist. The old page
+   simply stays on screen — frozen, untouched — while the next one
+   loads. Browsers without the at-rule keep the canvas curtain
+   fallback in fx.ts; everything here is inert for them.
 
-   SPA scene switches (blog index ↔ article) use same-document view
-   transitions — the framework commits inside the transition's
-   callback, so the real frame is what animates. The incoming scene
-   covers the outgoing one, which stays put underneath at full
-   opacity: cross-fading both sides dips to the field colour between
-   them — a blank beat where there should be one continuous cover. */
+   --vt-r is the ring radius, driven linearly — the pixels come from
+   the dithered fringe, not from stepping the radius. The origin
+   (--vt-ox/oy) is set per navigation: the click handler aims the exit,
+   the inline head script aims the arrival, and SPA swaps aim at the
+   pointer that started them. */
 
-@keyframes vt-dev-in {
+@view-transition {
+  navigation: auto;
+}
+
+@property --vt-r {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+:root {
+  --vt-ox: 50%;
+  --vt-oy: 50%;
+}
+
+@keyframes vt-iris-r {
   from {
-    opacity: 0;
+    --vt-r: 0px;
   }
   to {
-    opacity: 1;
+    --vt-r: 260vmax;
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  html.fx-on::view-transition-old(root) {
-    /* Held, not animated: the outgoing page is the thing being
-       covered, and a snapshot that fades beneath an arriving one reads
-       as two ghosts dissolving, not as a page replacing a page. */
-    animation: none;
-  }
-
+  html.fx-on::view-transition-old(root),
   html.fx-on::view-transition-new(root) {
-    animation: vt-dev-in 320ms steps(8, end) both;
+    animation: vt-iris-r 440ms linear both;
+  }
+  /* The bloom, as three composited masks per side. The ring has a
+     solid core (radius --vt-r) and a dithered fringe — one band of
+     10px cells beyond it — where the two pages trade places cell by
+     cell: the incoming side owns one checker phase, the outgoing side
+     the exact complement, so every fringe cell flips from the old page
+     to the new one as the radius passes it. That checker fringe is the
+     pixel ring; the mask-composite arithmetic is
+     union(disc, intersect(fringe-band, checker)). */
+  html.fx-on::view-transition-new(root) {
+    mask-image:
+      radial-gradient(
+        circle var(--vt-r) at var(--vt-ox) var(--vt-oy),
+        #000 calc(var(--vt-r) - 1px),
+        transparent var(--vt-r)
+      ),
+      radial-gradient(
+        circle var(--vt-r) at var(--vt-ox) var(--vt-oy),
+        transparent calc(var(--vt-r) - 1px),
+        #000 calc(var(--vt-r) + 2px),
+        #000 calc(var(--vt-r) * 1.24 - 2px),
+        transparent calc(var(--vt-r) * 1.24 + 1px)
+      ),
+      repeating-conic-gradient(#000 0% 25%, transparent 0% 50%);
+    mask-size: 100% 100%, 100% 100%, 20px 20px;
+    mask-position: 0 0, 0 0, 0 0;
+    mask-repeat: no-repeat, no-repeat, repeat;
+    mask-composite: add, intersect, add;
+  }
+  /* The outgoing side is the exact complement: it keeps everything
+     past the fringe plus the OTHER checker phase inside it. */
+  html.fx-on::view-transition-old(root) {
+    mask-image:
+      radial-gradient(
+        circle calc(var(--vt-r) * 1.24) at var(--vt-ox) var(--vt-oy),
+        transparent calc(var(--vt-r) * 1.24 - 1px),
+        #000 calc(var(--vt-r) * 1.24)
+      ),
+      radial-gradient(
+        circle var(--vt-r) at var(--vt-ox) var(--vt-oy),
+        transparent calc(var(--vt-r) - 1px),
+        #000 calc(var(--vt-r) + 2px),
+        #000 calc(var(--vt-r) * 1.24 - 2px),
+        transparent calc(var(--vt-r) * 1.24 + 1px)
+      ),
+      repeating-conic-gradient(#000 0% 25%, transparent 0% 50%);
+    mask-size: 100% 100%, 100% 100%, 20px 20px;
+    mask-position: 0 0, 0 0, 0 0;
+    mask-repeat: no-repeat, no-repeat, repeat;
+    mask-composite: add, intersect, add;
+  }
+  /* The ring itself: a live layer (every page carries the empty
+     #px-ring div, head-injected), painted here rather than snapshotted
+     so it can travel with the wavefront in the accent ink. */
+  html.fx-on::view-transition-group(px-ring) {
+    animation: vt-iris-r 440ms linear both;
+    background: radial-gradient(
+      circle var(--vt-r) at var(--vt-ox) var(--vt-oy),
+      transparent calc(var(--vt-r) - 2px),
+      var(--accent) var(--vt-r),
+      transparent calc(var(--vt-r) + 2px)
+    );
+  }
+  html.fx-on::view-transition-image-pair(px-ring) {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
   }
 }
 

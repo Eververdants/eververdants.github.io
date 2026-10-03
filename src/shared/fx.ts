@@ -233,6 +233,12 @@ function patchHistoryTransitions(): void {
       change();
       return;
     }
+    /* Aim the iris at the pointer that started this swap — the SPA
+       path has no navigation event to carry it. A keyboard activation
+       (no pointer in the last 2s) leaves the ring at the centre. */
+    if (lastClick.t > 0 && performance.now() - lastClick.t < 2000) {
+      setVTOrigin(lastClick.x, lastClick.y);
+    }
     try {
       startTransition(() => {
         change();
@@ -841,6 +847,55 @@ function pxOpenCurtain(origin: { x: number; y: number }): void {
   wait();
 }
 
+/* ---------- the iris path (cross-document view transitions) ----------
+   On engines that parse @view-transition, the browser coordinates the
+   old and new documents in ONE transition: navigation starts the
+   instant of the click, the old page stays frozen on screen while the
+   next one loads, and the ring masks in fx.css play across both sides
+   once both really exist. fx's only jobs there are to aim the ring and
+   then get out of the click's way — no interception, no curtain.
+
+   Feature-detected by parsing the at-rule itself (an engine without it
+   drops the rule), with the pagereveal event — which ships as part of
+   the same feature — as the second key. */
+let _crossDocVT: boolean | null = null;
+function crossDocVT(): boolean {
+  if (_crossDocVT === null) {
+    const probe = document.createElement("style");
+    probe.textContent = "@view-transition{navigation:auto}";
+    document.head.appendChild(probe);
+    const parsed = (probe.sheet?.cssRules?.length ?? 0) > 0;
+    probe.remove();
+    _crossDocVT = parsed && "onpagereveal" in window;
+  }
+  return _crossDocVT;
+}
+
+/* Where the iris leaves from. Tracked globally so the SPA path (a
+   pushState wrapped after the fact) can still aim at the pointer that
+   started it; keyboard activations have no pointer and fall back to
+   the centre. */
+const lastClick = { x: 0, y: 0, t: 0 };
+addEventListener(
+  "pointerdown",
+  (e) => {
+    lastClick.x = e.clientX;
+    lastClick.y = e.clientY;
+    lastClick.t = performance.now();
+  },
+  { capture: true, passive: true },
+);
+
+/** Aim the iris masks at a viewport point, as fractions so a ring that
+ * started here still lands right if the window is resized mid-flight. */
+function setVTOrigin(x: number, y: number): void {
+  const w = Math.max(1, window.innerWidth);
+  const h = Math.max(1, window.innerHeight);
+  const root = document.documentElement;
+  root.style.setProperty("--vt-ox", `${((x / w) * 100).toFixed(2)}%`);
+  root.style.setProperty("--vt-oy", `${((y / h) * 100).toFixed(2)}%`);
+}
+
 /* ---------- cold boot: the develop ----------
    A direct load (no navigation flag) gets the same entrance the
    curtain gives a cross-entry jump, minus the wait: the page develops
@@ -996,16 +1051,27 @@ function initPixelNav(): void {
         return;
       /* The blog/photos SPAs handle their own internal links through
          pushState (defaultPrevented); native navigations get the
-         curtain. */
-      e.preventDefault();
+         transition below. */
+      const box = a.getBoundingClientRect();
+      const origin = {
+        x: e.clientX || box.left + box.width / 2,
+        y: e.clientY || box.top + box.height / 2,
+      };
+      if (crossDocVT()) {
+        /* The browser owns this navigation: both documents meet in one
+           view transition and the iris masks in fx.css play across
+           them. fx aims the ring — the exit side here, the arrival via
+           the stored fraction the head script reads before paint — and
+           lets the click through untouched. Loading starts now. */
+        pxSaveOrigin(origin.x, origin.y);
+        setVTOrigin(origin.x, origin.y);
+        return;
+      }
       /* The curtain is born where the click landed. A keyboard
          activation reports 0,0 — fall back to the link itself so the
          wave doesn't start in the corner. */
-      const box = a.getBoundingClientRect();
-      pxNavGo(url.href, {
-        x: e.clientX || box.left + box.width / 2,
-        y: e.clientY || box.top + box.height / 2,
-      });
+      e.preventDefault();
+      pxNavGo(url.href, origin);
     },
     false,
   );
