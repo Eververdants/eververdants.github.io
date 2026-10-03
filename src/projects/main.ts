@@ -19,6 +19,7 @@ import type { Lang } from "../shared/prefs";
 import { defineTopBar } from "../shared/topbar";
 import { definePalette } from "../shared/palette";
 import { initFx } from "../shared/fx";
+import { initSmoothScroll, scrollToY } from "../shared/smooth";
 import { applyHead, breadcrumbLd, PERSON, SITE } from "../shared/seo";
 
 /* Language + theme live in blog-lang / blog-theme, so a reader's choices carry
@@ -240,16 +241,18 @@ async function liveSync() {
   }
 }
 
-/* A scroll *restoration* must not be animated by `scroll-behavior: smooth`. */
+/* Both go through the shared smooth-scroll layer, which speaks to Lenis
+   when it is live and falls through to the platform when it is not —
+   a plain `window.scrollTo` here would fight Lenis's animated position
+   and get snapped back on its next frame.
+
+   A scroll *restoration* is always immediate: re-rendering the page in
+   another language must not animate the reader back to where they were. */
 function jumpTo(y: number) {
-  window.scrollTo({ top: y, left: 0, behavior: "instant" });
+  scrollToY(y, true);
 }
 function scrollTop() {
-  window.scrollTo({
-    top: 0,
-    left: 0,
-    behavior: reducedMotion() ? "auto" : "smooth",
-  });
+  scrollToY(0, reducedMotion());
 }
 
 /* ================= Hero ================= */
@@ -699,6 +702,7 @@ function boot() {
      so nothing flashes visible and then hides. initReveal() below keeps
      owning the [data-reveal] lifecycle across language re-renders. */
   initFx();
+  initSmoothScroll();
   readUrl();
   renderSkeleton();
   renderBody();

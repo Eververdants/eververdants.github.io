@@ -312,8 +312,43 @@
    area past the end of the document. */
 html {
   background-color: var(--bg);
+  /* Native smooth scrolling is the baseline (no-JS, and every engine
+     that never gets Lenis). Lenis takes over on capable pointers and
+     switches this to `auto` itself — see .lenis.lenis-smooth below. */
   scroll-behavior: smooth;
+  /* An anchor jump must land its heading *below* the fixed top bar
+     instead of under it. scroll-padding-top is the one declaration
+     that makes every `#hash` navigation and every scrollIntoView on
+     the document agree on where "top of the readable area" is. */
+  scroll-padding-top: calc(var(--header-clearance) + 12px);
   -webkit-text-size-adjust: 100%;
+}
+
+/* ---------- Lenis ----------
+   The smooth-scroll layer (src/shared/smooth.ts) adds these classes to
+   <html>. Kept here rather than imported from the package so the rules
+   sit next to the `scroll-behavior` they override and so the vanilla
+   /projects entry gets them without a second CSS entry point.
+
+   `scroll-behavior: auto !important` is the critical one: with the CSS
+   smooth scroll still on, Lenis's own per-frame window.scrollTo lands
+   as *another* browser-driven animation on top of its rAF loop, and
+   the page fights itself — visible as a jittery, rubber-banding scroll. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
 }
 
 body {

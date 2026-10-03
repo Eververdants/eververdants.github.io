@@ -20,6 +20,7 @@ import type { Work } from "./data/types";
 import { descOf, locOf, titleOf } from "./lib/i18n";
 import { pick, type Lang } from "../shared/prefs";
 import { usePrefs } from "../shared/prefs-react";
+import { scrollToTop } from "../shared/smooth";
 import { absUrl, applyHead, breadcrumbLd, PERSON, SITE } from "../shared/seo";
 
 const PHOTOS = "/photos";
@@ -179,7 +180,7 @@ export function App() {
   useEffect(() => {
     const onPop = () => {
       setRoute(parseRoute());
-      window.scrollTo({ top: 0 });
+      scrollToTop();
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
@@ -187,8 +188,9 @@ export function App() {
 
   /* Delegate in-app navigation: intercept <a href="/photos/..."> clicks and
      swap routes with pushState (full page loads still work without JS).
-     Cross-site links — the top bar, the footer's "Main site" — are left
-     alone, so they load the entry they belong to. */
+     Every other link — the top bar above all — is left alone, so it loads
+     the entry it belongs to. There is no "back to the main site" control
+     on this page on purpose: the shared bar already carries Home. */
   const onClick = (e: MouseEvent<HTMLDivElement>) => {
     const a = (e.target as HTMLElement).closest?.(
       "a[href]",
@@ -203,7 +205,7 @@ export function App() {
     e.preventDefault();
     history.pushState(null, "", url.pathname + url.search + url.hash);
     setRoute(routeFromPath(url.pathname));
-    window.scrollTo({ top: 0 });
+    scrollToTop();
   };
 
   /* Route changes swap the whole scene; land keyboard and screen-reader focus

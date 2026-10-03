@@ -24,6 +24,7 @@ import { defineTopBar } from "../shared/topbar";
 import { definePalette } from "../shared/palette";
 import { articlePath, BLOG, parseView, topicPath } from "./urls";
 import type { BlogView } from "./urls";
+import { scrollToTop } from "../shared/smooth";
 
 defineTopBar();
 definePalette();
@@ -76,7 +77,11 @@ export default function BlogApp() {
     }
   }, [view]);
 
-  const toTop = useCallback(() => window.scrollTo({ top: 0 }), []);
+  /* Route changes and prev/next jumps. Goes through the smooth-scroll
+     layer rather than window.scrollTo: while Lenis holds an animated
+     position, a raw scrollTo is snapped back on its next frame, so the
+     reader would see the essay open mid-page and then jump. */
+  const toTop = useCallback(() => scrollToTop(), []);
 
   const openArticle = useCallback(
     (slug: string) => {

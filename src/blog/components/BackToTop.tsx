@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { usePrefs } from "../../shared/prefs-react";
+import { scrollToY } from "../../shared/smooth";
 import { ui } from "../copy";
 
 /* Ring-shaped back-to-top. Appears once the reader is a screen into the
@@ -34,7 +35,9 @@ export default function BackToTop() {
     <button
       type="button"
       className="back-to-top"
-      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      /* Animated, not instant: this one is a real journey — the reader
+         asked to go back up, so let them see the page move. */
+      onClick={() => scrollToY(0)}
       aria-label={t.backToTop}
       title={t.backToTop}
     >
