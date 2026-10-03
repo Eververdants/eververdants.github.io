@@ -208,6 +208,11 @@ type VTDocument = Document & {
   startViewTransition?: (change: () => void | Promise<void>) => unknown;
 };
 
+/* pagereveal's event object — typed locally, lib.dom lags the spec. */
+type RevealEvent = Event & {
+  viewTransition?: { finished: Promise<unknown>; ready: Promise<unknown> };
+};
+
 /* SPA scene switches (blog index ↔ article, photo detail) run through
    history.pushState / popstate and hand their DOM change to React's
    async commit. Wrap both in a view transition whose callback waits
@@ -274,26 +279,33 @@ function patchHistoryTransitions(): void {
 }
 
 /* ---------- cross-document navigation curtain ----------
-   The dither-development curtain. Cross-document view transitions have a
-   hard flaw: the new document's load time is unbounded, and once the
-   old page's out-animation ends the screen shows whatever the new
-   document has painted — often nothing (white). So inter-entry jumps
-   cover the screen and navigate while covered.
+   The dither curtain. Cross-document view transitions were built and
+   removed: they coordinate the two documents beautifully, but their
+   animations only start once the next page is ready — clicked from a
+   cold page, the reader saw nothing happen on the page they were on,
+   and the ring they asked for plays on the wrong side of the swap.
+   The canvas keeps the exit where the click is.
 
-     click → an ink mesh prints over the old page in ordered-dither
-     sequence, spreading from the click point → the print cools onto
-     the page's own field colour → navigate while fully covered → the
-     new page's first frame is that same flat cover (inline head
-     style, html.px-boot) → once the framework has mounted, the page
-     develops: the wall breaks into the same mesh from the SAME point
-     and the mesh opens cell by cell onto the content.
+     click → the target starts downloading (high-priority fetch) and
+     the exit bloom leaves the click point: cells print onto the old
+     page in Bayer order, a pixel ring eating the page as it grows →
+     the print snaps down to the field wall → navigate while fully
+     covered → the new page's first frame is that same flat cover
+     (inline head style, html.px-boot) → once the framework has
+     mounted, the page develops: the wall breaks into the same mesh
+     from the SAME point and the mesh opens cell by cell onto the
+     content.
+
+   Both halves are the same ring — the exit is the reveal mirrored:
+   identical Bayer order, identical ink tones, identical origin — so
+   the navigation reads as one ring passing through the swap, not as
+   two effects stapled together.
 
    One colour beat, on the way out, and even that is only a few cells
-   printing in the site's own accent — the old design flooded a whole
-   colour wave across the screen and it read as a surge. The way in is
-   achromatic: a second colour beat on arrival would read as the
-   transition catching and repeating itself instead of as one movement
-   across the navigation.
+   printing in the site's own accent. The way in is achromatic: a
+   second colour beat on arrival would read as the transition catching
+   and repeating itself instead of as one movement across the
+   navigation.
 
    The blocks are drawn, not sampled. A version that sampled a real
    snapshot of the page was built and measured: the field is #060608,
@@ -354,6 +366,21 @@ function pxLoadOrigin(): { x: number; y: number } {
     x: Math.max(1, window.innerWidth) / 2,
     y: Math.max(1, window.innerHeight) / 2,
   };
+  /* The head script consumed the stored origin and set the CSS custom
+     properties before first paint — read them back off the element. */
+  try {
+    const cs = getComputedStyle(document.documentElement);
+    const ox = Number.parseFloat(cs.getPropertyValue("--vt-ox"));
+    const oy = Number.parseFloat(cs.getPropertyValue("--vt-oy"));
+    if (Number.isFinite(ox) && Number.isFinite(oy)) {
+      return {
+        x: (ox / 100) * Math.max(1, window.innerWidth),
+        y: (oy / 100) * Math.max(1, window.innerHeight),
+      };
+    }
+  } catch {
+    /* fall through to the stored fraction */
+  }
   try {
     const raw = sessionStorage.getItem(PX_ORIGIN_KEY);
     if (!raw) return fallback;
@@ -495,7 +522,7 @@ function createCurtain(origin?: { x: number; y: number }): Curtain | null {
       const d =
         Math.hypot((c + 0.5) * cell - ox, (r + 0.5) * cell - oy) / far;
       const b = BAYER[(r & 3) * 4 + (c & 3)];
-      order[i] = clamp01(d * 0.78 + b * 0.22 + (Math.random() - 0.5) * 0.06);
+      order[i] = clamp01(d * 0.88 + b * 0.12 + (Math.random() - 0.5) * 0.04);
       toneLvl[i] = (Math.random() * 3) | 0;
       /* ~1% of cells print in the accent. Enough to spot, not enough
          to read as confetti — the print is ink; the accent is a spark
@@ -515,29 +542,26 @@ function createCurtain(origin?: { x: number; y: number }): Curtain | null {
   const cover = (p: number) => {
     const { field, ink, accent } = schemeFor();
     for (let i = 0; i < total; i++) {
-      /* The print is OPAQUE: each cell lands as a solid block in one of
-         three tones between the field and the ink, and the old page's
-         text is gone the instant a cell covers it — a curtain that
-         leaves the text readable through itself is not a curtain. The
-         wavefront still shows the page between not-yet-printed cells,
-         so the consumption reads; then the field wall sets in
-         underneath (four steps) and absorbs the print. */
-      const on = quant(span(p, order[i] * 0.78, 0.1), 2);
-      const set = quant(span(p, 0.74, 0.24), 4);
+      /* The exit half of the ring — the reveal mirrored cell for cell.
+         The reveal waits as field, flashes ink at the front, and opens
+         onto the page; the cover waits as the page, flashes ink at the
+         front, and closes onto the field. Same Bayer order, same three
+         ink tones, same origin — at every frame there is exactly one
+         ink ring, sweeping out, with the page outside it and the field
+         inside it. What it passes over is erased: text included. At
+         p=1 the whole screen is the field wall the next document's
+         cover opens from, so the handoff never shows. */
+      const at = 0.04 + order[i] * 0.8;
+      const f = span(p, at, 0.05);
+      const close = span(p, at + 0.05, 0.09);
+      const on = f > 0;
       const t = spark[i] ? accent : ink;
-      const dens = spark[i] ? 1 : 0.3 + 0.25 * toneLvl[i];
-      const cellA = on * (1 - set);
-      const wallA = set;
-      const outA = wallA + cellA * (1 - wallA);
-      /* The printed cell's share of the final pixel — it slides to
-         zero as the wall sets, so the print dissolves into the field
-         instead of being veiled by it. */
-      const front = outA > 0 ? (cellA * (1 - wallA)) / outA : 0;
+      const k = on ? (0.45 + 0.275 * toneLvl[i]) * (1 - quant(close, 3)) : 0;
       const o = i * 4;
-      data[o] = mix(field[0], t[0], dens * front);
-      data[o + 1] = mix(field[1], t[1], dens * front);
-      data[o + 2] = mix(field[2], t[2], dens * front);
-      data[o + 3] = outA * 255;
+      data[o] = mix(field[0], t[0], k);
+      data[o + 1] = mix(field[1], t[1], k);
+      data[o + 2] = mix(field[2], t[2], k);
+      data[o + 3] = (on ? 1 : 0) * 255;
     }
     blit();
   };
@@ -549,9 +573,9 @@ function createCurtain(origin?: { x: number; y: number }): Curtain | null {
          wave reaches it — a hard pixel edge at the front, never a haze
          — and then opens in three quantised alpha steps. A cell that
          merely faded would make the whole thing a dissolve again. */
-      const at = 0.04 + order[i] * 0.74;
+      const at = 0.04 + order[i] * 0.8;
       const f = span(p, at, 0.05);
-      const drop = span(p, at + 0.04, 0.13);
+      const drop = span(p, at + 0.05, 0.09);
       const on = f > 0;
       const k = on ? 0.45 + 0.275 * toneLvl[i] : 0;
       const a = on ? 1 - quant(drop, 3) : 0;
@@ -642,6 +666,25 @@ function pxNavGo(href: string, origin: { x: number; y: number }): void {
     return;
   }
   pxNavigating = true;
+  /* The load starts at the click, not when the bloom finishes: the
+     exit ring plays while the target document is already downloading.
+     Chromium's speculation rules have usually had the page built since
+     hover — this warms the cache for every other path, through the
+     same prefetch-link mechanism the hover path uses. Same-origin
+     only: href reaches this function filtered, but the guard lives at
+     the sink, not in the caller. */
+  try {
+    const target = new URL(href, location.href);
+    if (target.origin === location.origin) {
+      const warm = document.createElement("link");
+      warm.rel = "prefetch";
+      warm.href = target.href;
+      warm.fetchPriority = "high";
+      document.head.appendChild(warm);
+    }
+  } catch {
+    /* no warmup — the navigation itself still warms what it needs */
+  }
   try {
     sessionStorage.setItem(PXNAV_KEY, "1");
   } catch {
@@ -788,14 +831,17 @@ function pxOpenCurtain(origin: { x: number; y: number }): void {
    mount here would push the first content back by the whole mount
    time, and a cold load has no old page to hide.
 
-   Skipped when a curtain arrival owns the entrance (px-boot), when the
-   tab is hidden or still prerendering, and under the build's prerender
-   pass — the snapshot grabs the live DOM the moment content renders,
-   and a canvas that exists for half a second must never be baked into
-   static HTML (the script marks the page with window.__PRERENDER__).
-   Speculation-rules prerendering needs no flag: the document is
-   `prerendering` until activation, and initFx only boots after that. */
+   Skipped when a curtain arrival owns the entrance (px-boot), when a
+   cross-document view transition is arriving (the iris ring owns the
+   reveal — pagereveal decides), when the tab is hidden or still
+   prerendering, and under the build's prerender pass — the snapshot
+   grabs the live DOM the moment content renders, and a canvas that
+   exists for half a second must never be baked into static HTML (the
+   script marks the page with window.__PRERENDER__). Speculation-rules
+   prerendering needs no flag: the document is `prerendering` until
+   activation, and initFx only boots after that. */
 function pxBootDevelop(): void {
+  if (reducedMotion()) return;
   const root = document.documentElement;
   if (root.classList.contains("px-boot")) return;
   const w = window as Window & { __PRERENDER__?: number };
@@ -816,6 +862,33 @@ function pxBootDevelop(): void {
       pxClear();
     },
   );
+}
+
+/* The cold boot is owed only when no cross-document view transition is
+   arriving — under one, the iris ring owns the reveal and raising the
+   wall here would cover the incoming snapshot. pagereveal carries that
+   answer (viewTransition is non-null exactly when a transition is
+   pending), and it fires before the first visible frame, so the wall —
+   when it is owed — still goes up before anything is shown. Registered
+   at module scope, ahead of initFx: on a slow connection the event can
+   fire while this file is still downloading, and a page whose reveal
+   was missed has been seen anyway — no entrance is owed. */
+let bootPlayed = false;
+function playBoot(): void {
+  if (bootPlayed) return;
+  bootPlayed = true;
+  pxBootDevelop();
+}
+if ("onpagereveal" in window) {
+  addEventListener(
+    "pagereveal",
+    (e) => {
+      if (!(e as RevealEvent).viewTransition) playBoot();
+    },
+    { once: true },
+  );
+} else {
+  playBoot();
 }
 
 /* ---------- hover prefetch (engines without speculation rules) ----------
@@ -988,18 +1061,18 @@ export function initFx(): void {
     return;
   }
 
-  /* The transition keyframes and the cold-boot develop need nothing
-     injected ahead of them — the canvas pattern is synthesised, not
-     sampled, and the CSS carries no filter references. */
+  /* The transition CSS carries no filter references and the iris ring
+     is drawn by the browser's view-transition layer — nothing needs
+     injecting ahead of them. */
   wired = true;
   root.classList.add("fx-on");
   patchHistoryTransitions();
   initPixelNav();
   initHoverPrefetch();
-  /* Synchronous, so the wall is up before the first content commit
-     and the reader never sees a flash of unmounted page between the
-     field and the develop. */
-  pxBootDevelop();
+  /* The cold-boot develop is owned by the pagereveal listener at
+     module scope: it fires before the first visible frame and knows
+     whether a cross-document view transition is arriving (the iris
+     owns the entrance then). */
 
   const start = () =>
     /* Two frames: React's first commit lands between them, so the

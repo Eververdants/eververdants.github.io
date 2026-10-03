@@ -90,29 +90,27 @@
 }
 
 /* ---------- navigation transitions ----------
-   Inter-entry jumps run the dither-development curtain (fx.ts click
-   interception): an ink mesh prints over the page in ordered-dither
-   sequence from the click point, cools onto the page's own field
-   colour, and the next page develops out of that same print.
+   Inter-entry jumps run the dither curtain (fx.ts click
+   interception), and both halves are the same ring: a bloom of pixel
+   cells leaves the click point in Bayer order — on the way out the
+   cells print ONTO the old page (it is consumed ring-first), on the
+   way in they open OFF of the new page (it develops ring-first). The
+   two halves share the origin, the order and the ink tones, so the
+   navigation reads as one ring passing through the swap.
 
-     click → the mesh prints over the old page → flat field wall →
-     navigate → the new page's first frame is the same wall (inline
-     head cover, html.px-boot) → once the framework has actually
-     mounted the content, the wall breaks into the mesh and the mesh
-     opens cell by cell onto the page.
+   The target page starts downloading at the instant of the click (the
+   click handler fires a high-priority fetch while the bloom plays;
+   Chromium's speculation rules have usually prerendered it since
+   hover), so the flat field beat between the halves — the only place
+   the old document hands over to the new one — is as short as the
+   network allows.
 
-   Cross-document view transitions were evaluated and rejected: they
-   snapshot the new page before its framework mounts, and this site's
-   five entries are all client-rendered — the transition would play
-   over an empty shell. The curtain instead waits for real content.
-
-   SPA scene switches (blog index ↔ article) still use same-document
-   view transitions — the framework commits inside the transition's
-   callback there, so the real frame is what animates. They speak the
-   same language as the curtain: the incoming scene COVERS the outgoing
-   one, which stays put underneath at full opacity. Cross-fading both
-   sides dips to the field colour between them — a blank beat where
-   there should be one continuous cover. */
+   SPA scene switches (blog index ↔ article) use same-document view
+   transitions — the framework commits inside the transition's
+   callback, so the real frame is what animates. The incoming scene
+   covers the outgoing one, which stays put underneath at full
+   opacity: cross-fading both sides dips to the field colour between
+   them — a blank beat where there should be one continuous cover. */
 
 @keyframes vt-dev-in {
   from {
