@@ -204,37 +204,6 @@ function initGhostCursor(): void {
   });
 }
 
-/* ---------- view-transition pixel mosaic ---------- */
-
-/* The pixelate filters used by the navigation transition (fx.css).
-   Each one samples the frame into N-px blocks: a tiled dot grid masks
-   the source, then a dilate grows every kept dot back into a full
-   block — the ordered-mosaic of the CapCut/Jimeng pixel wipe. */
-/* 4, 8, 16 and 32 are the rungs the SPA scene switches climb; 6 and 12
-   and 22 fill in the navigation curtain's ladder, which stays fine —
-   past ~22px the sampling drops so much of the page that it stops
-   reading as a mosaic of it. */
-const PX_SIZES = [4, 6, 8, 12, 16, 22, 32];
-
-function injectPixelFilters(): void {
-  if (document.getElementById("px-filters")) return;
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.id = "px-filters";
-  svg.setAttribute("aria-hidden", "true");
-  svg.style.cssText = "position:absolute;width:0;height:0;pointer-events:none";
-  svg.innerHTML = PX_SIZES.map(
-    (n) =>
-      `<filter id="pxf${n}" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">` +
-      `<feFlood x="${n / 4}" y="${n / 4}" width="1" height="1"/>` +
-      `<feComposite width="${n}" height="${n}"/>` +
-      `<feTile result="a"/>` +
-      `<feComposite in="SourceGraphic" in2="a" operator="in"/>` +
-      `<feMorphology operator="dilate" radius="${n / 2}"/>` +
-      `</filter>`,
-  ).join("");
-  document.documentElement.appendChild(svg);
-}
-
 type VTDocument = Document & {
   startViewTransition?: (change: () => void | Promise<void>) => unknown;
 };
@@ -305,31 +274,31 @@ function patchHistoryTransitions(): void {
 }
 
 /* ---------- cross-document navigation curtain ----------
-   The pixel ignition curtain. Cross-document view transitions have a
+   The dither-development curtain. Cross-document view transitions have a
    hard flaw: the new document's load time is unbounded, and once the
    old page's out-animation ends the screen shows whatever the new
    document has painted — often nothing (white). So inter-entry jumps
    cover the screen and navigate while covered.
 
-     click → a dense field of small blocks materialises out of the
-     click point as grey static (无色) → a second wave ignites them
-     into colour (有色) → everything cools onto the page's own field
-     colour → navigate while fully covered → the new page's first
-     frame is that same flat cover (inline head style, html.px-boot) →
-     the wall breaks up from the SAME point: blocks lift into grey and
-     thin away.
+     click → an ink mesh prints over the old page in ordered-dither
+     sequence, spreading from the click point → the print cools onto
+     the page's own field colour → navigate while fully covered → the
+     new page's first frame is that same flat cover (inline head
+     style, html.px-boot) → once the framework has mounted, the page
+     develops: the wall breaks into the same mesh from the SAME point
+     and the mesh opens cell by cell onto the content.
 
-   The colour happens once, on the way out. The way in is the dissolve:
-   an earlier pass flared colour again on arrival and it read as the
-   transition catching and repeating itself — two surges where there
-   should be one movement across the navigation.
+   One colour beat, on the way out, and even that is only a few cells
+   printing in the site's own accent — the old design flooded a whole
+   colour wave across the screen and it read as a surge. The way in is
+   achromatic: a second colour beat on arrival would read as the
+   transition catching and repeating itself instead of as one movement
+   across the navigation.
 
-   The blocks are drawn, not sampled. A view-transition version that
-   pixelated a real snapshot of the page was built and measured, and it
-   is honest to the page — but it is also nearly invisible on a dark
-   site: this field is #060608, so almost every block samples
-   near-black and the colour beat has nothing to work with. Colour has
-   to be generated here, which means the canvas keeps the job.
+   The blocks are drawn, not sampled. A version that sampled a real
+   snapshot of the page was built and measured: the field is #060608,
+   so almost every block samples near-black and the pattern has nothing
+   to work with. Printing the pattern means every cell is deliberate.
 
    What the origin costs: the wave that closes the old page and the one
    that opens the new page must share a centre, and the origin would
@@ -344,8 +313,24 @@ const PX_MAX_CELLS = 26000; /* per-frame budget guard */
    enough that it never reads as waiting for the page. */
 const PX_COVER_MS = 400;
 const PX_REVEAL_MS = 420;
+/* The cold-boot develop gets a little longer than the curtain reveal:
+   it starts before the framework has committed anything, so the mesh
+   opens onto a page that is still painting underneath. */
+const PX_BOOT_MS = 520;
 const PX_MOUNT_CAP = 1200; /* give up waiting for React and reveal */
 const PX_FAILSAFE_MS = 4000; /* never trap the reader behind a wall */
+
+/* The ordered-dither threshold matrix — 4×4 Bayer, normalised. Within a
+   wavefront the cells print in this order, so the front reads as a
+   checkerboard opening up rather than as noise. It tiles every 4 cells,
+   i.e. every 40 CSS px at the default block size: visible regularity is
+   the point — this is a print, not static. */
+const BAYER = [
+  0, 8, 2, 10, //
+  12, 4, 14, 6, //
+  3, 11, 1, 9, //
+  15, 7, 13, 5,
+].map((v) => (v + 0.5) / 16);
 
 /* ---------- the origin travels with the navigation ----------
    Stored as fractions of the viewport, so a navigation that lands on
@@ -391,83 +376,33 @@ let pxNavigating = false;
 
 type RGB = readonly [number, number, number];
 
-/* Two schemes, keyed off html[data-theme] — the wall the curtain ends
-   on is the page's own background, so the handoff to the next page's
-   cover (and out of it) is invisible. Keep these in step with --bg in
-   tokens.css and with the inline head cover in vite.config.ts. */
+/* One scheme per theme. The wall the curtain ends on is the page's own
+   background, so the handoff to the next page's cover (and out of it)
+   is invisible; the print tone is the page's own ink; the spark cells
+   print in the page's own accent. Keep these in step with --bg, --ink
+   and --accent in tokens.css and with the inline head cover in
+   vite.config.ts. */
 interface Scheme {
   field: RGB; /* the wall: --bg, and the head cover's colour */
-  greys: RGB[]; /* the 无色 ramp: static, and what the wall breaks into */
-  chroma: RGB[]; /* the 有色 ramp: the ignition */
-  spark: RGB; /* a few blocks flare harder than the rest */
+  ink: RGB; /* the print tone: --ink */
+  accent: RGB; /* a few cells print in --accent instead */
   /* What the wall breathes towards while the framework mounts. Picked
      per theme because "alive" means opposite things on a #060608 page
      and a #f2f3ee one: the dark wall lifts, the light one brightens. */
   hold: RGB;
 }
 
-/** Interpolate a stop list into a flat lookup table once, so the
- * per-frame hot loop only ever indexes an array. */
-function ramp(stops: RGB[], n = 24): RGB[] {
-  const out: RGB[] = [];
-  const seg = stops.length - 1;
-  for (let i = 0; i < n; i++) {
-    const t = (i / (n - 1)) * seg;
-    const k = Math.min(seg - 1, Math.floor(t));
-    const f = t - k;
-    const a = stops[k];
-    const b = stops[k + 1];
-    out.push([
-      Math.round(a[0] + (b[0] - a[0]) * f),
-      Math.round(a[1] + (b[1] - a[1]) * f),
-      Math.round(a[2] + (b[2] - a[2]) * f),
-    ]);
-  }
-  return out;
-}
-
 const SCHEMES: Record<"dark" | "light", Scheme> = {
   dark: {
     field: [6, 6, 8],
-    greys: [
-      [24, 25, 31],
-      [42, 44, 53],
-      [62, 65, 76],
-      [88, 92, 106],
-    ],
-    chroma: ramp([
-      [89, 241, 255],
-      [110, 168, 255],
-      [167, 139, 250],
-      [198, 255, 77],
-    ]),
-    spark: [236, 255, 255],
+    ink: [244, 246, 251],
+    accent: [198, 255, 77],
     hold: [58, 61, 72],
   },
   light: {
     field: [242, 243, 238],
-    /* Squeezed off the top of the ramp. The old lightest grey sat three
-       levels under the field, so a quarter of the blocks were invisible
-       — for those, the static simply was not there. Every step here is
-       at least ~20 levels off the field. */
-    greys: [
-      [132, 135, 124],
-      [168, 171, 160],
-      [200, 202, 193],
-      [222, 223, 216],
-    ],
-    /* Saturated and bright rather than deep. The dark teal-and-olive
-       ramp this used to use arrives on a pale page as ink washing over
-       it — the colour has to get lighter, not just darker, or the
-       ignition reads as a shadow. */
-    chroma: ramp([
-      [0, 158, 190],
-      [38, 96, 214],
-      [120, 168, 12],
-    ]),
-    /* The hottest thing on the page, not the darkest: on a pale field a
-       near-black speck is dirt, a bright saturated one is a spark. */
-    spark: [0, 186, 224],
+    ink: [23, 24, 29],
+    accent: [68, 112, 14],
     hold: [252, 252, 250],
   },
 };
@@ -486,11 +421,11 @@ function schemeFor(): Scheme {
    Ratio scaling at all: blocks stay exact on every display. */
 interface Curtain {
   el: HTMLCanvasElement;
-  /** Cover: grey static appears, colour ignites, settles to field. */
+  /** Cover: the mesh prints over the page, then cools to the wall. */
   cover: (p: number) => void;
-  /** Reveal: blocks lift out of the wall into grey and thin away.
-   * Deliberately achromatic — the colour already happened on the way
-   * out, and repeating it here breaks the movement in half. */
+  /** Develop: the wall breaks into the mesh and the mesh opens onto
+   * the page. Deliberately achromatic — the accent already happened on
+   * the way out, and repeating it here breaks the movement in half. */
   reveal: (p: number) => void;
   /** Full opaque wall, breathing — the wait for the new page. */
   hold: (t: number) => void;
@@ -535,8 +470,12 @@ function createCurtain(origin?: { x: number; y: number }): Curtain | null {
   const img = bctx.createImageData(cols, rows);
   const data = img.data;
 
-  /* Per-cell constants, computed once: when the cell is reached by
-     the wave, which grey it starts as, which colour it ignites to. */
+  /* Per-cell constants, computed once. order is *when the cell is
+     reached*: distance from the origin, with the Bayer threshold
+     folded in, so cells inside a wavefront print in checkerboard order
+     instead of all at once — that interleave is the whole difference
+     between a print and a ripple. toneLvl is which of the three print
+     densities the cell carries; spark flags the few accent cells. */
   const ox = origin ? origin.x : w / 2;
   const oy = origin ? origin.y : h / 2;
   const far =
@@ -546,24 +485,23 @@ function createCurtain(origin?: { x: number; y: number }): Curtain | null {
       Math.hypot(ox, h - oy),
       Math.hypot(w - ox, h - oy),
     ) || 1;
-  const birth = new Float32Array(total);
-  const tone = new Float32Array(total);
-  const hue = new Float32Array(total);
-  const spark = new Float32Array(total);
+  const order = new Float32Array(total);
+  const toneLvl = new Uint8Array(total);
+  const spark = new Uint8Array(total);
+  const seed = new Float32Array(total);
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const i = r * cols + c;
       const d =
         Math.hypot((c + 0.5) * cell - ox, (r + 0.5) * cell - oy) / far;
-      /* Noise on the wavefront: a clean circle reads as a ripple,
-         a jittered one reads as a field catching fire. */
-      birth[i] = clamp01(d * 0.9 + (Math.random() - 0.5) * 0.16);
-      tone[i] = Math.random();
-      /* The colour index tracks distance, with only a little jitter:
-         a shot-silk sweep reads as designed, per-cell random hues
-         would read as television snow. */
-      hue[i] = clamp01(d * 0.78 + (Math.random() - 0.5) * 0.16);
-      spark[i] = Math.random();
+      const b = BAYER[(r & 3) * 4 + (c & 3)];
+      order[i] = clamp01(d * 0.78 + b * 0.22 + (Math.random() - 0.5) * 0.06);
+      toneLvl[i] = (Math.random() * 3) | 0;
+      /* ~1% of cells print in the accent. Enough to spot, not enough
+         to read as confetti — the print is ink; the accent is a spark
+         in it. */
+      spark[i] = Math.random() < 0.012 ? 1 : 0;
+      seed[i] = Math.random();
     }
   }
 
@@ -575,80 +513,73 @@ function createCurtain(origin?: { x: number; y: number }): Curtain | null {
   };
 
   const cover = (p: number) => {
-    const { field, greys, chroma, spark: sc } = schemeFor();
-    const gn = greys.length - 1;
-    const cn = chroma.length - 1;
+    const { field, ink, accent } = schemeFor();
     for (let i = 0; i < total; i++) {
-      const b = birth[i];
-      /* Two beats, then the landing: grey static fills the screen by
-         0.42 and sits there for a moment, the colour wave leaves the
-         origin at 0.52, and from 0.84 everything cools onto the
-         page's own field colour. Levels are quantised so the field
-         snaps rather than fades — digital, not filmic. */
-      const a = quant(span(p, b * 0.26, 0.16), 3);
-      const c = quant(span(p, b * 0.26 + 0.52, 0.24), 4);
-      const s = span(p, 0.84, 0.16);
-      const g = greys[(tone[i] * gn) | 0];
-      const t = spark[i] > 0.94 ? sc : chroma[(hue[i] * cn) | 0];
+      /* Two layers per pixel, composited by hand: a translucent ink
+         cell prints over the page (the page stays readable through it
+         and dims as coverage grows), then the field-coloured wall sets
+         in underneath and absorbs the print. Both beats snap to levels
+         — the print in two steps per cell, the wall in four — so the
+         whole thing stays digital. The wave reaches the farthest cell
+         at 0.72; the wall owns the last quarter of the run. */
+      const on = quant(span(p, order[i] * 0.78, 0.1), 2);
+      const set = quant(span(p, 0.74, 0.24), 4);
+      const t = spark[i] ? accent : ink;
+      const dens = spark[i] ? 0.95 : 0.2 + 0.22 * toneLvl[i];
+      const cellA = on * dens * (1 - set);
+      const wallA = set;
+      const outA = wallA + cellA * (1 - wallA);
+      /* Standard over-compositing: the wall is behind, the cell in
+         front; `w` is how much of the blend the wall owns. */
+      const wgt = outA > 0 ? wallA / outA : 0;
       const o = i * 4;
-      data[o] = mix(mix(g[0], t[0], c), field[0], s);
-      data[o + 1] = mix(mix(g[1], t[1], c), field[1], s);
-      data[o + 2] = mix(mix(g[2], t[2], c), field[2], s);
-      data[o + 3] = a * 255;
+      data[o] = mix(t[0], field[0], wgt);
+      data[o + 1] = mix(t[1], field[1], wgt);
+      data[o + 2] = mix(t[2], field[2], wgt);
+      data[o + 3] = outA * 255;
     }
     blit();
   };
 
   const reveal = (p: number) => {
-    const { field, greys } = schemeFor();
-    const gn = greys.length - 1;
+    const { field, ink } = schemeFor();
     for (let i = 0; i < total; i++) {
-      const b = birth[i];
-      /* No colour on the way in. The surge belongs to the page being
-         closed; playing it again here reads as the transition catching
-         and repeating itself instead of as one movement across the
-         navigation.
-         Two things make the break-up legible rather than a plain fade:
-         the block snaps to its grey in a tenth of the run and only then
-         thins (so there is a hard pixel edge at the wave front, not a
-         haze), and it takes the lighter half of the grey ramp — against
-         the field colour the darker greys are invisible, and an
-         invisible break-up is just a dissolve. */
-      const g = span(p, b * 0.6, 0.34);
-      const lift = span(p, b * 0.6, 0.1);
-      /* The two lightest greys only. Against the field colour the
-         darker half of the ramp is invisible, and an invisible
-         break-up is just a fade. */
-      const gc = greys[gn - (tone[i] < 0.5 ? 0 : 1)];
+      /* The develop: the cell snaps to its print tone the moment the
+         wave reaches it — a hard pixel edge at the front, never a haze
+         — and then opens in three quantised alpha steps. A cell that
+         merely faded would make the whole thing a dissolve again. */
+      const at = 0.04 + order[i] * 0.74;
+      const f = span(p, at, 0.05);
+      const drop = span(p, at + 0.04, 0.13);
+      const on = f > 0;
+      const k = on ? 0.45 + 0.275 * toneLvl[i] : 0;
+      const a = on ? 1 - quant(drop, 3) : 0;
       const o = i * 4;
-      data[o] = mix(field[0], gc[0], lift);
-      data[o + 1] = mix(field[1], gc[1], lift);
-      data[o + 2] = mix(field[2], gc[2], lift);
-      data[o + 3] = (1 - g) * 255;
+      data[o] = mix(field[0], ink[0], k);
+      data[o + 1] = mix(field[1], ink[1], k);
+      data[o + 2] = mix(field[2], ink[2], k);
+      data[o + 3] = (on ? a : 1) * 255;
     }
     blit();
   };
 
   const hold = (t: number) => {
-    const { field, hold: hc } = schemeFor();
-    /* Achromatic for the same reason the dissolve is: colouring the
-       wall up before the blocks even start to break would be the
-       surge arriving twice. This is only proof that the page is alive
-       while the framework mounts under it — a slow band of grey
-       crossing, plus the odd block catching the light.
-       Never transparent — the wall must stay opaque until there is
-       something behind it. */
+    const { field, ink, hold: hc } = schemeFor();
+    /* Proof that the page is alive while the framework mounts under
+       it: a slow band of grey crossing, plus a very sparse scatter of
+       cells printing briefly in ink. Never transparent — the wall must
+       stay opaque until there is something behind it. */
     const band = ((t / 1400) % 1) * (rows + 30) - 15;
     for (let r = 0; r < rows; r++) {
       const k = Math.max(0, 1 - Math.abs(r - band) / 5);
+      const bandLift = k * 0.4;
       for (let c = 0; c < cols; c++) {
         const i = r * cols + c;
-        const tw = ((t / 900 + spark[i]) % 1) < 0.1 ? 0.5 : 0;
-        const m = Math.min(1, k * 0.3 + tw * 0.5);
+        const flick = ((t / 900 + seed[i]) % 1) < 0.015 ? 0.14 : 0;
         const o = i * 4;
-        data[o] = mix(field[0], hc[0], m);
-        data[o + 1] = mix(field[1], hc[1], m);
-        data[o + 2] = mix(field[2], hc[2], m);
+        data[o] = mix(mix(field[0], hc[0], bandLift), ink[0], flick);
+        data[o + 1] = mix(mix(field[1], hc[1], bandLift), ink[1], flick);
+        data[o + 2] = mix(mix(field[2], hc[2], bandLift), ink[2], flick);
         data[o + 3] = 255;
       }
     }
@@ -843,6 +774,49 @@ function pxOpenCurtain(origin: { x: number; y: number }): void {
   wait();
 }
 
+/* ---------- cold boot: the develop ----------
+   A direct load (no navigation flag) gets the same entrance the
+   curtain gives a cross-entry jump, minus the wait: the page develops
+   out of an ordered-dither print over ~half a second, from the centre.
+
+   The wall goes up synchronously, before the framework's first commit
+   — it is flat field colour, which is exactly what the reader is
+   looking at on an unmounted page, so there is no flash — and the
+   develop starts at once rather than waiting for React: the mesh
+   opens onto a page that paints itself underneath it. Waiting for
+   mount here would push the first content back by the whole mount
+   time, and a cold load has no old page to hide.
+
+   Skipped when a curtain arrival owns the entrance (px-boot), when the
+   tab is hidden or still prerendering, and under the build's prerender
+   pass — the snapshot grabs the live DOM the moment content renders,
+   and a canvas that exists for half a second must never be baked into
+   static HTML (the script marks the page with window.__PRERENDER__).
+   Speculation-rules prerendering needs no flag: the document is
+   `prerendering` until activation, and initFx only boots after that. */
+function pxBootDevelop(): void {
+  const root = document.documentElement;
+  if (root.classList.contains("px-boot")) return;
+  const w = window as Window & { __PRERENDER__?: number };
+  const doc = document as Document & { prerendering?: boolean };
+  if (w.__PRERENDER__ || document.hidden || doc.prerendering) return;
+
+  const curtain = createCurtain();
+  if (!curtain) return;
+  root.appendChild(curtain.el);
+  curtain.cover(1);
+  root.classList.add("px-arrived");
+  const failsafe = window.setTimeout(() => pxClear(), PX_FAILSAFE_MS);
+  animate(
+    (p) => curtain.reveal(p),
+    PX_BOOT_MS,
+    () => {
+      window.clearTimeout(failsafe);
+      pxClear();
+    },
+  );
+}
+
 /* ---------- hover prefetch (engines without speculation rules) ----------
    Firefox/Safari ignore the rules; a <link rel=prefetch> on
    pointerover still warms the target HTML so their navigation gap
@@ -942,6 +916,34 @@ function initPixelNav(): void {
 
 /* ---------- entry point ---------- */
 
+/* Dev-only tuning handle: render a single frozen frame of any curtain
+   beat against the live page — __px.frame("cover", 0.4) etc. The
+   production bundle strips it with the DEV flag. */
+if (import.meta.env.DEV) {
+  (window as Window & { __px?: unknown }).__px = {
+    frame: (beat: "cover" | "reveal", p: number, origin?: {
+      x: number;
+      y: number;
+    }): HTMLCanvasElement | null => {
+      const c = createCurtain(origin);
+      if (!c) return null;
+      c[beat](p);
+      document.documentElement.appendChild(c.el);
+      return c.el;
+    },
+    hold: (t: number): HTMLCanvasElement | null => {
+      const c = createCurtain();
+      if (!c) return null;
+      c.hold(t);
+      document.documentElement.appendChild(c.el);
+      return c.el;
+    },
+    clear: (): void => {
+      document.getElementById("px-curtain")?.remove();
+    },
+  };
+}
+
 /** Wire every decoration. Safe to call more than once (guarded by the
  * wired flag) and safe to skip entirely under reduced motion. The
  * reveal scan starts on the next two frames so React's first commit is
@@ -985,14 +987,18 @@ export function initFx(): void {
     return;
   }
 
-  /* The transition keyframes reference these filters by id — they must
-     exist before html.fx-on turns the animations on. */
+  /* The transition keyframes and the cold-boot develop need nothing
+     injected ahead of them — the canvas pattern is synthesised, not
+     sampled, and the CSS carries no filter references. */
   wired = true;
-  injectPixelFilters();
   root.classList.add("fx-on");
   patchHistoryTransitions();
   initPixelNav();
   initHoverPrefetch();
+  /* Synchronous, so the wall is up before the first content commit
+     and the reader never sees a flash of unmounted page between the
+     field and the develop. */
+  pxBootDevelop();
 
   const start = () =>
     /* Two frames: React's first commit lands between them, so the

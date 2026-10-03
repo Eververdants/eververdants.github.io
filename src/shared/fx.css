@@ -8,9 +8,11 @@
      · prefers-reduced-motion: reduce gets the visible state forced
        back and every animation/transition dropped.
    The vocabulary: sections and characters dissolve in on a stepped
-   timing (the pixel fade — opacity only, no sliding), the page
-   boots once with a short power-on dissolve, and a small hollow
-   square trails the pointer like a selection marquee.
+   timing (the pixel fade — opacity only, no sliding), and every
+   entrance — a cold load, a jump between entries — is one movement:
+   an ordered-dither print covers the page, then the page develops
+   out of it cell by cell. A small hollow square trails the pointer
+   like a selection marquee.
    ============================================================ */
 
 /* ---------- scroll reveal: the pixel dissolve ---------- */
@@ -48,24 +50,10 @@
     transition-delay: calc(var(--fx-i, 0) * 32ms);
   }
 
-  /* One-time power-on: the field surfaces in five visible steps.
-     Opacity only — a body filter would turn it into the containing
-     block for the fixed top bar and make it jump. Skipped when the
-     page booted under the navigation curtain: the curtain's own
-     dissolve is the entrance, and two overlapping fades read as a
-     blank beat. */
-  html.fx-on:not(.px-boot):not(.px-arrived) body {
-    animation: fx-boot 300ms steps(5, end) both;
-  }
-
-  @keyframes fx-boot {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
+  /* The cold load has no separate boot fade any more: fx.ts raises the
+     dither wall before the first content commit and develops the page
+     out of it (pxBootDevelop). A body opacity fade under that would be
+     two entrances where there should be one. */
 }
 
 /* ---------- ghost cursor ----------
@@ -102,16 +90,16 @@
 }
 
 /* ---------- navigation transitions ----------
-   Inter-entry jumps run the ignition curtain (fx.ts click
-   interception): a dense field of tiny blocks materialises as grey
-   static out of the click point, ignites into colour, settles onto
-   the page's field colour, and the next page opens by discharging
-   that wall back to nothing.
+   Inter-entry jumps run the dither-development curtain (fx.ts click
+   interception): an ink mesh prints over the page in ordered-dither
+   sequence from the click point, cools onto the page's own field
+   colour, and the next page develops out of that same print.
 
-     click → blocks appear grey (无色) → colour wave → opaque field
-     wall → navigate → the new page's first frame is the same wall
-     (inline head cover, html.px-boot) → once React has actually
-     mounted the content, the blocks flare colour and dissolve.
+     click → the mesh prints over the old page → flat field wall →
+     navigate → the new page's first frame is the same wall (inline
+     head cover, html.px-boot) → once the framework has actually
+     mounted the content, the wall breaks into the mesh and the mesh
+     opens cell by cell onto the page.
 
    Cross-document view transitions were evaluated and rejected: they
    snapshot the new page before its framework mounts, and this site's
@@ -120,73 +108,36 @@
 
    SPA scene switches (blog index ↔ article) still use same-document
    view transitions — the framework commits inside the transition's
-   callback there, so the real frame is pixelated. They carry the same
-   signature as the curtain: the outgoing scene drains to grey as it
-   breaks up, the incoming one floods back into colour. */
+   callback there, so the real frame is what animates. They speak the
+   site's dissolve: the outgoing scene leaves in five visible steps,
+   the incoming one develops in eight. Leaving is quicker than
+   arriving — an exit accelerates away, an entrance has mass. */
 
-/* The navigation curtain. The blocks cannot be sampled from the page —
-   there is no way to rasterise a live DOM into a canvas — and colour
-   cannot be conjured out of this site's own pixels either: the field is
-   #060608, so 95% of any snapshot is near-black and boosting its
-   saturation moves almost nothing. A view-transition version was built
-   and measured (it works, and it is honest to the page), but on a dark
-   site it reads as a dim grey wash next to the canvas curtain, which
-   generates its own colour instead of transforming what is already
-   there. So the canvas keeps the job; fx.ts runs the same two beats on
-   blocks it synthesises:
-
-     cover : blocks materialise as grey static out of the click point
-             (无色) → colour floods in (有色) → settles onto the field
-     reveal: the wall discharges from the SAME point, colour first,
-             then grey, then gone.
-
-   Both halves grow from the click: the origin is stored as a fraction
-   of the viewport before leaving and re-read on arrival, so the wave
-   that closes the old page and the wave that opens the new one share
-   one centre. */
-
-@keyframes vt-px-out {
-  0% {
-    /* The outgoing scene starts fully saturated — it drains as it
-       breaks up. No saturate() call needed for the identity value. */
-    filter: url("#pxf4");
+@keyframes vt-dev-out {
+  from {
+    opacity: 1;
   }
-  24% {
-    filter: url("#pxf8") saturate(0.72);
-  }
-  52% {
-    filter: url("#pxf16") saturate(0.34);
-  }
-  78% {
-    filter: url("#pxf32") saturate(0.06);
-  }
-  100% {
-    filter: url("#pxf32") saturate(0) brightness(1.25);
+  to {
+    opacity: 0;
   }
 }
 
-@keyframes vt-px-in {
-  0% {
-    filter: url("#pxf32") saturate(0) brightness(1.25);
+@keyframes vt-dev-in {
+  from {
+    opacity: 0;
   }
-  34% {
-    filter: url("#pxf16") saturate(1.35) brightness(1.06);
-  }
-  68% {
-    filter: url("#pxf8") saturate(1.7) brightness(1.02);
-  }
-  100% {
-    filter: none;
+  to {
+    opacity: 1;
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   html.fx-on::view-transition-old(root) {
-    animation: vt-px-out 240ms steps(1, end) both;
+    animation: vt-dev-out 220ms steps(5, end) both;
   }
 
   html.fx-on::view-transition-new(root) {
-    animation: vt-px-in 320ms steps(1, end) both;
+    animation: vt-dev-in 320ms steps(8, end) both;
   }
 }
 
@@ -313,9 +264,6 @@
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
-    animation: none !important;
-  }
-  html.fx-on body {
     animation: none !important;
   }
   #fx-cursor {

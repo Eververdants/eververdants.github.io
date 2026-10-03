@@ -346,6 +346,13 @@ async function renderWithChrome(chromePath, url, expr, waitMs = 15000) {
       });
 
     await send("Page.enable");
+    /* Marked before any page script runs: shared/fx.ts checks this to
+       skip the boot curtain (a canvas that exists for half a second
+       must never be baked into the snapshot). navigator.webdriver is
+       not reliably set on a raw-CDP headless Chrome. */
+    await send("Page.addScriptToEvaluateOnNewDocument", {
+      source: "window.__PRERENDER__ = 1;",
+    });
     await send("Page.navigate", { url });
 
     let value = "";
