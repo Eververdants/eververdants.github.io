@@ -6,6 +6,9 @@ import { sections } from "../../data/sections";
 import { usePrefs } from "../../shared/prefs-react";
 import { pick } from "../../shared/prefs";
 import { applyHead, breadcrumbLd, PERSON, SITE } from "../../shared/seo";
+import { scrollToEl, scrollToY, refreshScroll } from "../../shared/smooth";
+import { streamHtml } from "../../shared/stream";
+import { endProgress, startProgress, stepProgress } from "../../shared/progress";
 import { articlePath, isPlainClick } from "../urls";
 import { ui } from "../copy";
 
@@ -25,12 +28,10 @@ interface TocItem {
   level: number;
 }
 
-/** Scroll the window, leaving room for the fixed top bar. */
-function scrollToY(y: number, immediate = false) {
-  window.scrollTo({ top: Math.max(0, y), behavior: immediate ? "auto" : "smooth" });
-}
-
-const headerClearance = () => Math.max(88, window.innerHeight * 0.12);
+/* Scrolling goes through the shared layer (src/shared/smooth.ts): while
+   Lenis holds an animated position, a raw window.scrollTo is snapped
+   back on its next frame — the reader would see the heading land and
+   then slide away. scrollToEl applies the top-bar clearance itself. */
 
 export default function ArticleScene({
   slug,
@@ -55,6 +56,12 @@ export default function ArticleScene({
      the body is swapped, so the new-language body lands on the same
      heading at the same viewport offset. */
   const htmlRef = useRef<string | null>(null);
+  /* Whether the next body should be streamed in chunks. True only for
+     an in-app jump to a different essay — see shared/stream.ts for why
+     a deep link and a language swap must never stream. */
+  const streamMode = useRef(false);
+  const streamToken = useRef(0);
+  const bodyRef = useRef<HTMLElement>(null);
   const restoreRef = useRef<{
     idx: number;
     offset: number;
@@ -72,6 +79,10 @@ export default function ArticleScene({
      the load effect is what must notice a different essay arriving. */
   const prevSlugRef = useRef(slug);
   const [toc, setToc] = useState<TocItem[]>([]);
+  /* Share feedback. "done" / "link" are the two transient confirmations;
+     the button label swaps for 2s and then reverts, so the reader is
+     told something happened without a toast layer. */
+  const [shared, setShared] = useState<"idle" | "done" | "link">("idle");
   const [lightbox, setLightbox] = useState<{
     src: string;
     alt: string;
@@ -99,12 +110,46 @@ export default function ArticleScene({
   });
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
+  /* Bumped when a streamed body finishes landing. Everything that reads
+     the article's DOM for its own structure (the TOC, the code-copy
+     buttons, the lightbox wiring) depends on it, because a streamed
+     article only has its first batch on the frame `html` changes. */
+  const [streamTick, setStreamTick] = useState(0);
 
   /* Keep a ref of the body currently on screen — read by the load effect
      to decide how to swap (fresh load vs in-place language swap). */
   useEffect(() => {
     htmlRef.current = html;
   }, [html]);
+
+  /* Insert the body. The <article> owns no React children, so this module
+     can write into it directly — and it has to, because React's
+     dangerouslySetInnerHTML re-parses the *whole* string on every change,
+     which would make a chunked insert O(n²) and re-request every image.
+     On the paths that must not stream (deep link, language swap) this is
+     a single replaceChildren — see shared/stream.ts. */
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el || !html) return;
+    streamToken.current += 1;
+    return streamHtml(el, html, {
+      progressive: streamMode.current,
+      token: streamToken,
+      onBatch: stepProgress,
+      onDone: () => {
+        endProgress();
+        /* A batch landed, so the document is taller than Lenis thinks. */
+        refreshScroll();
+        /* The TOC and the code-copy buttons are built from the DOM —
+           rebuild them now that every heading actually exists. */
+        setStreamTick((n) => n + 1);
+      },
+    });
+    /* lang is a dependency as well as html: the <article> is keyed on
+       it, so a language swap remounts the node and the effect has to
+       refill it even when the two translations happen to produce the
+       same string. */
+  }, [html, slug, lang]);
 
   /* Reading-position memory: capture where the reader is (the active
      heading by INDEX — translations mirror their structure, so the same
@@ -210,18 +255,32 @@ export default function ArticleScene({
          htmlRef. The skeleton flash is the honest state here. */
       setHtml(null);
       restoreRef.current = null;
-    } else if (langChanged) {
-      if (htmlRef.current) restoreRef.current = captureReadingPosition();
+      /* Client-side navigation: the body is arriving as a chunk into an
+         already-painted page, so it can be streamed. A deep link or a
+         language swap cannot (shared/stream.ts). */
+      streamMode.current = true;
     } else {
-      // Fresh article (or retry) — never carry a stale restore forward.
-      restoreRef.current = null;
+      streamMode.current = false;
+      if (langChanged) {
+        if (htmlRef.current) restoreRef.current = captureReadingPosition();
+      } else {
+        // Fresh article (or retry) — never carry a stale restore forward.
+        restoreRef.current = null;
+      }
     }
     setFailed(false);
+    /* The bar runs from here until the body's last chunk is in — one
+       owner, so it can never be left spinning by a branch below. */
+    startProgress();
     loadArticle(slug, lang)
       .then((a) => {
-        if (!alive) return;
+        if (!alive) {
+          endProgress();
+          return;
+        }
         if (!a) {
           if (!htmlRef.current) onNotFound();
+          endProgress();
           return;
         }
         setHtml(a.html);
@@ -236,6 +295,7 @@ export default function ArticleScene({
         }
       })
       .catch(() => {
+        endProgress();
         if (alive) setFailed(true);
       });
     return () => {
@@ -346,7 +406,10 @@ export default function ArticleScene({
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [slug, lang, html]);
+    /* streamTick: a streamed body only has its first batch on the frame
+       `html` changes — without this the index would be built from the
+       headings that happen to have landed. */
+  }, [slug, lang, html, streamTick]);
 
   /* Code blocks — inject a copy button into every <pre>. The article HTML
      is renderer output, not React-owned, so the button is added via the
@@ -399,7 +462,7 @@ export default function ArticleScene({
       buttons.push(btn);
     });
     return () => buttons.forEach((b) => b.remove());
-  }, [slug, lang, html, t]);
+  }, [slug, lang, html, streamTick, t]);
 
   /* Figure images open the lightbox on click, but the delegated handler only
      serves pointers. Make each figure keyboard-operable — focusable, labelled,
@@ -423,7 +486,7 @@ export default function ArticleScene({
     });
     return () =>
       imgs.forEach((img) => img.removeEventListener("keydown", onKey));
-  }, [html, t]);
+  }, [html, streamTick, t]);
 
   /* Lightbox — showModal on open, close() on dismiss (Esc or backdrop). */
   useEffect(() => {
@@ -539,11 +602,53 @@ export default function ArticleScene({
     sections.find((s) => s.id === post.sectionId)?.symbol ?? "✎";
 
   const jump = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    /* Clear the fixed top bar so a TOC jump never lands a heading
-       underneath it. */
-    scrollToY(el.getBoundingClientRect().top + window.scrollY - headerClearance());
+    /* scrollToEl applies the top-bar clearance itself, so a TOC jump
+       never lands a heading underneath it. */
+    scrollToEl(id);
+  };
+
+  /* ---- sharing ----
+     Web Share on the platforms that have it (mobile, Safari, Windows);
+     a clipboard copy everywhere else. Both are "share", so they live on
+     one row and neither is ever the only way to get a link — the URL bar
+     is still there. */
+  const flash = (state: "done" | "link") => {
+    setShared(state);
+    window.setTimeout(() => setShared("idle"), 2200);
+  };
+
+  const share = async () => {
+    const url = location.href;
+    const title = post ? post.title.split("\n").join(" ") : "";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      flash("done");
+    } catch {
+      /* A dismissed share sheet throws AbortError — that is the reader
+         changing their mind, not a failure. Fall back to copying the
+         link, which is what they probably wanted anyway. */
+      try {
+        await navigator.clipboard.writeText(url);
+        flash("done");
+      } catch {
+        /* Clipboard blocked (insecure context, permissions): leaving the
+           label unchanged would look like a dead button. */
+        flash("link");
+      }
+    }
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(location.href);
+      flash("link");
+    } catch {
+      /* Nothing else to try — say nothing rather than lie. */
+    }
   };
 
   return (
@@ -552,12 +657,21 @@ export default function ArticleScene({
       data-article
       className="relative z-[1] min-h-[100dvh]"
     >
-      {/* reading progress — accent fill, rounded head */}
-      <div className="fixed inset-x-0 top-0 z-[40] h-[3px] bg-[var(--progress-track)]">
+      {/* reading progress — a run of 6px blocks with a 4px gap, so the
+          bar is *made of* pixels instead of being a smooth line with a
+          texture on it. Filled by transform only (see the scroll-spy). */}
+      <div
+        aria-hidden="true"
+        className="fixed inset-x-0 top-0 z-[40] h-[3px]"
+      >
         <div
           ref={progressRef}
-          className="h-full w-full origin-left rounded-r-full bg-[var(--accent)]"
-          style={{ transform: "scaleX(0)" }}
+          className="h-full w-full origin-left"
+          style={{
+            transform: "scaleX(0)",
+            backgroundImage:
+              "repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 10px)",
+          }}
         />
       </div>
 
@@ -583,10 +697,49 @@ export default function ArticleScene({
 
         {/* header */}
         <header className="mt-[clamp(40px,7vh,72px)]">
-          <h1 className="rise rise-1 font-fraunces text-[clamp(21px,2.4vw,32px)] font-bold leading-[1.35] tracking-[0] text-[var(--ink)] [text-wrap:balance]">
+          <h1 className="rise rise-1 font-display text-[clamp(24px,3.2vw,42px)] font-black leading-[1.12] tracking-[-0.03em] text-[var(--ink)] [text-wrap:balance]">
             {post.title.split("\n").join(" ")}
           </h1>
-          <div className="rise rise-2 mt-[clamp(18px,3vh,28px)] flex flex-wrap gap-2">
+          {/* Meta, on one line under the title: what it is, when, how
+              long. Tabular figures so the date never reflows between
+              essays, and a hairline above to open the reading area. */}
+          {post.excerpt && (
+            <p className="mt-[clamp(12px,2vh,18px)] max-w-[62ch] text-[13.5px] leading-[1.75] text-[var(--muted)]">
+              {post.excerpt}
+            </p>
+          )}
+          <div className="rise rise-2 mt-[clamp(14px,2.4vh,22px)] flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-[var(--rule-faint)] pb-[clamp(14px,2.4vh,22px)] text-[10px] tracking-[0.2em] text-[var(--faint)]">
+            <span className="text-[var(--body)]">{post.category}</span>
+            <span aria-hidden className="text-[var(--faintest)]">
+              ·
+            </span>
+            <time className="num" dateTime={post.date.replace(/\./g, "-")}>
+              {post.date}
+            </time>
+            <span aria-hidden className="text-[var(--faintest)]">
+              ·
+            </span>
+            <span className="num">{post.read}</span>
+            {/* Share sits with the meta it belongs to rather than as a
+                floating rail: two actions, no icons-only buttons. */}
+            <span className="ml-auto flex items-center gap-3">
+              <button
+                type="button"
+                onClick={share}
+                className="tracking-[0.2em] text-[var(--muted)] transition-colors hover:text-[var(--accent)]"
+              >
+                {shared === "done" ? t.shared : t.share}
+              </button>
+              <button
+                type="button"
+                onClick={copyLink}
+                className="tracking-[0.2em] text-[var(--muted)] transition-colors hover:text-[var(--accent)]"
+              >
+                {shared === "link" ? t.linkCopied : t.copyLink}
+              </button>
+            </span>
+          </div>
+          <div className="mt-[clamp(14px,2.4vh,22px)] flex flex-wrap gap-2">
             {post.tagLabels.map((label, i) => (
               <span
                 key={post.tags[i] ?? label}
@@ -630,12 +783,15 @@ export default function ArticleScene({
           {/* body — on-demand: a quiet skeleton while the essay's own
               chunk streams in, an editorial error state on failure */}
           {html ? (
+            /* Children are written imperatively by the streaming effect —
+               React must not own them, or every chunk would re-parse the
+               whole body. */
             <article
               key={lang}
+              ref={bodyRef}
               className="article-content min-w-0"
               data-fx
               onClick={onArticleClick}
-              dangerouslySetInnerHTML={{ __html: html }}
             />
           ) : failed ? (
             <div className="min-w-0" role="alert">
@@ -658,13 +814,14 @@ export default function ArticleScene({
               <p className="mb-6 text-[10px] font-semibold tracking-[0.34em] text-[var(--faint)]">
                 {t.loading}
               </p>
-              <div className="space-y-3.5">
-                <div className="h-3.5 w-2/3 animate-pulse rounded-[2px] bg-[var(--border)]" />
-                <div className="h-3.5 w-full animate-pulse rounded-[2px] bg-[var(--border)]" />
-                <div className="h-3.5 w-11/12 animate-pulse rounded-[2px] bg-[var(--border)]" />
-                <div className="h-3.5 w-4/5 animate-pulse rounded-[2px] bg-[var(--border)]" />
-                <div className="h-3.5 w-[92%] animate-pulse rounded-[2px] bg-[var(--border)]" />
-              </div>
+              {/* One plate of grey blocks rather than five shimmering
+                  bars: it says "there is a page here, it is arriving",
+                  and it reserves roughly a screen so the swap does not
+                  throw the reader's scroll position. */}
+              <div
+                className="px-skeleton h-[min(46vh,340px)]"
+                aria-hidden="true"
+              />
             </div>
           )}
 
@@ -676,15 +833,19 @@ export default function ArticleScene({
                   {t.onThisPage()}
                   <button
                     type="button"
-                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                    onClick={() => scrollToY(0)}
                     className="inline-flex items-center gap-1 text-[9px] tracking-[0.24em] text-[var(--faint)] transition-colors hover:text-[var(--accent)]"
                   >
                     ↑ {t.backToTop}
                   </button>
                 </p>
                 <div className="toc-scroll relative mt-[14px]">
+                  {/* data-lenis-prevent: the rail is its own scrollport.
+                      Without it Lenis would swallow the wheel over the
+                      TOC and scroll the article instead. */}
                   <nav
                     ref={tocNavRef}
+                    data-lenis-prevent
                     className="toc-nav relative flex flex-col gap-[6px] border-l border-[var(--border)] pl-[14px] pr-[12px]"
                   >
                     <span
@@ -790,6 +951,39 @@ export default function ArticleScene({
                   </a>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* references — the cited originals, each a link straight to
+              the full text. Written in frontmatter, so a reader can
+              check a claim without leaving the page to go looking. */}
+          {post.sources.length > 0 && (
+            <div className="mt-[clamp(28px,5vh,44px)]">
+              <p className="text-[10px] font-semibold tracking-[0.3em] text-[var(--fainter)]">
+                {t.references}
+              </p>
+              <ol className="mt-3 border-t border-[var(--rule-faint)]">
+                {post.sources.map((s) => (
+                  <li
+                    key={s.url}
+                    className="border-b border-[var(--rule-faint)] py-[11px] text-[12.5px] leading-[1.6]"
+                  >
+                    <a
+                      href={s.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[var(--body)] transition-colors hover:text-[var(--accent)]"
+                    >
+                      {s.title}
+                    </a>
+                    {s.source && (
+                      <span className="mt-[3px] block text-[10px] tracking-[0.12em] text-[var(--faintest)]">
+                        {s.source}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ol>
             </div>
           )}
 
