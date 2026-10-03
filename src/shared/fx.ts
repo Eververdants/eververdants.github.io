@@ -515,27 +515,28 @@ function createCurtain(origin?: { x: number; y: number }): Curtain | null {
   const cover = (p: number) => {
     const { field, ink, accent } = schemeFor();
     for (let i = 0; i < total; i++) {
-      /* Two layers per pixel, composited by hand: a translucent ink
-         cell prints over the page (the page stays readable through it
-         and dims as coverage grows), then the field-coloured wall sets
-         in underneath and absorbs the print. Both beats snap to levels
-         — the print in two steps per cell, the wall in four — so the
-         whole thing stays digital. The wave reaches the farthest cell
-         at 0.72; the wall owns the last quarter of the run. */
+      /* The print is OPAQUE: each cell lands as a solid block in one of
+         three tones between the field and the ink, and the old page's
+         text is gone the instant a cell covers it — a curtain that
+         leaves the text readable through itself is not a curtain. The
+         wavefront still shows the page between not-yet-printed cells,
+         so the consumption reads; then the field wall sets in
+         underneath (four steps) and absorbs the print. */
       const on = quant(span(p, order[i] * 0.78, 0.1), 2);
       const set = quant(span(p, 0.74, 0.24), 4);
       const t = spark[i] ? accent : ink;
-      const dens = spark[i] ? 0.95 : 0.2 + 0.22 * toneLvl[i];
-      const cellA = on * dens * (1 - set);
+      const dens = spark[i] ? 1 : 0.3 + 0.25 * toneLvl[i];
+      const cellA = on * (1 - set);
       const wallA = set;
       const outA = wallA + cellA * (1 - wallA);
-      /* Standard over-compositing: the wall is behind, the cell in
-         front; `w` is how much of the blend the wall owns. */
-      const wgt = outA > 0 ? wallA / outA : 0;
+      /* The printed cell's share of the final pixel — it slides to
+         zero as the wall sets, so the print dissolves into the field
+         instead of being veiled by it. */
+      const front = outA > 0 ? (cellA * (1 - wallA)) / outA : 0;
       const o = i * 4;
-      data[o] = mix(t[0], field[0], wgt);
-      data[o + 1] = mix(t[1], field[1], wgt);
-      data[o + 2] = mix(t[2], field[2], wgt);
+      data[o] = mix(field[0], t[0], dens * front);
+      data[o + 1] = mix(field[1], t[1], dens * front);
+      data[o + 2] = mix(field[2], t[2], dens * front);
       data[o + 3] = outA * 255;
     }
     blit();
