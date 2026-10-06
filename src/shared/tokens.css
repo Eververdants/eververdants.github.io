@@ -205,7 +205,6 @@
   /* measure: prose never runs wider than ~70 characters */
   --measure: 70ch;
   --shell: 1180px;
-  --shell-narrow: 760px;
   /* the left column is where index numerals and standing data live,
      and it is deliberately wide */
   --margin-note: 132px;
@@ -856,10 +855,6 @@ html.theme-anim * {
   max-width: var(--shell);
   margin-inline: auto;
   padding-inline: clamp(18px, 4vw, 40px);
-}
-
-.shell-narrow {
-  max-width: var(--shell-narrow);
 }
 
 /* ---------- shared components ----------

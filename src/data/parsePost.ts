@@ -91,7 +91,7 @@ export function parseFrontmatter(raw: string): {
 /* Reading time — CJK characters count as ~300/minute, English words as
    ~200/minute; rounded, with a 1-minute floor. Computed, never stored. The
    unit string follows the deck's language. */
-export function computeRead(body: string, lang: Lang): string {
+function computeRead(body: string, lang: Lang): string {
   const cjk = (body.match(/[㐀-鿿]/g) || []).length;
   const eng = (body.match(/[A-Za-z0-9]+/g) || []).length;
   const minutes = Math.max(1, Math.round(cjk / 300 + eng / 200));
@@ -102,7 +102,7 @@ export function computeRead(body: string, lang: Lang): string {
    category is the localized display name (ESSAYS in .md, 随笔 in .zh.md),
    so match against BOTH names here — at parse time, once, in a way that
    never depends on the reader's current UI language. */
-export function sectionIdOf(category: string): string | null {
+function sectionIdOf(category: string): string | null {
   return (
     sections.find((s) => s.name.en === category || s.name.zh === category)
       ?.id ?? null

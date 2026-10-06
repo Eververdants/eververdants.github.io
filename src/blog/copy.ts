@@ -1,12 +1,12 @@
 /* Every visible label on the blog sub-site.
 
    Language and theme themselves live in src/shared/prefs — this file is only
-   the strings. Two parallel objects so TypeScript rejects a label that exists
-   in one language and not the other. */
+   the strings. The two objects are kept parallel by hand: nothing in the
+   type system enforces that today, so a label added to one language has to
+   be added to the other. */
 
 export const ui = {
   en: {
-    home: "Home",
     searchPlaceholder: "Search essays",
     searchLabel: "Search essays",
     clearSearch: "Clear search",
@@ -19,7 +19,6 @@ export const ui = {
     topics: "Topics",
     latest: "Latest",
     topicLabel: "Topics",
-    allPosts: "All essays",
     backToHub: "Back to the hub",
     backToIndex: "All essays",
     backToTop: "Back to top",
@@ -42,17 +41,12 @@ export const ui = {
     loading: "Loading",
     loadFailed: "Could not load this essay.",
     retry: "Try again",
-    alsoIn: (n: number) => `${n} more in this column`,
-    readTime: (m: string) => m,
-    thisEssay: "This essay",
-    otherLanguage: "Read in",
     empty: "No essays have been published yet.",
     noTag: "No essays under this tag yet.",
     posts: "essays",
     end: (year: number) => `End — © ${year} Eververdants`,
   },
   zh: {
-    home: "首页",
     searchPlaceholder: "搜索文章",
     searchLabel: "搜索文章",
     clearSearch: "清除搜索",
@@ -65,7 +59,6 @@ export const ui = {
     topics: "专题",
     latest: "最新",
     topicLabel: "所属专题",
-    allPosts: "全部文章",
     backToHub: "返回导航页",
     backToIndex: "全部文章",
     backToTop: "回到顶部",
@@ -88,15 +81,9 @@ export const ui = {
     loading: "载入中",
     loadFailed: "这篇文章没能加载。",
     retry: "重试",
-    alsoIn: (n: number) => `本栏目还有 ${n} 篇`,
-    readTime: (m: string) => m,
-    thisEssay: "本篇",
-    otherLanguage: "阅读语言",
     empty: "还没有发布文章。",
     noTag: "该标签下暂无文章。",
     posts: "篇文章",
     end: (year: number) => `完 — © ${year} Eververdants`,
   },
 } as const;
-
-export type Ui = (typeof ui)["en"];

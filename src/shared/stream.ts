@@ -42,7 +42,7 @@ const cancelIdle: (h: number) => void =
     ? (h) => cancelIdleCallback(h)
     : (h) => window.clearTimeout(h);
 
-export interface StreamOptions {
+interface StreamOptions {
   /** Insert the first batch synchronously and the rest on idle. When
    *  false the whole string goes in at once (see the header). */
   progressive?: boolean;

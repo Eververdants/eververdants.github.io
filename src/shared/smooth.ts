@@ -138,12 +138,6 @@ export function lockScroll(on: boolean): void {
   else lenis.start();
 }
 
-/** True when Lenis is actually driving — call sites that need to know
- *  whether a scroll will be animated (rather than instant) ask here. */
-export function isSmooth(): boolean {
-  return lenis !== null;
-}
-
 /** Re-measure. Called after a scene swap changes document height, and
  *  on a resize Lenis does not see (a dialog opening, an image loading
  *  late). Cheap enough to call liberally; it is a few cached reads. */
@@ -223,12 +217,4 @@ async function startLenis(): Promise<void> {
      landing. Adopt the real position instead of animating from a stale
      zero, or the first wheel notch yanks the page back to the top. */
   if (window.scrollY > 0) lenis.scrollTo(window.scrollY, { immediate: true });
-}
-
-/** Tear down (used by tests / hot reload). */
-export function destroySmoothScroll(): void {
-  lenis?.destroy();
-  lenis = null;
-  started = false;
-  locks = 0;
 }

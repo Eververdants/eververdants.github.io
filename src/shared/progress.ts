@@ -104,17 +104,6 @@ export function endProgress(): void {
   }, 160);
 }
 
-/** Drive the bar across an async task. Never rejects: the bar is
- *  decoration and must not become the reason a view failed to open. */
-export async function withProgress<T>(task: Promise<T>): Promise<T> {
-  startProgress();
-  try {
-    return await task;
-  } finally {
-    endProgress();
-  }
-}
-
 /** A stepped fill for progressive DOM work: n blocks rendered out of
  *  total, drawn on a rAF so a synchronous render loop still paints
  *  between chunks. Used by the article's streamed body. */

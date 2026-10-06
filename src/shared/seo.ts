@@ -12,12 +12,12 @@
 
 export const SITE = "https://eververdants.github.io";
 
-export interface Alternate {
+interface Alternate {
   hreflang: string;
   href: string;
 }
 
-export interface HeadInput {
+interface HeadInput {
   title: string;
   description: string;
   /** Root-relative path or absolute URL. */
@@ -67,7 +67,7 @@ function upsertLink(rel: string, href: string, extra?: Record<string, string>) {
 }
 
 /** Replace the managed JSON-LD blocks (keyed so prerender can find them). */
-export function setJsonLd(nodes: unknown[]): void {
+function setJsonLd(nodes: unknown[]): void {
   document.head
     .querySelectorAll('script[type="application/ld+json"][data-managed="seo"]')
     .forEach((el) => el.remove());

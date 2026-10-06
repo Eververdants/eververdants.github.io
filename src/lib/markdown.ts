@@ -59,7 +59,7 @@ function classifyId(word: string, code: string, after: number): string {
   return "";
 }
 
-export function highlightCode(code: string): string {
+function highlightCode(code: string): string {
   const out: string[] = [];
   let last = 0;
   let m: RegExpExecArray | null;

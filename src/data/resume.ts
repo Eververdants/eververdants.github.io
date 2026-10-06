@@ -12,7 +12,7 @@ export interface Localized {
   zh: string;
 }
 
-export interface Resume {
+interface Resume {
   about: Localized;
   birthYear: number;
   education: {

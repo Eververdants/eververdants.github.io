@@ -1,40 +1,5 @@
 import type { Lang } from "./i18n";
 
-const MONTHS_EN = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-const MONTHS_ZH = [
-  "1 月",
-  "2 月",
-  "3 月",
-  "4 月",
-  "5 月",
-  "6 月",
-  "7 月",
-  "8 月",
-  "9 月",
-  "10 月",
-  "11 月",
-  "12 月",
-];
-
-/** 2026-08-20T04:28:34Z → "2026/08/20" */
-export function fmtDate(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`;
-}
-
 /** 相对时间（跟随语言）：just now / 3d ago / 3 天前 … */
 export function timeAgo(lang: Lang, iso: string): string {
   const d = new Date(iso);
@@ -71,15 +36,6 @@ export function fmtCount(n: number): string {
 /** 最近活跃时间戳（用于排序） */
 export function lastActive(r: { pushedAt: string; updatedAt: string }): number {
   return new Date(r.pushedAt || r.updatedAt).getTime();
-}
-
-/** 创建于某月（页脚等场景） */
-export function monthLabel(lang: Lang, iso: string): string {
-  const d = new Date(iso);
-  const y = d.getFullYear();
-  return lang === "zh"
-    ? `${y} 年 ${MONTHS_ZH[d.getMonth()]}`
-    : `${MONTHS_EN[d.getMonth()]} ${y}`;
 }
 
 /** 转义 HTML，防止仓库描述/名称中的特殊字符破坏结构 */

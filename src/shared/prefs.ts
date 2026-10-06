@@ -65,7 +65,7 @@ function urlOverride(): Partial<Prefs> {
   }
 }
 
-export function resolvePrefs(): Prefs {
+function resolvePrefs(): Prefs {
   const ov = urlOverride();
   return {
     lang: ov.lang ?? asLang(read(LANG_KEY)) ?? "en",
