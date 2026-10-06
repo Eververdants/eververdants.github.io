@@ -94,20 +94,43 @@ function isSafeHref(href: string): boolean {
   return !head.includes(":") || /^(https?|mailto):$/i.test(head);
 }
 
-/* Inline marks run on already-escaped text, so interpolated matches are
-   safe (raw <, >, &, " were neutralized above). */
-function inline(text: string): string {
+/* Inline marks — the small grammar of *emphasis*, `code` and **bold**.
+   Applied to plain text only, never to the markup a previous mark produced
+   (see inline()). */
+function marks(text: string): string {
   return text
-    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, text: string, href: string) =>
-      isSafeHref(href)
-        ? `<a href="${href}" target="_blank" rel="noreferrer">${text}</a>`
-        : text,
-    )
     .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/__([^_]+)__/g, "<strong>$1</strong>")
     .replace(/\*([^*]+)\*/g, "<em>$1</em>")
     .replace(/_([^_]+)_/g, "<em>$1</em>");
+}
+
+/* Inline marks run on already-escaped text, so interpolated matches are
+   safe (raw <, >, &, " were neutralized above). Links are lifted out into
+   placeholders first, for two reasons that pull in opposite directions:
+   the anchor's own markup must never reach the mark rules (an underscore
+   in the href or in target="_blank" used to be eaten by the italic rule,
+   which tore the href apart), while emphasis written *around* a link still
+   has to wrap it — `**see [this](url)**` bolds the whole phrase. The
+   placeholder carries neither `*` nor `_`, so it survives the mark pass
+   untouched and is swapped for the real anchor at the end. */
+function inline(text: string): string {
+  const links: string[] = [];
+  const tokenized = text.replace(
+    /\[([^\]]+)\]\(([^)\s]+)\)/g,
+    (_m, label: string, href: string) => {
+      if (!isSafeHref(href)) return label;
+      links.push(
+        `<a href="${href}" target="_blank" rel="noreferrer">${marks(label)}</a>`,
+      );
+      return `\u0000${links.length - 1}\u0000`;
+    },
+  );
+  return marks(tokenized).replace(
+    /\u0000(\d+)\u0000/g,
+    (m, i: string) => links[Number(i)] ?? m,
+  );
 }
 
 export function renderMarkdown(src: string): string {
