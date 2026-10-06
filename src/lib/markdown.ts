@@ -1,8 +1,10 @@
-/* Tiny, safe markdown → HTML for journal articles. Escapes everything
-   first, then applies a deliberately small grammar: paragraphs, headings
-   (h1–h6), blockquotes, lists, rules, fenced code, pipe tables, images,
-   and inline marks (bold, italic, code, links). Big enough for prose,
-   small enough to trust. */
+/* Tiny, safe markdown → HTML for journal articles. Every block's text is
+   escaped before the deliberately small grammar is applied: paragraphs,
+   headings, quotes, list items and table cells run through escapeHtml, and
+   fenced code escapes token-by-token inside highlightCode. Inline marks
+   (bold, italic, code, links) therefore run on already-escaped text and can
+   only emit their own markup — article prose can never inject an element.
+   Big enough for prose, small enough to trust. */
 
 export function escapeHtml(s: string): string {
   return s
@@ -119,7 +121,7 @@ export function renderMarkdown(src: string): string {
   const usedIds = new Set<string>();
 
   const flushPara = () => {
-    if (para.trim()) out.push(`<p>${inline(para.trim())}</p>`);
+    if (para.trim()) out.push(`<p>${inline(escapeHtml(para.trim()))}</p>`);
     para = "";
   };
   const flushList = () => {
@@ -153,7 +155,7 @@ export function renderMarkdown(src: string): string {
       let id = base;
       for (let n = 2; usedIds.has(id); n++) id = `${base}-${n}`;
       usedIds.add(id);
-      out.push(`<h${lv} id="${id}">${inline(heading[2])}</h${lv}>`);
+      out.push(`<h${lv} id="${id}">${inline(escapeHtml(heading[2]))}</h${lv}>`);
       continue;
     }
 
@@ -202,7 +204,7 @@ export function renderMarkdown(src: string): string {
         const body = rows.slice(2).map(split);
         out.push(
           "<table><thead><tr>" +
-            head.map((c) => `<th>${inline(c)}</th>`).join("") +
+            head.map((c) => `<th>${inline(escapeHtml(c))}</th>`).join("") +
             "</tr></thead>" +
             (body.length
               ? "<tbody>" +
@@ -210,7 +212,7 @@ export function renderMarkdown(src: string): string {
                   .map(
                     (r) =>
                       "<tr>" +
-                      r.map((c) => `<td>${inline(c)}</td>`).join("") +
+                      r.map((c) => `<td>${inline(escapeHtml(c))}</td>`).join("") +
                       "</tr>",
                   )
                   .join("") +
@@ -235,7 +237,7 @@ export function renderMarkdown(src: string): string {
         i++;
         qtext += " " + lines[i].trim().replace(/^>\s?/, "");
       }
-      out.push(`<blockquote><p>${inline(qtext)}</p></blockquote>`);
+      out.push(`<blockquote><p>${inline(escapeHtml(qtext))}</p></blockquote>`);
       continue;
     }
 
@@ -273,7 +275,7 @@ export function renderMarkdown(src: string): string {
     const item = t.match(/^[-*]\s+(.*)/) || t.match(/^\d+\.\s+(.*)/);
     if (item) {
       flushPara();
-      list = (list ?? "") + `<li>${inline(item[1])}</li>`;
+      list = (list ?? "") + `<li>${inline(escapeHtml(item[1]))}</li>`;
       continue;
     }
 
