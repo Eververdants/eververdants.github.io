@@ -1,11 +1,13 @@
-/* Journal content for the fourth screen (SELECTED BLOG — the journal).
-   Site-level copy lives here: the cover masthead and the close line. Per-post
-   metadata (slug, title, category, date, excerpt, tags) lives in each essay's
-   frontmatter (src/blog/*.md) and parses in data/articles.ts — reading time
-   is computed from the body, never written by hand.
+/* Journal content — the /blog/ sub-site's own copy, plus the curated order
+   that decides which essay leads a deck. Per-post metadata (slug, title,
+   category, date, excerpt, tags) lives in each essay's frontmatter
+   (src/blog/posts/**) and parses in data/articles.ts — reading time is
+   computed from the body, never written by hand.
 
-   The order array is the curated deck, the featured essay first; it drives
-   the reading deck, the /blog list, and prev/next inside an article.
+   The order array is the curated deck, the featured essay first. It drives
+   the reading deck, the order essays are grouped in on /blog/, and
+   prev/next inside an article; the hub's front page deliberately reads the
+   calendar instead (data/articles.getLatest).
 
    License: the articles are CC BY-NC-SA 4.0 (see LICENSE-BLOG.md).
    Code around them is MIT (see LICENSE). */
@@ -62,28 +64,24 @@ export { sections, type BlogSection } from "./sections";
    re-exported for the blog scenes. */
 export { topics, topicById, type BlogTopic } from "./topics";
 
-export interface Journal {
-  // Cover fields drive the asymmetric editorial masthead.
+interface Journal {
+  /* The one cover field still rendered: the line under the /blog/ masthead
+     title. overline / issue / caption belonged to the old full-bleed
+     magazine opening and went with it. */
   cover: {
-    overline: string;
-    issue: string;
     subtitle: string;
-    caption: string;
   };
   // Featured essay leads the deck; the rest follow.
   order: string[];
+  // The year in /blog/'s footer line.
   close: {
     year: number;
-    line: string;
   };
 }
 
 export const journal: Journal = {
   cover: {
-    overline: "SELECTED BLOG — VOL. VI",
-    issue: "VI",
     subtitle: "Essays · Notes · Field Records",
-    caption: "FIELD NOTES · MMXXIV — MMXXVI",
   },
   order: [
     "the-odyssey-defy-the-gods",
@@ -95,19 +93,14 @@ export const journal: Journal = {
   ],
   close: {
     year: 2026,
-    line: "The mountains stay green, so do the words.",
   },
 };
 
-/* Chinese cover/close copy for the /blog sub-site's language toggle. The
-   main site's cinematic BlogScene keeps the English journal above; the
+/* Chinese cover/close copy for the /blog sub-site's language toggle — the
    light blog sub-site reads whichever matches its active lang. */
 export const journalZh: Journal = {
   cover: {
-    overline: "精选博客 — 第六卷",
-    issue: "VI",
     subtitle: "随笔 · 札记 · 田野手记",
-    caption: "田野札记 · 二〇二四 — 二〇二六",
   },
   order: [
     "the-odyssey-defy-the-gods",
@@ -119,6 +112,5 @@ export const journalZh: Journal = {
   ],
   close: {
     year: 2026,
-    line: "青山依旧在，文字也是。",
   },
 };
