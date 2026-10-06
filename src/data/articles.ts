@@ -74,6 +74,18 @@ function renderSources(sources: Source[], lang: Lang): string {
   );
 }
 
+/* Every post, newest first. The hub's writing plate reads this rather than
+   the curated deck it used to: the plate promises "the three most recent
+   things in each column", and with the deck a brand-new essay could sit
+   below six curated ones and never show up on the front page. Curation is
+   an editorial order for the blog sub-site; the hub only ever needs the
+   calendar. */
+export function getLatest(lang: Lang = "en"): JournalPost[] {
+  return Object.values(blogIndex.posts[lang]).sort((a, b) =>
+    b.date.localeCompare(a.date),
+  );
+}
+
 /* The deck in editorial order — the language's order list drives it, the
    featured essay first, then any essay not listed (new drafts, no curation
    yet) appended newest-first by date so new content always surfaces without

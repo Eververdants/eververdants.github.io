@@ -14,7 +14,7 @@
  * reading this page gets the whole navigation graph in one pass. */
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { getDeck } from "../data/articles";
+import { getLatest } from "../data/articles";
 import { resume } from "../data/resume";
 import { getWorks } from "../photos/data/works";
 import reposFile from "../projects/data/repos.json";
@@ -64,7 +64,7 @@ export default function Hub() {
   const { lang } = usePrefs();
   const c: HubCopy = COPY[lang];
 
-  const posts = useMemo(() => getDeck(lang), [lang]);
+  const posts = useMemo(() => getLatest(lang), [lang]);
   const works = useMemo(() => getWorks(), []);
   const repos = useMemo(
     () =>

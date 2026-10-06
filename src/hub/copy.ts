@@ -23,8 +23,8 @@ const en = {
   },
   portals: {
     writing: {
-      label: "Writing",
-      blurb: "What I read, and what stayed with me afterwards.",
+      label: "Latest",
+      blurb: "The newest essays — what I read, and what stayed with me afterwards.",
       cta: "All essays",
       empty: "Nothing published yet.",
     },
@@ -96,8 +96,8 @@ const zh: typeof en = {
   },
   portals: {
     writing: {
-      label: "写作",
-      blurb: "我读过的，和读完之后留下来的。",
+      label: "最新",
+      blurb: "最新的几篇：我读过的，和读完之后留下来的。",
       cta: "全部文章",
       empty: "还没有发布内容。",
     },
