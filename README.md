@@ -59,6 +59,7 @@ npm run preview    # 预览构建产物
 - `robots.txt` 显式放行 GPTBot、ClaudeBot、Google-Extended、PerplexityBot、Bytespider、CCBot
 - `llms.txt`（导览）与 `llms-full.txt`（全站正文，中英）
 - 机器可读：`site.json`、`posts.json`、`works.json`、`projects.json`、`search.json`
+- IndexNow：部署时把 sitemap 全部 URL 提交给 Bing 等引擎（`npm run indexnow`，失败不阻断部署）
 - 旧地址重定向桩不进 sitemap
 
 ## 部署
@@ -67,6 +68,16 @@ GitHub Actions（`.github/workflows/deploy.yml`）在 push 到 `main` 时自动�
 
 ```bash
 git push origin main
+```
+
+构建通过后、上传产物之前，workflow 会跑一次 `npm run indexnow`：把 `dist/sitemap.xml` 里的全部 URL POST 给 IndexNow（`scripts/indexnow.mjs`），Bing / Yandex / Seznam / Naver 收到后自行排抓取——Bing 站长工具现在就是这条通路，`index.html` 里的 `msvalidate.01` 只负责属性验证。密钥即仓库里的 `public/<key>.txt`（文件名就是密钥，内容重复一遍），轮换密钥只需要换这一个文件。这一步 `continue-on-error`，**不会**让部署变红：搜索引擎 ping 不该把绿的构建搞死。
+
+本地单独提交某一篇（本机要能连外网）：
+
+```bash
+npm run indexnow -- --dry-run          # 只打印 payload，不提交
+npm run indexnow                       # 提交 sitemap 里的全部 URL
+npm run indexnow -- https://eververdants.github.io/blog/<slug>/   # 只提交指定 URL（中英各一条）
 ```
 
 ## License

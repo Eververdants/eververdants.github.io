@@ -57,6 +57,15 @@ jobs:
             missing=1
           fi
           exit $missing
+      # IndexNow — tell Bing (and the other IndexNow engines) which URLs
+      # changed. Runs against the built dist/, before the artefact is
+      # uploaded: submissions only enqueue a crawl, so the site going live a
+      # few seconds later is fine. Non-fatal by design — a search-engine ping
+      # must never turn a green deploy red (scripts/indexnow.mjs prints the
+      # engine's response either way).
+      - name: Submit URLs to IndexNow
+        continue-on-error: true
+        run: npm run indexnow
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
