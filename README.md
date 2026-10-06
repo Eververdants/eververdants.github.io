@@ -9,7 +9,7 @@ Eververdants（万山青未阑）的个人网站。
 - [React 19](https://react.dev) — 组件化 UI（主站 / 关于 / 博客 / 摄影）
 - [Vite](https://vite.dev) — 构建工具，五个独立入口
 - [Tailwind CSS v4](https://tailwindcss.com) — 仅博客与作品索引加载；主站与关于页不加载
-- 无动画库：滚动、过渡全部交给浏览器原生与 CSS
+- 动画库只有 [Lenis](https://github.com/darkroomengineering/lenis)，且只管滚动：桌面滚轮平滑，触屏和 reduced-motion 走原生；页面一个实例，每个嵌套滚动框（文章目录栏、命令面板结果列表）各一个，实现见 `src/shared/smooth.ts`。过渡全部交给浏览器原生与 CSS
 
 ## 站点结构
 

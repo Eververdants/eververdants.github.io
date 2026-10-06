@@ -15,9 +15,11 @@
  *   · Run for reduced-motion readers. The whole module returns early;
  *     `scroll-behavior: smooth` in tokens.css covers their plain
  *     anchor jumps.
- *   · Take over nested scrollports. Anything the reader scrolls inside
- *     a box (the article's TOC rail, the palette's result list) carries
- *     `data-lenis-prevent`, which Lenis honours natively.
+ *   · Fight the boxes inside the page. A nested scrollport (the
+ *     article's TOC rail, the palette's result list) gets its own
+ *     instance from attachSmoothPort() and owns its wheel events; the
+ *     page instance steps aside for it (`allowNestedScroll`) and takes
+ *     the wheel back only once the box has reached its end.
  *
  * The one thing that needs care is *programmatic* scrolling. Code that
  * calls `window.scrollTo` while Lenis holds an animated position and a
@@ -138,8 +140,116 @@ export function lockScroll(on: boolean): void {
   else lenis.start();
 }
 
-/** Re-measure. Called after a scene swap changes document height, and
- *  on a resize Lenis does not see (a dialog opening, an image loading
+/** The element a nested instance is driving, keyed by that element. */
+const ports = new Map<HTMLElement, LenisInstance>();
+
+/* The wheel direction of the event currently being dispatched. Lenis asks
+   the page's `prevent(node)` during its own handler of the same event, and
+   the capture listener each port installs on its box has already seen it —
+   so this is never stale by the time it is read. */
+let wheelDeltaY = 0;
+
+/* Does this box still have somewhere to go in the wheel's direction? The
+   page instances asks this to decide whether the wheel belongs to the box
+   or to the page: while the box can move it keeps the gesture, and at
+   either end the page takes over, so a short rail never traps the reader. */
+function portConsumesWheel(el: HTMLElement, deltaY: number): boolean {
+  const travel = el.scrollHeight - el.clientHeight;
+  if (travel <= 0) return false;
+  if (deltaY > 0) return el.scrollTop < travel - 1;
+  if (deltaY < 0) return el.scrollTop > 1;
+  return true;
+}
+
+/** The constructor, imported once. ~10 kB of scroll machinery that must
+ *  never sit on the route to the first paint, so the first caller pays
+ *  for it and everyone else — the page and every port — waits on the
+ *  same promise. A failed load caches `null` rather than retrying on
+ *  every scrollport that mounts. */
+type LenisCtor = new (opts: Record<string, unknown>) => LenisInstance;
+let ctorPromise: Promise<LenisCtor | null> | null = null;
+
+function loadLenis(): Promise<LenisCtor | null> {
+  ctorPromise ??= import("lenis")
+    .then((m) => m.default as unknown as LenisCtor)
+    .catch(() => null);
+  return ctorPromise;
+}
+
+/* Give one scroll box the same treatment the page gets: its own instance,
+ * its own rAF, its own momentum. Returns the teardown its owner must call
+ * on unmount (a detached element would keep animating a scroll nothing can
+ * see). Reduced-motion and touch readers get the platform's own box scroll,
+ * exactly as they do for the page. */
+export function attachSmoothPort(el: HTMLElement): () => void {
+  if (reducedMotion() || coarsePointer()) return () => {};
+  let released = false;
+  /* Passive and capture-phase: it only records which way the gesture is
+     going, for the page instance's prevent() — see wheelDeltaY. */
+  const onWheel = (e: WheelEvent) => {
+    wheelDeltaY = e.deltaY;
+  };
+  el.addEventListener("wheel", onWheel, { passive: true, capture: true });
+  void loadLenis().then((Ctor) => {
+    if (!Ctor || released || ports.has(el)) return;
+    ports.set(
+      el,
+      new Ctor({
+        /* wrapper === content: the box scrolls its own children, so its
+           own scrollHeight is the travel. */
+        wrapper: el,
+        content: el,
+        /* Only wheel events inside the box. The page instance hears the
+           same events as they bubble and bows out — see allowNestedScroll
+           on the page options. */
+        eventsTarget: el,
+        lerp: 0.11,
+        wheelMultiplier: 1,
+        smoothWheel: true,
+        syncTouch: false,
+        autoRaf: true,
+        /* Hand the wheel back to the page once the box is at its end,
+           instead of trapping the reader inside a short list. */
+        overscroll: true,
+      }),
+    );
+  });
+  return () => {
+    released = true;
+    el.removeEventListener("wheel", onWheel, { capture: true });
+    const port = ports.get(el);
+    if (!port) return;
+    port.destroy();
+    ports.delete(el);
+  };
+}
+
+/** Scroll a port to an absolute offset inside its own box — the nested
+ *  version of scrollToY(). Always go through this rather than assigning
+ *  scrollTop: an instance holding an animated position snaps back to its
+ *  own idea of where the box is. */
+export function scrollPortTo(
+  el: HTMLElement,
+  y: number,
+  immediate = false,
+): void {
+  const top = Math.max(0, y);
+  const port = ports.get(el);
+  if (port) {
+    port.scrollTo(top, { immediate, force: true });
+    return;
+  }
+  el.scrollTo({ top, behavior: immediate ? "auto" : "smooth" });
+}
+
+/** Re-measure one port. Called when the box was hidden while an instance
+ *  was attached (a dialog that just opened) — its limit was 0 then. */
+export function refreshSmoothPort(el: HTMLElement): void {
+  ports.get(el)?.resize();
+}
+
+/** Re-measure the page. Called after a scene swap changes document height,
+ *  and on a resize Lenis does not see (a dialog opening, an image loading
  *  late). Cheap enough to call liberally; it is a few cached reads. */
 export function refreshScroll(): void {
   lenis?.resize();
@@ -168,12 +278,8 @@ export function initSmoothScroll(): void {
 }
 
 async function startLenis(): Promise<void> {
-  let Ctor: new (opts: Record<string, unknown>) => LenisInstance;
-  try {
-    Ctor = (await import("lenis")).default as unknown as new (
-      opts: Record<string, unknown>,
-    ) => LenisInstance;
-  } catch {
+  const Ctor = await loadLenis();
+  if (!Ctor) {
     /* Offline, or the chunk was purged from the CDN. The page keeps its
        native scroll; nothing else in this module cares. */
     started = false;
@@ -192,6 +298,18 @@ async function startLenis(): Promise<void> {
        is not. */
     smoothWheel: true,
     syncTouch: false,
+    /* A wheel event inside a nested scrollport (the TOC rail, the
+       palette's list) belongs to that box's own instance while the box
+       can still move in that direction; at either end the page takes the
+       wheel back, so a short rail never traps the reader.
+
+       Deliberately NOT Lenis's own allowNestedScroll: it walks every
+       element in the event path, and this document's <body> is itself a
+       scrollport (overflow-y: auto, ~10k px of content) — the page
+       instance would conclude the wheel belonged to <body> and refuse to
+       move at all. Only registered ports are consulted here. */
+    prevent: (node: HTMLElement) =>
+      ports.has(node) && portConsumesWheel(node, wheelDeltaY),
     /* Let Lenis own in-page #hash links: it reads the target and eases
        there, and `scroll-padding-top` still applies because it is the
        browser doing the final positioning. */

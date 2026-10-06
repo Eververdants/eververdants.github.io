@@ -25,7 +25,7 @@
 
 import { getPrefs, subscribePrefs } from "./prefs";
 import type { Lang } from "./prefs";
-import { lockScroll } from "./smooth";
+import { lockScroll, attachSmoothPort, refreshSmoothPort } from "./smooth";
 
 interface Item {
   type: "essay" | "photo" | "repo" | "page";
@@ -191,6 +191,9 @@ class SitePalette extends HTMLElement {
   /** False once the dialog has actually been opened — keeps the scroll
    *  lock paired with a real open even if close() fires first. */
   #locked = false;
+  /** Teardown of the result list's own smoothing instance, held while the
+   *  dialog is open (see open()). */
+  #detachPort: (() => void) | null = null;
 
   /* Window-level activators, bound as fields so disconnectedCallback can
      remove the exact functions it added — an element that is detached and
@@ -235,7 +238,7 @@ class SitePalette extends HTMLElement {
             <p class="palette__status" id="palette-status" role="status"
               aria-live="polite"></p>
             <div class="palette__results" id="palette-results" role="listbox"
-              aria-label="Search results" data-lenis-prevent></div>
+              aria-label="Search results"></div>
             <div class="palette__foot">
               <span><kbd>↑</kbd><kbd>↓</kbd> <i data-hint="updown"></i></span>
               <span><kbd>↵</kbd> <i data-hint="enter"></i></span>
@@ -271,6 +274,10 @@ class SitePalette extends HTMLElement {
         this.#locked = false;
         lockScroll(false);
       }
+      /* The instance is only useful while the dialog is up, and a fresh
+         one measures the list correctly next time it opens. */
+      this.#detachPort?.();
+      this.#detachPort = null;
       this.dispatchEvent(new CustomEvent("palette-close", { bubbles: true }));
     });
 
@@ -295,6 +302,9 @@ class SitePalette extends HTMLElement {
       this.#locked = false;
       lockScroll(false);
     }
+    /* Same for the list's smoothing instance — it holds its own rAF. */
+    this.#detachPort?.();
+    this.#detachPort = null;
   }
 
   #localise(): void {
@@ -316,6 +326,12 @@ class SitePalette extends HTMLElement {
     }
     this.#input.value = "";
     this.#render();
+    /* The result list is its own scrollport and gets its own smoothing
+       instance, created once the dialog is actually visible (a hidden box
+       measures zero travel). Torn down on close. */
+    if (!this.#detachPort && this.#list) {
+      this.#detachPort = attachSmoothPort(this.#list);
+    }
     this.#input.focus();
     if (!this.#items) {
       // A failed fetch leaves #items null so the next open retries, rather
@@ -454,6 +470,9 @@ class SitePalette extends HTMLElement {
     }
     this.#status(`${n} ${c.count}`);
     if (n) this.#setCursor(0);
+    /* The list is a scrollport with its own smoothing instance; rows
+       changed, so its travel did too. No-op before the port exists. */
+    if (this.#list) refreshSmoothPort(this.#list);
   }
 }
 

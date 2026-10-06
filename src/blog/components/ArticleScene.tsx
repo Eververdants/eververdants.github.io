@@ -6,7 +6,14 @@ import { sections } from "../../data/sections";
 import { usePrefs } from "../../shared/prefs-react";
 import { pick } from "../../shared/prefs";
 import { applyHead, breadcrumbLd, PERSON, SITE } from "../../shared/seo";
-import { scrollToEl, scrollToY, refreshScroll } from "../../shared/smooth";
+import {
+  scrollToEl,
+  scrollToY,
+  refreshScroll,
+  attachSmoothPort,
+  scrollPortTo,
+  refreshSmoothPort,
+} from "../../shared/smooth";
 import { streamHtml } from "../../shared/stream";
 import { endProgress, startProgress, stepProgress } from "../../shared/progress";
 import { articlePath, isPlainClick } from "../urls";
@@ -213,9 +220,9 @@ export default function ArticleScene({
   };
 
   /* Keep the active entry inside the TOC's own scrollport as the reader
-     moves down the article. The nav is a plain overflow container now, so
-     this is one call rather than a tween loop competing with a scroll
-     library. */
+     moves down the article. The rail carries its own smoothing instance
+     (see the effect below), so the move goes through scrollPortTo() the
+     way every page-level jump goes through scrollToY(). */
   const followActive = (btn: HTMLButtonElement) => {
     const nav = tocNavRef.current;
     if (!nav) return;
@@ -224,14 +231,24 @@ export default function ArticleScene({
     const pad = 6;
     if (bRect.top >= nRect.top + pad && bRect.bottom <= nRect.bottom - pad)
       return; // already visible
-    nav.scrollTo({
-      top:
-        nav.scrollTop +
-        (bRect.top - nRect.top) -
-        (nRect.height - bRect.height) / 2,
-      behavior: "smooth",
-    });
+    /* The rail's content changed since the last measurement (a language
+       swap rebuilds the list), so let the instance re-read its travel
+       before asking it to move. */
+    refreshSmoothPort(nav);
+    scrollPortTo(
+      nav,
+      nav.scrollTop + (bRect.top - nRect.top) - (nRect.height - bRect.height) / 2,
+    );
   };
+
+  /* The rail is a scrollbox of its own; give it the same wheel smoothing
+     the page has. Attached only once the rail is actually rendered — the
+     TOC is built from the streamed DOM, so on first paint it is empty. */
+  const hasTocRail = toc.length > 0;
+  useEffect(() => {
+    const nav = tocNavRef.current;
+    return nav ? attachSmoothPort(nav) : undefined;
+  }, [hasTocRail]);
 
   /* Body loading — on demand. A language swap does NOT blank the screen
      (no skeleton flash, no height collapse): the old-language body stays
@@ -840,12 +857,13 @@ export default function ArticleScene({
                   </button>
                 </p>
                 <div className="toc-scroll relative mt-[14px]">
-                  {/* data-lenis-prevent: the rail is its own scrollport.
-                      Without it Lenis would swallow the wheel over the
-                      TOC and scroll the article instead. */}
+                  {/* No data-lenis-prevent here: the rail runs its own
+                      smoothing instance (attachSmoothPort, above), and the
+                      page instance steps aside for it while it can scroll.
+                      The attribute would make both of them ignore the
+                      wheel over the rail. */}
                   <nav
                     ref={tocNavRef}
-                    data-lenis-prevent
                     className="toc-nav relative flex flex-col gap-[6px] border-l border-[var(--border)] pl-[14px] pr-[12px]"
                   >
                     <span
