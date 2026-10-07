@@ -1,119 +1,73 @@
-/* Site-wide preferences — one implementation for all five entries.
+/* Site-wide preferences — the store every entry reads.
+ *
+ * The resolution rule itself is not here: it lives once in ./prefs-boot, and
+ * vite.config.ts emits that same function into the <head> so the pre-paint
+ * script and this store cannot disagree. What this module adds on top is the
+ * mutable half — writing the choice down, keeping it in memory, and telling
+ * subscribers when it moves.
  *
  * Language and theme live in the same two localStorage keys the site has
  * always used (`blog-lang` / `blog-theme`), so a choice made on any page
- * follows the reader everywhere. Resolution order is:
- *
- *   localStorage  →  ?lang= / ?theme=  →  dark
- *
- * A stored choice outranks the URL. The override exists so a link can hand
- * the site to someone who has not picked a language yet; once they have
- * picked, pinning every visit to whatever a link happened to carry quietly
- * discards that pick — and since resolvePrefs runs again on every reload and
- * every cross-tab sync, the override would outlive the link that introduced
- * it. (The zh articles are path-routed at /blog/zh/<slug>/, so nothing that
- * needs a URL-forced language depends on this.) The theme falls back to dark
- * because the terminal direction is the site's default look; a reader who
- * wants daylight picks it once in the bar.
- * The inline pre-paint script in vite.config.ts mirrors this exactly —
- * keep the two in step.
+ * follows the reader everywhere.
  *
  * Framework-free by design: /projects is deliberately dependency-less
  * vanilla TS, so this module touches nothing but the DOM. React entries
  * use the thin `usePrefs` hook in ./prefs-react. */
 
-export type Lang = "en" | "zh";
-export type Theme = "light" | "dark";
+import { applyPrefs, bootPrefs, LANG_KEY, THEME_KEY } from "./prefs-boot";
+import type { Prefs } from "./prefs-boot";
 
-export interface Prefs {
-  lang: Lang;
-  theme: Theme;
-}
-
-const LANG_KEY = "blog-lang";
-const THEME_KEY = "blog-theme";
+export type { Lang, Prefs, Theme } from "./prefs-boot";
+export { LANG_KEY, THEME_KEY };
 
 const listeners = new Set<(p: Prefs) => void>();
 
 let current: Prefs | null = null;
 
-function read(key: string): string | null {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null; /* private mode / disabled storage */
-  }
-}
-
 function write(key: string, value: string): void {
   try {
     localStorage.setItem(key, value);
   } catch {
-    /* ignore — the preference still applies for this page load */
+    /* private mode / disabled storage — the setters still apply the choice
+       for this page load, they just cannot carry it to the next one. */
   }
-}
-
-function asLang(v: string | null | undefined): Lang | null {
-  return v === "en" || v === "zh" ? v : null;
-}
-
-function asTheme(v: string | null | undefined): Theme | null {
-  return v === "light" || v === "dark" ? v : null;
-}
-
-function urlOverride(): Partial<Prefs> {
-  try {
-    const q = new URLSearchParams(location.search);
-    return { lang: asLang(q.get("lang")) ?? undefined, theme: asTheme(q.get("theme")) ?? undefined };
-  } catch {
-    return {};
-  }
-}
-
-function resolvePrefs(): Prefs {
-  const ov = urlOverride();
-  return {
-    lang: asLang(read(LANG_KEY)) ?? ov.lang ?? "en",
-    theme: asTheme(read(THEME_KEY)) ?? ov.theme ?? "dark",
-  };
-}
-
-function apply(p: Prefs): void {
-  const root = document.documentElement;
-  root.lang = p.lang === "zh" ? "zh-Hans" : "en";
-  root.dataset.theme = p.theme;
 }
 
 /** Current preferences, computed once per page and then kept in memory. */
 export function getPrefs(): Prefs {
-  if (!current) current = resolvePrefs();
+  if (!current) current = bootPrefs();
   return current;
 }
 
-/** Write the attributes before first paint. Called at module scope by every entry. */
+/** Resolve and apply, as early in the entry as it can run. Called at module
+ * scope by every entry; on a cold load the inlined head copy has usually
+ * already painted these attributes, and this is what puts them in the store
+ * components subscribe to. */
 export function initPrefs(): Prefs {
-  current = resolvePrefs();
-  apply(current);
+  current = bootPrefs();
   return current;
 }
 
-export function setLang(lang: Lang): void {
-  current = { ...getPrefs(), lang };
-  apply(current);
+export function setLang(lang: Prefs["lang"]): void {
   write(LANG_KEY, lang);
+  /* Re-resolve rather than assume, so the other key and any URL override keep
+     their say; then override with the value just asked for, which is what
+     keeps the toggle live when storage refused to take it. */
+  current = { ...bootPrefs(), lang };
+  applyPrefs(current);
   emit();
 }
 
-export function setTheme(theme: Theme): void {
-  current = { ...getPrefs(), theme };
-  apply(current);
+export function setTheme(theme: Prefs["theme"]): void {
   write(THEME_KEY, theme);
+  current = { ...bootPrefs(), theme };
+  applyPrefs(current);
   emit();
 }
 
 /** Flip the theme through a short colour cross-fade. */
 export function toggleTheme(): void {
-  const next: Theme = getPrefs().theme === "dark" ? "light" : "dark";
+  const next = getPrefs().theme === "dark" ? "light" : "dark";
   const reduced = (() => {
     try {
       return matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -147,11 +101,16 @@ export function subscribePrefs(fn: (p: Prefs) => void): () => void {
  * their choice, not the reverse. Only a reader without a stored choice
  * adopts the language a shared article URL carries. */
 export function hasStoredLang(): boolean {
-  return asLang(read(LANG_KEY)) !== null;
+  try {
+    const v = localStorage.getItem(LANG_KEY);
+    return v === "en" || v === "zh";
+  } catch {
+    return false;
+  }
 }
 
 /** Pick between two strings by language. */
-export function pick<T>(lang: Lang, en: T, zh: T): T {
+export function pick<T>(lang: Prefs["lang"], en: T, zh: T): T {
   return lang === "zh" ? zh : en;
 }
 
@@ -159,8 +118,7 @@ export function pick<T>(lang: Lang, en: T, zh: T): T {
 try {
   addEventListener("storage", (e) => {
     if (e.key !== LANG_KEY && e.key !== THEME_KEY) return;
-    current = resolvePrefs();
-    apply(current);
+    current = bootPrefs();
     emit();
   });
 } catch {

@@ -11,6 +11,12 @@ import {
 } from "./src/data/parsePost.ts";
 import type { JournalPost } from "./src/data/journal.ts";
 import { worksIndexPlugin } from "./src/photos/build/worksIndexPlugin.ts";
+import {
+  applyPrefs,
+  bootPrefs,
+  LANG_KEY,
+  THEME_KEY,
+} from "./src/shared/prefs-boot.ts";
 
 /* Each SPA entry (main /about /blog /projects /photos) fallbacks its own
    paths, but Vite's built-in dev/preview server only knows the root
@@ -109,9 +115,33 @@ function subSiteEntryFallbackPlugin() {
    so they are injected from here instead — each file keeps only its own
    title / description / canonical / OG.
 
-   The inline script mirrors src/shared/prefs.ts exactly (same keys, same
-   precedence). Keep the two in step. */
-const HEAD_INIT = `<script>(function(){try{var q=new URLSearchParams(location.search);var t=localStorage.getItem("blog-theme");if(t!=="dark"&&t!=="light"){var u=q.get("theme");t=(u==="dark"||u==="light")?u:"dark";}document.documentElement.dataset.theme=t;var l=localStorage.getItem("blog-lang");if(l!=="en"&&l!=="zh"){var v=q.get("lang");l=(v==="en"||v==="zh")?v:null;}document.documentElement.lang=l==="zh"?"zh-Hans":"en";}catch(e){document.documentElement.dataset.theme="dark"}})();</script>`;
+   The preference script is not a hand-written copy of the rule: it is
+   src/shared/prefs-boot's own functions, stringified. The app bundle is a
+   deferred module script, so something has to paint <html> before it lands —
+   but that something is now the same code, not a transcription of it. */
+
+/* bootPrefs may only reference its sibling applyPrefs (see the note at the top
+   of that file), so emitting both declarations into one IIFE and calling the
+   resolver is the whole contract. */
+const BOOT_SOURCE = `${applyPrefs.toString()}
+${bootPrefs.toString()}
+bootPrefs();`;
+
+/* The keys are literals inside bootPrefs because toString() cannot capture a
+   module binding. That is the one place the two copies could still drift, so
+   fail the build here rather than ship a head script that reads a key the
+   store no longer writes. */
+for (const key of [LANG_KEY, THEME_KEY]) {
+  if (!new RegExp(`["'\`]${key}["'\`]`).test(BOOT_SOURCE)) {
+    throw new Error(
+      `[head-init] bootPrefs() no longer reads "${key}" — the pre-paint script ` +
+        `and src/shared/prefs would silently disagree. Update the literals in ` +
+        `src/shared/prefs-boot.ts to match the exported constant.`,
+    );
+  }
+}
+
+const HEAD_INIT = `<script>(function(){${BOOT_SOURCE}})();</script>`;
 
 /* Pre-paint cover for the pixel navigation curtain: when the previous
    page covered itself before jumping here, this must be on the very
