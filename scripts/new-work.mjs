@@ -40,6 +40,12 @@ const parseArgs = (argv) => {
   return out;
 };
 
+/* A flag given with nothing after it parses to the boolean sentinel, and only
+   --featured is meant to be valueless. Reading the sentinel as a value is how
+   `--slug` sailed past isValidSlug ("true" is a legal slug, then crashed in
+   join()) and how `--cover` wrote `cover: true` into the frontmatter. */
+const strArg = (args, k) => (typeof args[k] === "string" ? args[k] : "");
+
 const parseCategories = async () => {
   // Reads the canonical { id, label, labelZh } entries from categories.ts.
   // If the schema changes, update this regex to match.
@@ -119,7 +125,7 @@ const main = async () => {
   };
 
   // --- slug ---
-  let slug = args.slug;
+  let slug = strArg(args, "slug");
   if (!slug && rl) slug = (await prompt(rl, "Slug (lowercase, hyphens; used in URL)")).toLowerCase();
   if (!slug) { console.error("Error: --slug is required (or run interactively in a TTY)."); process.exit(1); }
   if (!isValidSlug(slug)) { console.error(`Error: invalid slug "${slug}". Use lowercase letters, digits, hyphens.`); process.exit(1); }
@@ -147,7 +153,7 @@ const main = async () => {
   await mkdir(pubDir, { recursive: true });
   await writeFile(join(pubDir, ".gitkeep"), "");
   const imgs = await detectImages(pubDir);
-  let cover = args.cover;
+  let cover = strArg(args, "cover");
   let gallery = [];
   if (!cover && imgs.length) {
     cover = `works/${slug}/${imgs[0]}`;
