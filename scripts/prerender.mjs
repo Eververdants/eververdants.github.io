@@ -597,7 +597,11 @@ function writeRobots() {
 
 function writeRss(posts) {
   const buildDate = new Date().toUTCString();
-  const items = posts
+  /* Newest first: parsePosts() returns readdir order, which left the newest
+     essay fifth in the feed — and a reader that shows the head of a feed
+     never saw it. Dates are YYYY.MM.DD, so lexical is chronological. */
+  const items = [...posts]
+    .sort((a, b) => b.date.localeCompare(a.date))
     .map((p) => {
       const d = new Date(p.date.replace(/\./g, "-") + "T00:00:00Z");
       const pub = isNaN(d.getTime()) ? buildDate : d.toUTCString();
