@@ -436,6 +436,12 @@ export default function ArticleScene({
     if (!content) return;
     const pres = content.querySelectorAll<HTMLElement>("pre");
     const buttons: HTMLButtonElement[] = [];
+    /* A deep link adopts the prerendered body as the initial html — and a
+       static page built by an older prerender carries the copy buttons
+       that render's runtime injected. They are dead markup (no listeners
+       survive serialization) that still looks clickable, so strip every
+       one before wiring the fresh, live set. */
+    content.querySelectorAll(".code-copy").forEach((b) => b.remove());
     const copyIcon =
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
     const checkIcon =
