@@ -447,8 +447,12 @@ class SitePalette extends HTMLElement {
         row.setAttribute("role", "option");
         row.setAttribute("aria-selected", "false");
         row.id = `palette-row-${n}`;
-        const href =
-          lang === "zh" && item.urlZh ? item.urlZh : item.url;
+        /* Escaped like every other interpolation in this row: a quote in a
+           generated URL closed the attribute and let the remainder add live
+           attributes to the anchor. */
+        const href = escapeHtml(
+          lang === "zh" && item.urlZh ? item.urlZh : item.url,
+        );
         row.innerHTML =
           `<a href="${href}"${item.external ? ' target="_blank" rel="noreferrer"' : ""} tabindex="-1">` +
           `<span class="palette__title">${markTerms(item.title[lang], terms)}</span>` +
