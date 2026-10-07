@@ -4,7 +4,11 @@ import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { parsePostMeta, stripMarkdown } from "./src/data/parsePost.ts";
+import {
+  parseFrontmatter,
+  parsePostMeta,
+  stripMarkdown,
+} from "./src/data/parsePost.ts";
 import type { JournalPost } from "./src/data/journal.ts";
 import { worksIndexPlugin } from "./src/photos/build/worksIndexPlugin.ts";
 
@@ -248,17 +252,21 @@ function buildBlogIndex(): BlogIndex {
     const isZh = name.endsWith(".zh.md");
     const slug = name.replace(/\.zh\.md$/, "").replace(/\.md$/, "");
     const raw = readFileSync(file, "utf8");
-    // The glob path as seen from src/data (where articles.ts lives), using
-    // forward slashes — must match the import.meta.glob keys exactly.
+    /* The glob path as seen from src/data (where articles.ts lives), using
+       forward slashes — must match the import.meta.glob keys exactly. */
     const rel = relative(DATA_DIR, file).replace(/\\/g, "/");
+    /* Body only: stripMarkdown(raw) would index the frontmatter too, so a
+       query for "2026" or a sources URL matched every essay that merely
+       cites it, not the one that discusses it. */
+    const searchable = stripMarkdown(parseFrontmatter(raw).body);
     if (isZh) {
       zhRaw[slug] = raw;
       paths.zh[slug] = rel;
-      search.zh[slug] = stripMarkdown(raw);
+      search.zh[slug] = searchable;
     } else {
       enRaw[slug] = raw;
       paths.en[slug] = rel;
-      search.en[slug] = stripMarkdown(raw);
+      search.en[slug] = searchable;
     }
   }
 
