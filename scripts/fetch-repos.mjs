@@ -43,14 +43,31 @@ const FIELDS = [
 ].join(",");
 
 function loadCuration() {
+  let text;
   try {
-    return JSON.parse(readFileSync(CURATION, "utf8"));
-  } catch {
-    console.warn(
-      "[fetch-repos] 未找到 curation.json，仅使用 GitHub 原始数据。",
-    );
-    return {};
+    text = readFileSync(CURATION, "utf8");
+  } catch (e) {
+    /* 文件本来就不存在 —— 没有精选数据可用，属正常情况。 */
+    if (e.code === "ENOENT") return {};
+    console.warn(`[fetch-repos] 读取 curation.json 失败（${e.message}）—— 中止。`);
+    return null;
   }
+  /* 存在却解析不出来是另一回事。一个语法错误若被当成“没有精选”，
+     featured / tag / thumb / blurb 会整体从写入的数据里消失，精选区随之
+     变空，而 CI 会把这份残缺结果提交进仓库 —— 宁可失败也不静默降级，
+     与上面 0 仓库那条守卫同一立场。 */
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (e) {
+    console.warn(`[fetch-repos] curation.json 不是合法 JSON（${e.message}）—— 中止。`);
+    return null;
+  }
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    console.warn("[fetch-repos] curation.json 顶层必须是对象 —— 中止。");
+    return null;
+  }
+  return parsed;
 }
 
 function normalizeRepos(raw) {
@@ -133,6 +150,8 @@ function main() {
   }
 
   const curation = loadCuration();
+  /* null = 精选文件坏了。不写入，旧 repos.json 原样保留。 */
+  if (!curation) process.exit(1);
   const repos = normalizeRepos(raw).map((r) => {
     const c = curation[r.name];
     if (!c) return r;
