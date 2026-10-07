@@ -31,19 +31,30 @@ function hash32(s: string): number {
   return h >>> 0;
 }
 
-/** true = inked cell. Bit i of the hash decides column-major cell i. */
+/* FNV-1a barely avalanches into its low bits, and bitmap() reads only three
+   of them. Without this finalizer the cells of similar slugs agree with each
+   other and 5,000 distinct slugs collapse into 8 distinct marks. */
+function avalanche(h: number): number {
+  h ^= h >>> 16;
+  h = Math.imul(h, 0x7feb352d);
+  h ^= h >>> 15;
+  h = Math.imul(h, 0x846ca68b);
+  h ^= h >>> 16;
+  return h >>> 0;
+}
+
+/** true = inked cell. Each cell hashes its own position, so no cell can run
+ * the entropy dry for the ones after it. */
 function bitmap(seed: string): boolean[][] {
-  let h = hash32(seed);
   const grid: boolean[][] = [];
   for (let x = 0; x < HALF; x++) {
     grid[x] = [];
     for (let y = 0; y < CELLS; y++) {
-      const bit = h & 1;
-      h >>>= 1;
-      /* ~45% fill. A sparse grid reads as noise, a dense one as a blob;
-         this is the range where it reads as a mark. */
-      grid[x][y] = bit === 1 && (h & 3) !== 0;
-      h >>>= 2;
+      /* ~37% fill: the low bit gates off half the cells, and the pair above
+         it a quarter of the rest. A sparse grid reads as noise, a dense one
+         as a blob; this is the range where it reads as a mark. */
+      const h = avalanche(hash32(`${seed}:${x}:${y}`));
+      grid[x][y] = (h & 1) === 1 && (h & 6) !== 0;
     }
   }
   /* Mirror the left half onto the right — symmetry is what makes it read
