@@ -76,12 +76,6 @@
       "description": "A Windows audio routing tool — point each application's sound at the device you want, with automatic refresh and route memory across sessions. / Windows 音频路由工具：把每个应用的声音指向指定设备，支持自动刷新与会话间路由记忆。",
       "tags": ["Python", "Windows", "Audio"],
       "url": "https://github.com/Eververdants/AppAudioRouter"
-    },
-    {
-      "name": "ArtText-Studio",
-      "description": "Turn words into shareable visual masterpieces — hundreds of procedurally generated styles, or let AI match the vibe. Code and design in one tool. / 把文字变成可分享的视觉作品：数百种程序化生成风格，或让 AI 匹配氛围，代码与设计一体。",
-      "tags": ["TypeScript", "Canvas", "Creative"],
-      "url": "https://github.com/Eververdants/ArtText-Studio"
     }
   ],
   "blog": {
