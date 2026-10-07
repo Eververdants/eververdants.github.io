@@ -175,6 +175,12 @@ const SHARED_HEAD = [
   HEAD_INIT,
   HEAD_COVER,
   `<meta name="author" content="Eververdants" />`,
+  /* Site-ownership verification — Bing Webmaster Tools + Google Search
+     Console. These used to live only in index.html, so a scan or a manual
+     URL inspection landing on any of the four other entries saw an
+     unverified site; the shared head puts the tags on all five. */
+  `<meta name="msvalidate.01" content="6E812B9E268DCCB7FC13E8A37E05E18E" />`,
+  `<meta name="google-site-verification" content="FTXei9pdQMxafwdts0GikxDynEvMIWVEHG_-FwGzlbs" />`,
   `<meta name="robots" content="max-image-preview:large" />`,
   `<meta name="theme-color" content="#060608" />`,
   `<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f3ee" />`,
