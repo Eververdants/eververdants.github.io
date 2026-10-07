@@ -145,12 +145,20 @@ function parsePosts() {
     };
     const slug = kv("slug");
     if (!slug) continue;
+    /* topics: [society, history] — the ids the topic pages are keyed by, so
+       each topic's sitemap lastmod can be derived from its own newest post. */
+    const topics = kv("topics")
+      .replace(/^\[|\]$/g, "")
+      .split(",")
+      .map((s) => s.trim().replace(/^["']|["']$/g, ""))
+      .filter(Boolean);
     posts.set(slug, {
       slug,
       title: kv("title").replace(/\\n/g, " "),
       category: kv("category"),
       date: kv("date"),
       excerpt: kv("excerpt").replace(/\\n/g, " "),
+      topics,
     });
   }
   return [...posts.values()];
@@ -530,11 +538,42 @@ async function renderBlogIndex(chromePath) {
 }
 
 function writeSitemap(posts, works, topicIds = []) {
-  const today = new Date().toISOString().slice(0, 10);
-  /* /resume, /selected and /selected-blog used to be scroll positions inside
+  /* lastmod is only a useful hint if engines can trust it — Google's docs
+     say they use it when it is "consistently and verifiably accurate", and
+     Bing behaves the same. Stamping every URL with the build date made the
+     value change on every deploy (the nightly repos-refresh cron redeploys
+     daily with unchanged content), teaching both engines the date means
+     nothing. Derive each entry's date from the content it actually serves:
+       - articles & works: their own frontmatter date (posts YYYY.MM.DD,
+         works may be month-precision YYYY-MM — both normalize to the W3C
+         truncated forms the sitemap schema allows)
+       - /blog/ and /photos/: the newest date their lists can show
+       - / and /about/: the newest content date anywhere on the site —
+         stable across no-change deploys; /about/ carries no dated content
+         of its own, so the site-wide max is the closest honest proxy
+       - /projects/: the build date, honestly — repos.json is refreshed by
+         the daily cron, so this page genuinely changes every day
+       - topics: the newest post filed under that topic
+     /resume, /selected and /selected-blog used to be scroll positions inside
      the old single-page deck. They are now redirect stubs (see
      scripts/postbuild.mjs) and deliberately stay out of the sitemap — a
      sitemap should list destinations, not hops. */
+  const today = new Date().toISOString().slice(0, 10);
+  const norm = (raw, fallback = "") => {
+    const d = String(raw || "").replace(/\./g, "-").trim();
+    return /^\d{4}-\d{2}(-\d{2})?$/.test(d) ? d : fallback;
+  };
+  const maxDate = (arr) => arr.reduce((a, b) => (b > a ? b : a), "");
+  const latestPost = maxDate(posts.map((p) => norm(p.date)).filter(Boolean)) || today;
+  const latestWork = maxDate(works.map((w) => norm(w.date)).filter(Boolean)) || today;
+  const contentDate = maxDate([latestPost, latestWork].filter(Boolean)) || today;
+  const topicDate = (id) =>
+    maxDate(
+      posts
+        .filter((p) => (p.topics ?? []).includes(id))
+        .map((p) => norm(p.date))
+        .filter(Boolean),
+    ) || contentDate;
   const alt = (en, zh) =>
     [
       `<xhtml:link rel="alternate" hreflang="en" href="${en}"/>`,
@@ -542,17 +581,17 @@ function writeSitemap(posts, works, topicIds = []) {
       `<xhtml:link rel="alternate" hreflang="x-default" href="${en}"/>`,
     ].join("");
   const urls = [
-    `<url><loc>${SITE}/</loc><lastmod>${today}</lastmod><priority>1.0</priority></url>`,
-    `<url><loc>${SITE}/about/</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`,
+    `<url><loc>${SITE}/</loc><lastmod>${contentDate}</lastmod><priority>1.0</priority></url>`,
+    `<url><loc>${SITE}/about/</loc><lastmod>${contentDate}</lastmod><priority>0.8</priority></url>`,
     `<url><loc>${SITE}/projects/</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`,
-    `<url><loc>${SITE}/photos/</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`,
-    `<url><loc>${SITE}/blog/</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`,
+    `<url><loc>${SITE}/photos/</loc><lastmod>${latestWork}</lastmod><priority>0.8</priority></url>`,
+    `<url><loc>${SITE}/blog/</loc><lastmod>${latestPost}</lastmod><priority>0.7</priority></url>`,
     ...topicIds.map(
       (id) =>
-        `<url><loc>${SITE}/blog/topic/${id}/</loc><lastmod>${today}</lastmod><priority>0.6</priority></url>`,
+        `<url><loc>${SITE}/blog/topic/${id}/</loc><lastmod>${topicDate(id)}</lastmod><priority>0.6</priority></url>`,
     ),
     ...posts.flatMap((p) => {
-      const lastmod = p.date.replace(/\./g, "-");
+      const lastmod = norm(p.date, today);
       const en = `${SITE}/blog/${p.slug}/`;
       const zh = `${SITE}/blog/zh/${p.slug}/`;
       return [
@@ -561,10 +600,12 @@ function writeSitemap(posts, works, topicIds = []) {
       ];
     }),
     ...works.map((w) => {
+      /* Covers are stored root-relative without a leading slash; strip one
+         anyway so a future frontmatter edit can't mint a `//` URL. */
       const image = w.cover
-        ? `<image:image><image:loc>${SITE}/${w.cover}</image:loc><image:title>${esc(w.title)}</image:title></image:image>`
+        ? `<image:image><image:loc>${SITE}/${String(w.cover).replace(/^\//, "")}</image:loc><image:title>${esc(w.title)}</image:title></image:image>`
         : "";
-      return `<url><loc>${SITE}/photos/work/${w.slug}/</loc><lastmod>${today}</lastmod>${image}<priority>0.7</priority></url>`;
+      return `<url><loc>${SITE}/photos/work/${w.slug}/</loc><lastmod>${norm(w.date, today)}</lastmod>${image}<priority>0.7</priority></url>`;
     }),
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${urls
