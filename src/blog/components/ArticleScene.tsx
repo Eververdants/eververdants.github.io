@@ -87,9 +87,12 @@ export default function ArticleScene({
   const prevSlugRef = useRef(slug);
   const [toc, setToc] = useState<TocItem[]>([]);
   /* Share feedback. "done" / "link" are the two transient confirmations;
-     the button label swaps for 2s and then reverts, so the reader is
-     told something happened without a toast layer. */
-  const [shared, setShared] = useState<"idle" | "done" | "link">("idle");
+     "failed" is the honest counterpart — the button label swaps for 2s and
+     then reverts, so the reader is told something happened without a toast
+     layer. */
+  const [shared, setShared] = useState<"idle" | "done" | "link" | "failed">(
+    "idle",
+  );
   const [lightbox, setLightbox] = useState<{
     src: string;
     alt: string;
@@ -635,7 +638,7 @@ export default function ArticleScene({
      a clipboard copy everywhere else. Both are "share", so they live on
      one row and neither is ever the only way to get a link — the URL bar
      is still there. */
-  const flash = (state: "done" | "link") => {
+  const flash = (state: "done" | "link" | "failed") => {
     setShared(state);
     window.setTimeout(() => setShared("idle"), 2200);
   };
@@ -658,9 +661,11 @@ export default function ArticleScene({
         await navigator.clipboard.writeText(url);
         flash("done");
       } catch {
-        /* Clipboard blocked (insecure context, permissions): leaving the
-           label unchanged would look like a dead button. */
-        flash("link");
+        /* Clipboard blocked (insecure context, permissions): say so on the
+           button that was pressed. Flashing the copy-link button's label
+           claimed "Copied" for a copy that never happened — and on a
+           button the reader had not touched. */
+        flash("failed");
       }
     }
   };
@@ -751,7 +756,11 @@ export default function ArticleScene({
                 onClick={share}
                 className="tracking-[0.2em] text-[var(--muted)] transition-colors hover:text-[var(--accent)]"
               >
-                {shared === "done" ? t.shared : t.share}
+                {shared === "done"
+                  ? t.shared
+                  : shared === "failed"
+                    ? t.copyFailed
+                    : t.share}
               </button>
               <button
                 type="button"
