@@ -39,10 +39,15 @@ export default function TopicScene({
   useEffect(() => {
     if (!topic) return;
     const name = topic.name[lang];
+    /* Trailing slash on every URL: the sitemap, the prerendered page and
+       this live head must name the same address, and GitHub Pages serves
+       the directory form (/blog/topic/<id>/) — a slashless canonical would
+       point crawlers at a 301 hop. */
+    const topicPath = `/blog/topic/${topic.id}/`;
     applyHead({
       title: `${name} — ${pick(lang, "Blog", "博客")} — Eververdants`,
       description: topic.slogan[lang],
-      path: `/blog/topic/${topic.id}`,
+      path: topicPath,
       ogType: "website",
       locale: lang === "zh" ? "zh_CN" : "en_US",
       lang,
@@ -52,7 +57,7 @@ export default function TopicScene({
           "@type": "CollectionPage",
           name,
           description: topic.slogan[lang],
-          url: `${SITE}/blog/topic/${topic.id}`,
+          url: `${SITE}${topicPath}`,
           inLanguage: lang === "zh" ? "zh-Hans" : "en",
           isPartOf: {
             "@type": "WebSite",
@@ -73,7 +78,7 @@ export default function TopicScene({
         breadcrumbLd([
           { name: "Eververdants", path: "/" },
           { name: pick(lang, "Blog", "博客"), path: "/blog/" },
-          { name, path: `/blog/topic/${topic.id}` },
+          { name, path: topicPath },
         ]),
       ],
     });
