@@ -44,15 +44,22 @@ jobs:
           for f in sitemap.xml robots.txt rss.xml search.json site.json posts.json works.json llms-full.txt llms.txt 404.html sw.js; do
             if [ -s "dist/$f" ]; then echo "ok   dist/$f"; else echo "MISS dist/$f"; missing=1; fi
           done
-          articles=$(find dist/blog -mindepth 1 -maxdepth 1 -type d ! -name zh ! -name topic | wc -l)
-          zh=$(find dist/blog/zh -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)
-          topics=$(find dist/blog/topic -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)
+          # { ... || true; } rather than a bare find: pipefail propagates find's
+          # non-zero status when the starting path is missing, and set -e then
+          # aborts the step at the assignment -- which is exactly the case this
+          # step exists to report. Guarded, the count reads 0 and the checks
+          # below still run.
+          articles=$( { find dist/blog -mindepth 1 -maxdepth 1 -type d ! -name zh ! -name topic 2>/dev/null || true; } | wc -l )
+          zh=$( { find dist/blog/zh -mindepth 1 -maxdepth 1 -type d 2>/dev/null || true; } | wc -l )
+          topics=$( { find dist/blog/topic -mindepth 1 -maxdepth 1 -type d 2>/dev/null || true; } | wc -l )
           echo "prerendered article dirs: en=$articles zh=$zh topics=$topics"
           if [ "$articles" -lt 6 ] || [ "$zh" -lt 6 ]; then
             echo "::error::prerender produced fewer article pages than expected — headless Chrome likely unavailable or the pass crashed"
             missing=1
           fi
-          if grep -q 'rel="canonical"' dist/404.html; then
+          # 2>/dev/null: an absent 404.html was already reported by the loop
+          # above, so grep's own complaint is just noise on the failure path.
+          if grep -q 'rel="canonical"' dist/404.html 2>/dev/null; then
             echo "::error::404.html still carries a canonical — it will be treated as a duplicate of the homepage"
             missing=1
           fi
