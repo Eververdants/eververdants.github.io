@@ -1015,7 +1015,7 @@ export default function ArticleScene({
                 {related.map((r) => (
                   <a
                     key={r.slug}
-                    href={`/blog/${r.slug}/`}
+                    href={articlePath(r.slug, lang)}
                     onClick={(e) => {
                       if (!isPlainClick(e)) return;
                       e.preventDefault();
@@ -1040,7 +1040,7 @@ export default function ArticleScene({
         <nav className="mt-[clamp(40px,7vh,64px)] grid gap-4 border-t border-[var(--border)] pt-[clamp(24px,4vh,40px)] sm:grid-cols-2">
           {prev ? (
             <a
-              href={`/blog/${prev.slug}/`}
+              href={articlePath(prev.slug, lang)}
               onClick={(e) => {
                 if (!isPlainClick(e)) return;
                 e.preventDefault();
@@ -1060,7 +1060,7 @@ export default function ArticleScene({
           )}
           {next ? (
             <a
-              href={`/blog/${next.slug}/`}
+              href={articlePath(next.slug, lang)}
               onClick={(e) => {
                 if (!isPlainClick(e)) return;
                 e.preventDefault();

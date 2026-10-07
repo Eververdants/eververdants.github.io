@@ -15,6 +15,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { getLatest } from "../data/articles";
+import { articlePath } from "../blog/urls";
 import { resume } from "../data/resume";
 import { getWorks } from "../photos/data/works";
 import reposFile from "../projects/data/repos.json";
@@ -212,7 +213,7 @@ export default function Hub() {
               <ul className="feed">
                 {posts.slice(0, 3).map((p) => (
                   <li key={p.slug}>
-                    <a className="feed__row" href={`/blog/${p.slug}/`}>
+                    <a className="feed__row" href={articlePath(p.slug, lang)}>
                       <span className="feed__title">{inline(p.title)}</span>
                       <span className="feed__meta num">
                         {shortDate(p.date)}

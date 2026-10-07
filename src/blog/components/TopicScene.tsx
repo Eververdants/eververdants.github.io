@@ -4,6 +4,7 @@ import { getDeck } from "../../data/articles";
 import { usePrefs } from "../../shared/prefs-react";
 import { pick } from "../../shared/prefs";
 import { applyHead, breadcrumbLd, SITE } from "../../shared/seo";
+import { articlePath } from "../urls";
 import { ui } from "../copy";
 import PostList from "./PostList";
 
@@ -64,7 +65,7 @@ export default function TopicScene({
             itemListElement: posts.map((p, i) => ({
               "@type": "ListItem",
               position: i + 1,
-              url: `${SITE}/blog/${p.slug}/`,
+              url: `${SITE}${articlePath(p.slug, lang)}`,
               name: p.title.split("\n").join(" "),
             })),
           },

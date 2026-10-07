@@ -6,7 +6,7 @@ import { usePrefs } from "../../shared/prefs-react";
 import { pick } from "../../shared/prefs";
 import { applyHead, breadcrumbLd, websiteLd, SITE } from "../../shared/seo";
 import { ui } from "../copy";
-import { isPlainClick } from "../urls";
+import { articlePath, isPlainClick } from "../urls";
 import PostList from "./PostList";
 
 /* Blog index — the archive at /blog.
@@ -169,7 +169,7 @@ export default function BlogIndexScene({
             itemListElement: deck.map((p, i) => ({
               "@type": "ListItem",
               position: i + 1,
-              url: `${SITE}/blog/${p.slug}/`,
+              url: `${SITE}${articlePath(p.slug, lang)}`,
               name: p.title.split("\n").join(" "),
             })),
           },

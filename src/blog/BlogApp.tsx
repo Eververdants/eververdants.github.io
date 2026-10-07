@@ -19,7 +19,7 @@ import BackToTop from "./components/BackToTop";
 import BlogIndexScene from "./components/BlogIndexScene";
 import TopicScene from "./components/TopicScene";
 import { topicById } from "../data/journal";
-import { setLang, usePrefs } from "../shared/prefs-react";
+import { setLang, usePrefs, hasStoredLang } from "../shared/prefs-react";
 import { defineTopBar } from "../shared/topbar";
 import { definePalette } from "../shared/palette";
 import { articlePath, BLOG, parseView, topicPath } from "./urls";
@@ -33,31 +33,39 @@ export default function BlogApp() {
   const { lang } = usePrefs();
   const [view, setView] = useState<BlogView>(() => parseView(location.pathname));
 
-  /* An article's language is owned by its URL, and the two effects below have
-     to agree on who moves first.
+  /* An article's language is part of its URL, but the reader's stored choice
+     owns the site: a reader who picked a language keeps it on every page,
+     and the URL follows them — the other direction would let any English
+     article link (an old bookmark, a history entry, a feed row) silently
+     rewrite the choice they made on the hub. The one exception is a reader
+     who has never chosen: for them a shared /blog/zh/<slug>/ link IS the
+     language request, so the URL's language is adopted site-wide.
 
-     The bug this replaces: the "adopt the URL's language" effect depended on
-     [view, lang], so it re-ran after every language change and forced the
-     store back to whatever the URL said — which meant the top bar's 中/EN
-     toggle did nothing at all on an essay. It now fires once per route,
-     tracked by a ref, and the toggle effect moves the route *and* the URL
-     together so nothing pushes the language back. */
+     The two effects below have to agree on who moves first. The bug this
+     replaces: the adopt effect depended on [view, lang], so it re-ran after
+     every language change and forced the store back to whatever the URL
+     said — which meant the top bar's 中/EN toggle did nothing at all on an
+     essay. It now fires once per route, tracked by a ref, and the toggle
+     effect moves the route *and* the URL together so nothing pushes the
+     language back. */
   const routeKey =
     view.kind === "article" ? `${view.slug}:${view.lang}` : "";
   const adoptedRoute = useRef<string | null>(null);
 
-  /* Arriving at /blog/zh/<slug>/ means the reader wants Chinese — adopt it as
-     the site language instead of showing a Chinese essay under English chrome. */
+  /* First arrival at an essay by a reader with no stored language: adopt the
+     URL's language instead of showing a Chinese essay under English chrome. */
   useEffect(() => {
     if (view.kind !== "article") return;
     if (adoptedRoute.current === routeKey) return;
     adoptedRoute.current = routeKey;
-    if (view.lang !== lang) setLang(view.lang);
+    if (!hasStoredLang() && view.lang !== lang) setLang(view.lang);
   }, [view, routeKey, lang]);
 
-  /* The reverse: toggling language inside an essay moves the route and the
-     address bar to that language's own URL, so the page you are reading is
-     the page you just shared. */
+  /* The reverse: whenever the open essay's URL language differs from the site
+     language — the reader toggled inside an essay, or arrived at a link in
+     their non-preferred language — the view and the address bar move to
+     their language's own URL, so the page being read is the page a share
+     would re-open for someone with the same preference. */
   useEffect(() => {
     if (view.kind !== "article" || view.lang === lang) return;
     adoptedRoute.current = `${view.slug}:${lang}`;
