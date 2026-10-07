@@ -98,12 +98,28 @@ function isSafeHref(href: string): boolean {
    Applied to plain text only, never to the markup a previous mark produced
    (see inline()). */
 function marks(text: string): string {
-  return text
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
+  /* Code spans are held out first. Converting them in place would leave the
+     `<code>` tags themselves in front of the emphasis rules, which then
+     italicised the underscore in `snake_case_name` and tore the tag apart.
+     U+0001 is not a character article prose carries, and the placeholder is
+     digit-only, so it survives the mark pass untouched. */
+  const codes: string[] = [];
+  const held = text.replace(/`([^`]+)`/g, (_m, code: string) => {
+    codes.push(`<code>${code}</code>`);
+    return `\u0001${codes.length - 1}\u0001`;
+  });
+  /* Underscore marks carry a word-boundary rule the asterisk marks do not
+     need: identifiers and bare URLs are full of intra-word underscores, and
+     an asterisk never appears inside one. */
+  const marked = held
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/__([^_]+)__/g, "<strong>$1</strong>")
     .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-    .replace(/_([^_]+)_/g, "<em>$1</em>");
+    .replace(/(^|[^\w])__([^_]+)__(?!\w)/g, "$1<strong>$2</strong>")
+    .replace(/(^|[^\w])_([^_]+)_(?!\w)/g, "$1<em>$2</em>");
+  return marked.replace(
+    /\u0001(\d+)\u0001/g,
+    (m, i: string) => codes[Number(i)] ?? m,
+  );
 }
 
 /* Inline marks run on already-escaped text, so interpolated matches are
