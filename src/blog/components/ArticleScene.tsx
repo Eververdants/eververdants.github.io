@@ -572,6 +572,9 @@ export default function ArticleScene({
           "@type": "BlogPosting",
           headline: title,
           description: post.excerpt || undefined,
+          /* Google's Article structured-data docs expect an image on the
+             node itself (not just og:image) for the rich-result pass. */
+          image: `${SITE}/og-image.jpg`,
           datePublished: iso,
           dateModified: iso,
           inLanguage: lang === "zh" ? "zh-Hans" : "en",
