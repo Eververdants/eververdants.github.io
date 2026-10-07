@@ -351,8 +351,10 @@ const full = [
   [
     `${SITE}/                 Navigation hub`,
     `${SITE}/about/           Background, study, awards, working with me`,
-    `${SITE}/blog/            Essay archive (English)`,
-    `${SITE}/blog/zh/         Essay archive (Chinese; each essay has its own URL)`,
+    // /blog/zh/ has no page behind it — the Chinese essays are one URL per
+    // essay, and every one of them is listed under 随笔（中文）below.
+    // Advertising the bare directory sent models to a 404.
+    `${SITE}/blog/            Essay archive, both languages (see the lists below)`,
     `${SITE}/projects/        Open-source works index, synced from GitHub`,
     `${SITE}/photos/          Photo journal`,
   ].join("\n"),
