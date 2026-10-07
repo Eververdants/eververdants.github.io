@@ -95,9 +95,17 @@ function sanitizeMotion(html) {
          transition (a duplicate name is invalid) — which is exactly the
          "instant swap" the ring is supposed to replace. #fx-cursor is
          the same story with a stuck square left parked mid-page. Both
-         are empty divs, so a tag-level match is safe. */
+         are empty divs, so a tag-level match is safe.
+         #px-progress is reused by progress.ts on a real load, but it is
+         this render's leftover state, not page content — and the
+         snapshot can catch its fill mid-sweep. The code-copy buttons are
+         worse: ArticleScene's mount effect injects fresh, listener-wired
+         buttons into every <pre>, so a baked set would leave TWO buttons
+         per code block on a deep link, one of them dead. Neither ships. */
       .replace(/<div id="px-ring"[^>]*><\/div>/g, "")
       .replace(/<div id="fx-cursor"[^>]*><\/div>/g, "")
+      .replace(/<div id="px-progress"[^>]*>[\s\S]*?<\/div>/g, "")
+      .replace(/<button[^>]*class="code-copy"[^>]*>[\s\S]*?<\/button>/g, "")
   );
 }
 
