@@ -111,7 +111,7 @@ function subSiteEntryFallbackPlugin() {
 
    The inline script mirrors src/shared/prefs.ts exactly (same keys, same
    precedence). Keep the two in step. */
-const HEAD_INIT = `<script>(function(){try{var q=new URLSearchParams(location.search);var t=q.get("theme");t=(t==="dark"||t==="light")?t:localStorage.getItem("blog-theme");if(t===null)t="dark";document.documentElement.dataset.theme=t;var l=q.get("lang");l=(l==="en"||l==="zh")?l:localStorage.getItem("blog-lang");document.documentElement.lang=l==="zh"?"zh-Hans":"en";}catch(e){document.documentElement.dataset.theme="dark"}})();</script>`;
+const HEAD_INIT = `<script>(function(){try{var q=new URLSearchParams(location.search);var t=localStorage.getItem("blog-theme");if(t!=="dark"&&t!=="light"){var u=q.get("theme");t=(u==="dark"||u==="light")?u:"dark";}document.documentElement.dataset.theme=t;var l=localStorage.getItem("blog-lang");if(l!=="en"&&l!=="zh"){var v=q.get("lang");l=(v==="en"||v==="zh")?v:null;}document.documentElement.lang=l==="zh"?"zh-Hans":"en";}catch(e){document.documentElement.dataset.theme="dark"}})();</script>`;
 
 /* Pre-paint cover for the pixel navigation curtain: when the previous
    page covered itself before jumping here, this must be on the very

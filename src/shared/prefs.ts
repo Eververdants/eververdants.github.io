@@ -4,12 +4,17 @@
  * always used (`blog-lang` / `blog-theme`), so a choice made on any page
  * follows the reader everywhere. Resolution order is:
  *
- *   ?lang= / ?theme=  →  localStorage  →  dark
+ *   localStorage  →  ?lang= / ?theme=  →  dark
  *
- * The URL override exists so a link can hand someone a specific language
- * (and so the prerendered zh article pages can be shared directly). The
- * theme falls back to dark because the terminal direction is the site's
- * default look; a reader who wants daylight picks it once in the bar.
+ * A stored choice outranks the URL. The override exists so a link can hand
+ * the site to someone who has not picked a language yet; once they have
+ * picked, pinning every visit to whatever a link happened to carry quietly
+ * discards that pick — and since resolvePrefs runs again on every reload and
+ * every cross-tab sync, the override would outlive the link that introduced
+ * it. (The zh articles are path-routed at /blog/zh/<slug>/, so nothing that
+ * needs a URL-forced language depends on this.) The theme falls back to dark
+ * because the terminal direction is the site's default look; a reader who
+ * wants daylight picks it once in the bar.
  * The inline pre-paint script in vite.config.ts mirrors this exactly —
  * keep the two in step.
  *
@@ -68,8 +73,8 @@ function urlOverride(): Partial<Prefs> {
 function resolvePrefs(): Prefs {
   const ov = urlOverride();
   return {
-    lang: ov.lang ?? asLang(read(LANG_KEY)) ?? "en",
-    theme: ov.theme ?? asTheme(read(THEME_KEY)) ?? "dark",
+    lang: asLang(read(LANG_KEY)) ?? ov.lang ?? "en",
+    theme: asTheme(read(THEME_KEY)) ?? ov.theme ?? "dark",
   };
 }
 
@@ -135,6 +140,14 @@ function emit(): void {
 export function subscribePrefs(fn: (p: Prefs) => void): () => void {
   listeners.add(fn);
   return () => listeners.delete(fn);
+}
+
+/** Whether the reader has ever chosen a language themselves. A reader who
+ * has keeps it everywhere — an article URL in the other language follows
+ * their choice, not the reverse. Only a reader without a stored choice
+ * adopts the language a shared article URL carries. */
+export function hasStoredLang(): boolean {
+  return asLang(read(LANG_KEY)) !== null;
 }
 
 /** Pick between two strings by language. */
