@@ -1,17 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges">
-  <!-- Pixel "W" on the dark field: one lime spot glyph, no antialiasing. -->
-  <rect width="16" height="16" fill="#060608"/>
-  <g fill="#c6ff4d">
-    <!-- left stem -->
-    <rect x="2" y="3" width="2" height="10"/>
-    <!-- right stem -->
-    <rect x="12" y="3" width="2" height="10"/>
-    <!-- inner diagonals -->
-    <rect x="4" y="9" width="2" height="2"/>
-    <rect x="6" y="11" width="1" height="2"/>
-    <rect x="9" y="11" width="1" height="2"/>
-    <rect x="10" y="9" width="2" height="2"/>
-    <!-- valley bottom -->
-    <rect x="7" y="13" width="2" height="1"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- The avatar: teal field, black pixel face. Square on purpose — the
+       squircle corners of avatar.webp go transparent and turn into smudged
+       tag-strip corners at 16px, so the icon is redrawn full-bleed on the
+       same 32-unit grid the artwork was built on. -->
+  <rect width="32" height="32" fill="#01ffcc"/>
+  <g fill="#000">
+    <rect x="5" y="10" width="2" height="2"/>
+    <rect x="25" y="10" width="2" height="2"/>
+    <rect x="11" y="12" width="2" height="4"/>
+    <rect x="18" y="12" width="2" height="4"/>
+    <rect x="11" y="14" width="9" height="2"/>
   </g>
 </svg>

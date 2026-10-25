@@ -1,4 +1,5 @@
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin } from "vite";
@@ -143,6 +144,23 @@ for (const key of [LANG_KEY, THEME_KEY]) {
 
 const HEAD_INIT = `<script>(function(){${BOOT_SOURCE}})();</script>`;
 
+/* Browsers cache a favicon by URL far harder than by headers — Chrome keeps
+   one per origin for hours and happily ignores a changed file behind an
+   unchanged href, so shipping new artwork under /favicon.svg can leave
+   returning readers staring at the old icon for a day. Stamping the href
+   with a digest of the file itself makes every redraw a new URL, with no
+   number to remember and bump. The manifest at /site.webmanifest declares
+   its own icon URLs and is read when the app is installed, so it needs no
+   stamp. */
+const PUBLIC_DIR = fileURLToPath(new URL("./public", import.meta.url));
+const iconQuery = (name: string) =>
+  `?v=${createHash("sha1")
+    .update(readFileSync(join(PUBLIC_DIR, name)))
+    .digest("hex")
+    .slice(0, 8)}`;
+const ICON_SVG_Q = iconQuery("favicon.svg");
+const ICON_PNG_Q = iconQuery("favicon.png");
+
 /* Pre-paint cover for the pixel navigation curtain: when the previous
    page covered itself before jumping here, this must be on the very
    first frame — a stylesheet-loaded cover would let the browser's
@@ -186,8 +204,8 @@ const SHARED_HEAD = [
   `<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f3ee" />`,
   `<meta property="og:locale" content="en_US" />`,
   `<meta property="og:locale:alternate" content="zh_CN" />`,
-  `<link rel="icon" href="/favicon.svg" type="image/svg+xml" />`,
-  `<link rel="icon" href="/favicon.png" type="image/png" />`,
+  `<link rel="icon" href="/favicon.svg${ICON_SVG_Q}" type="image/svg+xml" />`,
+  `<link rel="icon" href="/favicon.png${ICON_PNG_Q}" type="image/png" sizes="192x192" />`,
   `<link rel="apple-touch-icon" href="/apple-touch-icon.png" />`,
   `<link rel="manifest" href="/site.webmanifest" />`,
   /* Self-hosted variable Inter covers every display and UI weight.
